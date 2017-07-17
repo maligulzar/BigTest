@@ -1,0 +1,2 @@
+TARGETOPERATORS=+-*/
+MUTATIONMAPPING=+ -> -,- -> + , * -> / , / -> *
