@@ -1,0 +1,9 @@
+target=NumberExample
+
+symbolic.method=NumberExample.run(sym)
+
+classpath=${jpf-symbc}/../../Test-Minimization-in-Big-Data/spf_examples
+
+#symbolic.debug=true
+
+listener = gov.nasa.jpf.symbc.sequences.SymbolicSequenceListener

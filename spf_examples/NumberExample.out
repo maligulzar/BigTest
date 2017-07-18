@@ -1,0 +1,84 @@
+symbolic.min_int=-2147483648
+symbolic.min_long=-9223372036854775808
+symbolic.min_short=-32768
+symbolic.min_byte=-128
+symbolic.min_char=0
+symbolic.max_int=2147483647
+symbolic.max_long=9223372036854775807
+symbolic.max_short=32767
+symbolic.max_byte=127
+symbolic.max_char=65535
+symbolic.min_double=4.9E-324
+symbolic.max_double=1.7976931348623157E308
+JavaPathfinder core system v8.0 (rev 32) - (C) 2005-2014 United States Government. All rights reserved.
+
+
+====================================================== system under test
+NumberExample.main()
+
+====================================================== search started: 7/17/17 5:25 PM
+boo
+boo int
+constraint # = 2
+REAL_1[1.0] < CONST_10.0 &&
+REAL_1[1.0] = val
+foo
+foo int
+constraint # = 2
+CONST_10.0 = REAL_1[10.0] &&
+REAL_1[10.0] = val
+boo
+boo int
+constraint # = 2
+REAL_1[10.000001] > CONST_10.0 &&
+REAL_1[10.000001] = val
+
+====================================================== Method Sequences
+[		numberexample.run(1);]
+[		numberexample.run(10);]
+[		numberexample.run(2147483647);]
+
+====================================================== JUnit 4.0 test class
+import static org.junit.Assert.*;
+import org.junit.Before;
+import org.junit.Test;
+
+public class NumberExampleTest {
+
+	private NumberExample numberexample;
+
+	@Before
+	public void setUp() throws Exception {
+		numberexample = new NumberExample();
+	}
+
+	@Test
+	public void test0() {
+		numberexample.run(1);
+	}
+
+	@Test
+	public void test1() {
+		numberexample.run(10);
+	}
+
+	@Test
+	public void test2() {
+		numberexample.run(2147483647);
+	}
+}
+
+====================================================== results
+no errors detected
+
+====================================================== statistics
+elapsed time:       00:00:00
+states:             new=7,visited=0,backtracked=7,end=3
+search:             maxDepth=5,constraints=0
+choice generators:  thread=1 (signal=0,lock=1,sharedRef=0,threadApi=0,reschedule=0), data=4
+heap:               new=360,released=35,maxLive=346,gcCycles=6
+instructions:       3218
+max memory:         245MB
+loaded code:        classes=60,methods=1280
+
+====================================================== search finished: 7/17/17 5:25 PM
