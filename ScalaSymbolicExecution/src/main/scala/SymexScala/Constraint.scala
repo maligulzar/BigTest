@@ -23,10 +23,11 @@ object ArithmeticOp extends Enumeration {
 import ComparisonOp._
 import ArithmeticOp._
 
+//Need to add Type which shows type of the variable this constraint applies to
 class Constraint(str: String) {
     //there are (implicit) conjunctions between elements of array
-    val strClauses = str.split("&&")
-    val clauses: Array[Clause] = strClauses.map(str => new Clause(str))
+    val strClauses = str.replaceAll("\\s", "").split("&&")
+    val clauses: Array[Clause] = strClauses.map(str => parseClause(str))
 
     override def toString: String = {
         if(clauses.length == 0)
@@ -37,31 +38,40 @@ class Constraint(str: String) {
         }
         result
     }
-}
 
-class Clause(str: String) {
-
-    var leftExpr: Expr = null
-    var compOp: ComparisonOp = null
-    var rightExpr: Expr = null
-    parseClause(str)
-
-    def parseClause(str: String) = {
+    def parseClause(str: String): Clause = {
         val op = """<=|>=|==|!=|<|>""".r
         val matched = op.findAllIn(str).toArray
-        if(matched.length != 1) {
-            println("Parse Error: More than one (or none) comparison operator in one clause!")
+        if(matched.length > 1) {
+            println("Parse Error: More than one comparison operator in one clause!")
             exit(1)
+        } else if (matched.length == 0) {
+            return new Clause(str)
         }
 
-        this.compOp = ComparisonOp.withName(matched(0))
+        val comp = ComparisonOp.withName(matched(0))
         val index = str.indexOf(matched(0))
+        val leftStr = str.substring(0, index)
+        val rightStr = str.substring(index + matched(0).length)
 
-        val left = str.substring(0, index)
-        this.leftExpr = parseExpr(left)
+        return new Clause(leftStr, comp, rightStr)
+    }
 
-        val right = str.substring(index + matched(0).length)
-        this.rightExpr = parseExpr(right)
+    def apply(record: Int): Boolean = {
+        true //TODO: symbolic execution on udf
+    }
+}
+
+//may need to convert each clause to a partial evaluation
+class Clause (left: String, op: ComparisonOp = null, right: String = null) {
+
+    var leftExpr: Expr = parseExpr(left)
+    var compOp: ComparisonOp = op
+    var rightExpr: Expr = if(right != null) parseExpr(right) else null
+
+    override def toString: String = {
+        if(compOp == null || rightExpr == null) leftExpr.toString
+        else leftExpr.toString+" "+compOp.toString+" "+rightExpr.toString
     }
 
     def parseExpr(str: String): Expr = {
@@ -81,16 +91,20 @@ class Clause(str: String) {
                     val parsed = Integer.parseInt(str)
                     return ConcreteInt(parsed)
                 } catch {
-                    case e: NumberFormatException => return SymVar(str)
+                    case e: NumberFormatException => {
+                        try { 
+                            val bool = str.toBoolean
+                            return ConcreteBoolean(bool)
+                        } catch {
+                            case e: Exception => {
+                                return SymVar(str)
+                            }
+                        }
+                    }
                 }
             }
         }
     }
-
-    override def toString: String = {
-        leftExpr.toString+" "+compOp.toString+" "+rightExpr.toString
-    }
-
 }
 
 abstract class Expr {
@@ -106,6 +120,14 @@ case class ConcreteInt(value: Int) extends Expr {
     //TODO: Need to make it more generalized and include type information
     //for now, we only support Int
     override def toString: String = {value.toString}
+}
+
+case class ConcreteBoolean(value: Boolean) extends Expr {
+    val literal: Boolean = value
+
+    override def toString: String = {
+        literal.toString
+    }
 }
 
 case class PartialExpr(left: Expr, op: ArithmeticOp, right: Expr) extends Expr {

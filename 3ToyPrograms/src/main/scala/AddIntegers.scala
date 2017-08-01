@@ -20,3 +20,6 @@ object AddIntegers {
 
     }
 }
+
+    //PC.f1:  x' = Integer.parseInt(x)
+    //PC.f2: {x' = F(V)} <---- acc = V(0) ^ for(i <- 1 to N-1): acc = f(acc, V(i)) ^ acc = F(V)

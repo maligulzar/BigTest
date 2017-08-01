@@ -21,3 +21,8 @@ object AddEvenIntegers {
 
     }
 }
+
+    //PC.f1:  x' = Integer.parseInt(x)
+    //PC.f2: X = {x' = x for every x s.t. x%2 == 0}
+    //PC.f3: {x' = F(V)} <---- acc = V(0) ^ for(i <- 1 to N-1): acc = f(acc, V(i)) ^ acc = F(V)
+

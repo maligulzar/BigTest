@@ -21,3 +21,8 @@ object AddIntegersGt100 {
 
     }
 }
+
+
+    //PC.f1:  x' = Integer.parseInt(x)
+    //PC.f2: X = {x' = x for every x s.t. x > 100} v Y = {x' = 0 for every x s.t. !(x > 100)}
+    //PC.f3: {x' = F(V) for V = X.Y} <---- acc = V(0) ^ for(i <- 1 to N-1): acc = f(acc, V(i)) ^ acc = F(V)
