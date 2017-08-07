@@ -4,6 +4,9 @@ import org.apache.spark.rdd._
 import sys.process._
 
 object SymbolicEngine {
+
+    var afterMap: SetOfConstraints = null
+
     def run(data: RDD[Int], source: String): SetOfConstraints = {
         //1) parse source code to create AST
         //2) lift UDFs off the tree
@@ -24,9 +27,16 @@ object SymbolicEngine {
         // //   to get the final set of path constraints for whole program
 
         val start = new SetOfConstraints(data) //default: "true" as path constraint
-        val afterMap = start.map(fMap, udfPaths)
+        afterMap = start.map(fMap, udfPaths)
 
-        afterMap
+
+        val fFilter = new Function1[Int, Boolean] {
+            def apply(x: Int): Boolean = {x%2 == 0}
+        }
+
+        val afterMapFilter = afterMap.filter(fFilter)
+
+        afterMapFilter
 
     }
 }

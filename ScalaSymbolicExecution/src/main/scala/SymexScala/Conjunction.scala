@@ -62,7 +62,7 @@ object Conjunction {
         val op = """<=|>=|==|!=|<|>""".r
         val matched = op.findAllIn(str).toArray
         if(matched.length > 1) {
-            println("Parse Error: More than one comparison operator in one clause!")
+            println("Parse Error: More than one comparison operator in one clause: "+str)
             exit(1)
         } else if (matched.length == 0) {
             return new Clause(str)

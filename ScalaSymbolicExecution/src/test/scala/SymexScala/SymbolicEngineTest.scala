@@ -44,8 +44,8 @@ class SymbolicEngineTest extends FlatSpec with BeforeAndAfterAll with Matchers {
         val start = new SetOfConstraints(numbers)
         val afterMap = start.map(fMap, udfPaths)
 
-        result.paths.size should be (2)
-        assert(result.toString == afterMap.toString)
+        SymbolicEngine.afterMap.paths.size should be (2)
+        assert(SymbolicEngine.afterMap.toString == afterMap.toString)
         // println(result)
     }
 
@@ -57,14 +57,26 @@ class SymbolicEngineTest extends FlatSpec with BeforeAndAfterAll with Matchers {
     //     // println(result)
     // }
 
-    // "testAddIntegersGT100" should "return path constraint for a simple map" in {
-    //     val result = cut.run("map(line => Integer.parseInt(line)).map(x => if(x > 100) x else 0).reduce(_+_)")
-    //     assert(result.isInstanceOf[ReducePathConstraint])
-    //     val mapC = new Array[PathConstraint]()
-    //     mapC += new MapPathConstraint(new Array[PathConstraint](), new Constraint("x > 100"))
-    //     assert(result == new ReducePathConstraint(mapC, new Constraint("true")))
-    //     // println(result)
-    // }
+    "testAddEvenIntegersGT100" should "return path constraint for a simple map and filter" in {
+        val result = SymbolicEngine.run(numbers, "map(x => if(x > 100) x else 0).filter(_%2 == 0)")
+        assert(result.isInstanceOf[SetOfConstraints])
+
+        val fMap = new Function1[Int, Int] {
+            def apply(x: Int): Int = { if(x > 100) x else 0 }
+        }
+        val fFilter = new Function1[Int, Boolean] {
+            def apply(x: Int): Boolean = {x%2 == 0}
+        }
+
+        val mapUdfPaths = new Array[Conjunction](2)
+        mapUdfPaths(0) = Conjunction.parseConjunction("x > 100")
+        mapUdfPaths(1) = Conjunction.parseConjunction("x <= 100")
+        val start = new SetOfConstraints(numbers)
+        val afterMapFilter = start.map(fMap, mapUdfPaths).filter(fFilter)
+
+        result.paths.size should be (4)
+        assert(result.toString == afterMapFilter.toString)
+    }
 
     // "testAddEvenIntegers" should "return path constraint for a simple map" in {
     //     val result = cut.run("map(line => Integer.parseInt(line)).filter(_%2 == 0).reduce(_+_)")

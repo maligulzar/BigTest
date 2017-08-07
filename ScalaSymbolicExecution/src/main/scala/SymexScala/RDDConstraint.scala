@@ -58,12 +58,26 @@ class SetOfConstraints(V: RDD[Int], ps: Array[PathConstraint]) { // C(V)
     }
 
     //TODO: define filter, reduce API which will returns a new SetOfConstraints object as a result of operation
+
+    def filter(f: Function1[Int, Boolean]): SetOfConstraints = {
+        val product = new Array[PathConstraint](paths.size * 2)
+        var i = 0  
+        for(pa <- paths) {
+            val extraConj = Conjunction.parseConjunction("f(x) == true")
+            product(i) = new PathConstraint(dataset, pa.pc.conjunctWith(extraConj), f)
+
+            val extraNegConj = Conjunction.parseConjunction("f(x) == false")
+            product(i+1) = new PathConstraint(dataset, pa.pc.conjunctWith(extraNegConj), f)
+            i += 2
+        }
+        new SetOfConstraints(dataset, product)
+    }
 }
 
-class PathConstraint(V: RDD[Int], c: Conjunction, f: Function1[Int, Int]) {
+class PathConstraint(V: RDD[Int], c: Conjunction, f: Function1[Int, _]) {
     val dataset: RDD[Int] = V
     val pc: Conjunction = c
-    val effect: Function1[Int, Int] = f
+    val effect: Function1[Int, _] = f
 
     override def toString: String = {
         // "f = "+effect.toString+"\n"+
@@ -75,9 +89,9 @@ class PathConstraint(V: RDD[Int], c: Conjunction, f: Function1[Int, Int]) {
     }
 
     //Assuming that isSatisfied is called before getEffect on the record 
-    def apply(record: Int): Int = {
-        effect.apply(record)
-    }
+    // def apply(record: Int): _ = {
+    //     effect.apply(record)
+    // }
 
 }
 
@@ -95,21 +109,6 @@ class PathConstraint(V: RDD[Int], c: Conjunction, f: Function1[Int, Int]) {
 //                 if(udfConstraint.apply(record)) return new TriState("true")
 //                 else return new TriState("terminating")
 //             }
-//         }
-//         throw new NotFoundPathCondition(record.toString)
-//     }
-// }
-
-// case class ReducePathConstraint(C: Array[PathConstraint], udfConstraint: Constraint) extends PathConstraint {
-//     override def toString: String = {
-//         //TODO: for every two records maybe? Is it Cartesian product of f(ta) and Pa(ta)?
-//         "for all records (ta) in A, such that Pa is a member of C(A) where Pa(ta) && " + udfConstraint.toString
-//     }
-
-//     def apply(record: Int): TriState = {
-//         //for now: is it is the same as map, but should be revised later
-//         for(pa <- C) {
-//             if(pa.apply(record).toBoolean) return new TriState(udfConstraint.apply(record).toString)
 //         }
 //         throw new NotFoundPathCondition(record.toString)
 //     }
