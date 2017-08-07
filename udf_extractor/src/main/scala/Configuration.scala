@@ -18,7 +18,7 @@ object Configuration{
     "mapPartitionsWithIndex",
     "sample",
     "groupByKey",
-    "reduceBykey")
+    "reduceByKey")
 }
 
 class Configuration(filename: String) {

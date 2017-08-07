@@ -1,6 +1,5 @@
 import java.io.File
 import javax.security.auth.login.Configuration
-import org.apache.commons.io.FileUtils
 
 import scala.StringBuilder
 import scala.collection.mutable
@@ -157,20 +156,18 @@ class Extractor {
 
   def runOneFile(conf: Configuration, scalafile: String, outputfile: String): Unit = {
     val start = java.lang.System.currentTimeMillis()
-    println(conf.targetOp)
-    println(conf.mutationMapping)
     try {
       val sf = new File(scalafile)
       val mutatedList = this.mutate(sf.getAbsolutePath, conf)
       val dstFilePath = outputfile
       saveUDFsToFile(dstFilePath, sf)
-      println(s"""Mutation passed on  $scalafile  """)
+      println(s"""Extraction passed on  $scalafile  """)
     } catch {
       case e: Exception => {
         e.printStackTrace()
-        println(s"""Mutation failed on  $scalafile . Skipping.... """)
+        println(s"""Extraction failed on  $scalafile . Skipping.... """)
       }
-      case _ => println(s"""Mutation failed on  $scalafile . Skipping.... """)
+      case _ => println(s"""Extraction failed on  $scalafile . Skipping.... """)
 
     }
 
