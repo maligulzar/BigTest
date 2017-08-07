@@ -1,5 +1,8 @@
 package SymexScala
 
+import scala.collection.mutable.ArrayBuffer
+// import SymexScala.TriState
+
 object ComparisonOp extends Enumeration {
     type ComparisonOp = Value
     val Equality = Value("==")
@@ -23,11 +26,14 @@ object ArithmeticOp extends Enumeration {
 import ComparisonOp._
 import ArithmeticOp._
 
-//Need to add Type which shows type of the variable this constraint applies to
-class Constraint(str: String) {
-    //there are (implicit) conjunctions between elements of array
-    val strClauses = str.replaceAll("\\s", "").split("&&")
-    val clauses: Array[Clause] = strClauses.map(str => parseClause(str))
+class Conjunction(c: Array[Clause]) {
+    //there are (implicit) conjunctions among elements of array (clauses)
+    val clauses: Array[Clause] = c
+
+    def conjunctWith(other: Conjunction): Conjunction = {
+        //TODO: might want to simplify before merging, in case there are inconsistent clauses or repetitive ones
+        new Conjunction(clauses ++ other.clauses)
+    }
 
     override def toString: String = {
         if(clauses.length == 0)
@@ -37,6 +43,19 @@ class Constraint(str: String) {
             result += " && "+clauses(i)
         }
         result
+    }
+
+    def apply(record: Int): TriState = {
+        new TriState("true") //TODO: symbolic execution on udf
+    }
+}
+
+//companion object
+object Conjunction {
+    def parseConjunction(str: String): Conjunction = {
+        val strClauses = str.replaceAll("\\s", "").split("&&")
+        val clauses: Array[Clause] = strClauses.map(str => parseClause(str))
+        new Conjunction(clauses)
     }
 
     def parseClause(str: String): Clause = {
@@ -55,10 +74,6 @@ class Constraint(str: String) {
         val rightStr = str.substring(index + matched(0).length)
 
         return new Clause(leftStr, comp, rightStr)
-    }
-
-    def apply(record: Int): Boolean = {
-        true //TODO: symbolic execution on udf
     }
 }
 
