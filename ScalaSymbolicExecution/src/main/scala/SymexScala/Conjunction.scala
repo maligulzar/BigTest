@@ -1,7 +1,11 @@
 package SymexScala
 
 import scala.collection.mutable.ArrayBuffer
+import scala.reflect.runtime.universe._
 // import SymexScala.TriState
+
+import NumericUnderlyingType._
+import NonNumericUnderlyingType._
 
 object ComparisonOp extends Enumeration {
     type ComparisonOp = Value
@@ -27,8 +31,7 @@ import ComparisonOp._
 import ArithmeticOp._
 
 class Conjunction(c: Array[Clause]) {
-    //there are (implicit) conjunctions among elements of array (clauses)
-    val clauses: Array[Clause] = c
+    val clauses: Array[Clause] = c //there are (implicit) conjunctions among elements of array (clauses)
 
     def conjunctWith(other: Conjunction): Conjunction = {
         //TODO: might want to simplify before merging, in case there are inconsistent clauses or repetitive ones
@@ -44,10 +47,6 @@ class Conjunction(c: Array[Clause]) {
         }
         result
     }
-
-    def apply(record: Int): TriState = {
-        new TriState("true") //TODO: symbolic execution on udf
-    }
 }
 
 //companion object
@@ -59,94 +58,121 @@ object Conjunction {
     }
 
     def parseClause(str: String): Clause = {
+        //TODO: remove () from beginning and end of clause
         val op = """<=|>=|==|!=|<|>""".r
         val matched = op.findAllIn(str).toArray
         if(matched.length > 1) {
             println("Parse Error: More than one comparison operator in one clause: "+str)
             exit(1)
         } else if (matched.length == 0) {
-            return new Clause(str)
+            return new Clause(parseExpr(str)) //Expr
         }
 
         val comp = ComparisonOp.withName(matched(0))
         val index = str.indexOf(matched(0))
-        val leftStr = str.substring(0, index)
-        val rightStr = str.substring(index + matched(0).length)
+
+        val leftStr = parseExpr(str.substring(0, index))
+        val rightStr = parseExpr(str.substring(index + matched(0).length))
 
         return new Clause(leftStr, comp, rightStr)
+    }
+
+    def parseExpr(str: String): Expr[_] = {
+        //first check for partialExpr
+        val op = """\+|-|\*|/""".r
+        return SymVar[Numeric](str)
+        // op.findFirstIn(str) match {
+        //     case Some(matched) => {
+        //         //ArithmeticOp(matched)
+        //         val index = str.indexOf(matched)
+        //         val left = str.substring(0, index)
+        //         val right = str.substring(index + 1)
+        //         return PartialExpr(parseExpr(left), ArithmeticOp.withName(matched), parseExpr(right))
+        //     }
+        //     case None => { //it did not contain any arithmetic operator
+        //         try {
+        //             val parsed = Integer.parseInt(str)
+        //             return ConcreteValue[Numeric](parsed)
+        //         } catch {
+        //             case e: NumberFormatException => {
+        //                 try { 
+        //                     val bool = str.toBoolean
+        //                     return ConcreteValue[NonNumeric](parsed)
+        //                 } catch {
+        //                     case e: Exception => {
+        //                         return SymVar[Numeric](str) //TODO: how should I know?
+        //                     }
+        //                 }
+        //             }
+        //         }
+        //     }
+        // }
     }
 }
 
 //may need to convert each clause to a partial evaluation
-class Clause (left: String, op: ComparisonOp = null, right: String = null) {
+class Clause (left: Expr[_], op: ComparisonOp = null, right: Expr[_] = null) {
 
-    var leftExpr: Expr = parseExpr(left)
+    var leftExpr: Expr[_] = left
     var compOp: ComparisonOp = op
-    var rightExpr: Expr = if(right != null) parseExpr(right) else null
+    var rightExpr: Expr[_] = right
 
     override def toString: String = {
         if(compOp == null || rightExpr == null) leftExpr.toString
         else leftExpr.toString+" "+compOp.toString+" "+rightExpr.toString
     }
+}
 
-    def parseExpr(str: String): Expr = {
-        //first check for partialExpr
-        //TODO: remove () from beginning and end of an expr
-        val op = """\+|-|\*|/""".r
-        op.findFirstIn(str) match {
-            case Some(matched) => {
-                //ArithmeticOp(matched)
-                val index = str.indexOf(matched)
-                val left = str.substring(0, index)
-                val right = str.substring(index + 1)
-                return PartialExpr(parseExpr(left), ArithmeticOp.withName(matched), parseExpr(right))
-            }
-            case None => { //it did not contain any arithmetic operator
-                try {
-                    val parsed = Integer.parseInt(str)
-                    return ConcreteInt(parsed)
-                } catch {
-                    case e: NumberFormatException => {
-                        try { 
-                            val bool = str.toBoolean
-                            return ConcreteBoolean(bool)
-                        } catch {
-                            case e: Exception => {
-                                return SymVar(str)
-                            }
-                        }
-                    }
-                }
-            }
+
+abstract class Expr[T <: VType] {
+    def toString: String
+    def check: Boolean
+}
+
+abstract class Terminal[T <: VType] extends Expr[T] {
+    override def check: Boolean = {true}
+}
+
+case class Operator[T <: VType](op: ArithmeticOp) extends Terminal[T] {
+    override def toString: String = {"op("+op+")"}
+}
+
+case class SymVar[T <: VType](name: String) extends Terminal[T] {
+    // val typeOfVar: Type = typeOf[T]
+    override def toString: String = {"SymVar("+name+")"}
+}
+
+case class ConcreteValue[T <: VType](value: AnyVal) extends Terminal[T] {
+    override def toString: String = {value.toString}
+
+    //TODO: check if ConcreteValue is parsed according to specified type successfully
+    // override def check: Boolean = {
+    //     typeOf[T] match {
+    //         case x: Numeric => {
+    //             try{
+    //                 x.ut case 
+    //             }
+    //         }
+    //         case y: NonNumeric =>
+    //     }
+    // }
+}
+
+case class NonTerminal[T <: VType](middle: Terminal[T], left: Expr[T] = null, right: Expr[T] = null) extends Expr[T] {
+    val opOrLeaf: Terminal[T] = middle
+
+    val leftExpr: Expr[T] = left
+    val rightExpr: Expr[T] = right
+
+    override def check: Boolean = {
+        opOrLeaf match {
+            case op: Operator[_] => 
+                (leftExpr != null && rightExpr != null
+                    && leftExpr.check && rightExpr.check)
+            case _ => opOrLeaf.check //it's either a symVar or a concereteValue 
         }
     }
+
 }
 
-abstract class Expr {
-    def toString: String
-}
-
-case class SymVar(name: String) extends Expr {
-    //TODO: What else?
-    override def toString: String = {"Sym_"+name}
-}
-
-case class ConcreteInt(value: Int) extends Expr {
-    //TODO: Need to make it more generalized and include type information
-    //for now, we only support Int
-    override def toString: String = {value.toString}
-}
-
-case class ConcreteBoolean(value: Boolean) extends Expr {
-    val literal: Boolean = value
-
-    override def toString: String = {
-        literal.toString
-    }
-}
-
-case class PartialExpr(left: Expr, op: ArithmeticOp, right: Expr) extends Expr {
-    //TODO: probably need to add simplify method later
-    override def toString: String = {left.toString+" "+op.toString+" "+right.toString}
-}
 

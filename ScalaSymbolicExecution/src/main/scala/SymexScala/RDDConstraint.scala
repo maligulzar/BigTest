@@ -84,10 +84,6 @@ class PathConstraint(V: RDD[Int], c: Conjunction, f: Function1[Int, _]) {
         "pc = "+pc.toString+"\n"+"{f(v) | for all v member of V, pc(v)}\n"+"--------------------"
     }
 
-    def isSatisfied(record: Int): TriState = {
-        pc.apply(record)
-    }
-
     //Assuming that isSatisfied is called before getEffect on the record 
     // def apply(record: Int): _ = {
     //     effect.apply(record)
