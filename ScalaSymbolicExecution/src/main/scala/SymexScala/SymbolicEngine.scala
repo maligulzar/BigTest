@@ -10,9 +10,6 @@ object SymbolicEngine {
     def run(data: RDD[Int], source: String): SetOfConstraints = {
         //1) parse source code to create AST
         //2) lift UDFs off the tree
-        val fMap = new Function1[Int, Int] {
-            def apply(x: Int): Int = { if(x > 100) x else 0 }
-        }
 
         val op = "map"
 
@@ -26,17 +23,17 @@ object SymbolicEngine {
         // //4) call SetOfConstraints spark operation APIs according to the source code operations
         // //   to get the final set of path constraints for whole program
 
-        val start = new SetOfConstraints(data) //default: "true" as path constraint
-        afterMap = start.map(fMap, udfPaths)
+        val start = new SetOfConstraints() //default: "true" as path constraint
+        // afterMap = start.map(udfPaths)
 
 
-        val fFilter = new Function1[Int, Boolean] {
-            def apply(x: Int): Boolean = {x%2 == 0}
-        }
+        // val fFilter = new Function1[Int, Boolean] {
+        //     def apply(x: Int): Boolean = {x%2 == 0}
+        // }
 
-        val afterMapFilter = afterMap.filter(fFilter)
+        // val afterMapFilter = afterMap.filter(fFilter)
 
-        afterMapFilter
+        start
 
     }
 }

@@ -47,6 +47,21 @@ class Conjunction(c: Array[Clause]) {
         }
         result
     }
+
+    def replace(x: SymVar, updated: Expr) = {
+        for(c <- clauses) {
+            // if(c.contains(x)) 
+            c.replace(x, updated)
+        }
+    }
+
+    def checkValidity(ss: SymbolicState): Boolean = {
+        var result: Boolean = true
+        for(c <- clauses) {
+            result &= c.checkValidity(ss)
+        }
+        result
+    }
 }
 
 //companion object
@@ -77,10 +92,10 @@ object Conjunction {
         return new Clause(leftStr, comp, rightStr)
     }
 
-    def parseExpr(str: String): Expr[_] = {
+    def parseExpr(str: String): Expr = {
         //first check for partialExpr
         val op = """\+|-|\*|/""".r
-        return SymVar[Numeric](str)
+        return SymVar(Numeric(_Int), str)
         // op.findFirstIn(str) match {
         //     case Some(matched) => {
         //         //ArithmeticOp(matched)
@@ -110,69 +125,115 @@ object Conjunction {
     }
 }
 
-//may need to convert each clause to a partial evaluation
-class Clause (left: Expr[_], op: ComparisonOp = null, right: Expr[_] = null) {
+class Clause (left: Expr, op: ComparisonOp = null, right: Expr = null) {
 
-    var leftExpr: Expr[_] = left
-    var compOp: ComparisonOp = op
-    var rightExpr: Expr[_] = right
+    var leftExpr: Expr = left
+    val compOp: ComparisonOp = op
+    var rightExpr: Expr = right
+    assert(left != null)
 
     override def toString: String = {
         if(compOp == null || rightExpr == null) leftExpr.toString
         else leftExpr.toString+" "+compOp.toString+" "+rightExpr.toString
     }
-}
 
+    def replace(x: SymVar, updated: Expr) = {
+        leftExpr = leftExpr.replace(x, updated)
 
-abstract class Expr[T <: VType] {
-    def toString: String
-    def check: Boolean
-}
-
-abstract class Terminal[T <: VType] extends Expr[T] {
-    override def check: Boolean = {true}
-}
-
-case class Operator[T <: VType](op: ArithmeticOp) extends Terminal[T] {
-    override def toString: String = {"op("+op+")"}
-}
-
-case class SymVar[T <: VType](name: String) extends Terminal[T] {
-    // val typeOfVar: Type = typeOf[T]
-    override def toString: String = {"SymVar("+name+")"}
-}
-
-case class ConcreteValue[T <: VType](value: AnyVal) extends Terminal[T] {
-    override def toString: String = {value.toString}
-
-    //TODO: check if ConcreteValue is parsed according to specified type successfully
-    // override def check: Boolean = {
-    //     typeOf[T] match {
-    //         case x: Numeric => {
-    //             try{
-    //                 x.ut case 
-    //             }
-    //         }
-    //         case y: NonNumeric =>
-    //     }
-    // }
-}
-
-case class NonTerminal[T <: VType](middle: Terminal[T], left: Expr[T] = null, right: Expr[T] = null) extends Expr[T] {
-    val opOrLeaf: Terminal[T] = middle
-
-    val leftExpr: Expr[T] = left
-    val rightExpr: Expr[T] = right
-
-    override def check: Boolean = {
-        opOrLeaf match {
-            case op: Operator[_] => 
-                (leftExpr != null && rightExpr != null
-                    && leftExpr.check && rightExpr.check)
-            case _ => opOrLeaf.check //it's either a symVar or a concereteValue 
+        if(rightExpr != null) {
+            rightExpr = rightExpr.replace(x, updated)
         }
     }
 
+    def checkValidity(ss: SymbolicState): Boolean = {
+        var leftRes = leftExpr.checkValidity(ss)
+
+        if(rightExpr != null) leftRes && rightExpr.checkValidity(ss)
+        else leftRes
+    }
+}
+
+
+abstract class Expr {
+    val actualType: VType
+
+    def toString: String
+    def replace(x: SymVar, updated: Expr): Expr
+    def checkValidity(ss: SymbolicState): Boolean
+}
+
+abstract class Terminal extends Expr {}
+
+case class Operator(atype: VType, op: ArithmeticOp) /*extends Terminal*/ {
+    val actualType = atype
+    override def toString: String = {"op("+op+")"}
+}
+
+case class SymVar(atype: VType, name: String) extends Terminal {
+    val actualType = atype
+
+    override def toString: String = {"SymVar("+name+"): "+actualType}
+
+    override def replace(x: SymVar, updated: Expr): Expr = {
+        if(this.equals(x)) updated
+        else this
+    }
+
+    override def checkValidity(ss: SymbolicState): Boolean = {
+        ss.isDefined(this)
+    }
+}
+
+case class ConcreteValue(atype: VType, value: String) extends Terminal {
+    val actualType = atype
+
+    //check validity of passed ConcreteValue
+    assert(atype match {
+        case t: Numeric => try {
+                val v = value.toDouble
+                true
+            } catch {
+                case _: java.lang.NumberFormatException => false
+            }
+        case t: NonNumeric =>
+            if(t.underlyingType == _Boolean) {
+                try {
+                    val b = value.toBoolean
+                    true
+                } catch {
+                    case _:java.lang.IllegalArgumentException => false
+                }
+            }
+            else true
+    })
+
+    override def toString: String = {value.toString+" of type "+actualType}
+
+    override def replace(x: SymVar, updated: Expr): Expr = {this}
+
+    override def checkValidity(ss: SymbolicState): Boolean = {true}
+}
+
+// case class UnaryExpr(op: Operator, right: Expr) extends Expr{}
+
+case class NonTerminal(left: Expr, middle: Operator, right: Expr) extends Expr {
+    val op: Operator = middle
+
+    val leftExpr: Expr = left
+    val rightExpr: Expr = right
+
+    //check validity of this partial expression before proceeding
+    assert(left != null && right != null)
+    assert(op.actualType == leftExpr.actualType && op.actualType == rightExpr.actualType)
+    val actualType = op.actualType
+
+    override def replace(x: SymVar, updated: Expr): Expr = {
+        new NonTerminal(left.replace(x, updated), op, right.replace(x, updated))
+    }
+
+    override def checkValidity(ss: SymbolicState): Boolean = {
+        leftExpr.checkValidity(ss) && rightExpr.checkValidity(ss)
+    }
 }
 
 

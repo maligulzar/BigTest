@@ -18,9 +18,7 @@ class TriState(s: String) {
     override def toString: String = {state}
 }
 
-class SetOfConstraints(V: RDD[Int], ps: Array[PathConstraint]) { // C(V)
-    val dataset: RDD[Int] = V
-
+class SetOfConstraints(ps: Array[PathConstraint]) { // C(V)
     //different paths each being satisfied by an equivalent class of tuples in dataset V
     val paths: Array[PathConstraint] = ps 
 
@@ -30,64 +28,74 @@ class SetOfConstraints(V: RDD[Int], ps: Array[PathConstraint]) { // C(V)
         result
     }
 
-    def this(V: RDD[Int]) {
-        this(V, new Array[PathConstraint](1))
-        //TODO: define identity as singleton
-        val identity = new Function1[Int, Int] {
-            def apply(x: Int): Int = x
-        }
-        paths(0) = new PathConstraint(V, Conjunction.parseConjunction("true"), identity)
+    def this() {
+        this(new Array[PathConstraint](1))
+        
+        // val identity = new Function1[Int, Int] {
+        //     def apply(x: Int): Int = x
+        // }
+        paths(0) = new PathConstraint(Conjunction.parseConjunction("true"), new Array[Tuple2[SymVar, Expr]](0))
     }
 
-    def map(f: Function1[Int, Int], pathsOfUDF: Array[Conjunction]): SetOfConstraints = {
+    def map(pathsOfUDF: Array[PathConstraint]): SetOfConstraints = {
+        val state: SymbolicState = new SymbolicState(this)
         //returns Cartesian product of already existing paths *  set of paths from given udf
         val product = new Array[PathConstraint](paths.size * pathsOfUDF.size)
         var i = 0  
         for(pa <- paths) {
             for(udfC <- pathsOfUDF) {
-                //TODO: decide to restrict dataset to only parts of the data which satisfies the constraint either here
-                // or later in the PathConstraint constructor
-                //TODO*: take care of dataset argument according to below comment
-                product(i) = new PathConstraint(dataset, pa.pc.conjunctWith(udfC), f)
+                product(i) = pa.conjunctWith(udfC)
                 i += 1
             }
         }
-        //*TODO: this affected dataset should be consistent with the dataset passed to each of product PathConstraint members!!
-        // val affected = dataset.map(x => f(x))
-        new SetOfConstraints(dataset, product)
+        new SetOfConstraints(product)
     }
 
-    //TODO: define filter, reduce API which will returns a new SetOfConstraints object as a result of operation
-
-    def filter(f: Function1[Int, Boolean]): SetOfConstraints = {
+    //TODO: later I have to generalize this API more so as to instead of taking a PathConstraint,
+    //it would take a function(f) of Any to Boolean and creates a path consisting of f(x) == true as its constraint and identity as its effect
+    // as well as another terminating path with f(x) != true as its constraint
+    def filter(udfPath: PathConstraint): SetOfConstraints = {
         val product = new Array[PathConstraint](paths.size * 2)
-        var i = 0  
+        var i = 0
         for(pa <- paths) {
-            val extraConj = Conjunction.parseConjunction("f(x) == true")
-            product(i) = new PathConstraint(dataset, pa.pc.conjunctWith(extraConj), f)
+            //val extraConj = Conjunction.parseConjunction("f(x) == true")
+            product(i) = pa.conjunctWith(udfPath)
 
-            val extraNegConj = Conjunction.parseConjunction("f(x) == false")
-            product(i+1) = new PathConstraint(dataset, pa.pc.conjunctWith(extraNegConj), f)
+            // val extraNegConj = Conjunction.parseConjunction("f(x) == false")
+            // product(i+1) = new PathConstraint(pa.pc.conjunctWith(extraNegConj))
             i += 2
         }
-        new SetOfConstraints(dataset, product)
+        new SetOfConstraints(product)
     }
 }
 
-class PathConstraint(V: RDD[Int], c: Conjunction, f: Function1[Int, _]) {
-    val dataset: RDD[Int] = V
-    val pc: Conjunction = c
-    val effect: Function1[Int, _] = f
+class PathConstraint(c: Conjunction, udfEffect: Array[Tuple2[SymVar, Expr]]) {
+    var pc: Conjunction = c
+    var effect: Array[Tuple2[SymVar, Expr]] = udfEffect
 
     override def toString: String = {
+        //TODO: reflect effect for different variables not only return variables
         // "f = "+effect.toString+"\n"+
         "pc = "+pc.toString+"\n"+"{f(v) | for all v member of V, pc(v)}\n"+"--------------------"
     }
 
-    //Assuming that isSatisfied is called before getEffect on the record 
-    // def apply(record: Int): _ = {
-    //     effect.apply(record)
-    // }
+    def conjunctWith(other: PathConstraint): PathConstraint = {
+        for(e <- effect) { //reflect each previous effect into coming path constraint variables
+            other.replace(e._1, e._2)
+        }
+        other
+    }
+
+    def replace(x: SymVar, updated: Expr) = {
+        this.pc.replace(x, updated)
+        effect = effect.map(e => (e._1, e._2.replace(x, updated)))
+    }
+
+    def checkValidity(ss: SymbolicState): Boolean = {
+        var result = this.pc.checkValidity(ss)
+        for(e <- effect) result &= e._2.checkValidity(ss)
+        result
+    }
 
 }
 

@@ -10,11 +10,14 @@ object Main {
         // val x = Conjunction.parseConjunction("x < 1 && y == 2 && z>y")
         import ComparisonOp._
         import ArithmeticOp._
-        val c = new Clause(new NonTerminal[Numeric](new Operator[Numeric](Addition),
-                                                    new SymVar[Numeric]("x"),
-                                                    new ConcreteValue[Numeric](5)),
+        import NumericUnderlyingType._
+        import NonNumericUnderlyingType._
+
+        val c = new Clause(new NonTerminal(new SymVar(Numeric(_Int), "x"),
+                                            new Operator(Numeric(_Int), Addition),
+                                            new ConcreteValue(Numeric(_Int), "5")),
                             LessThanOrEq,
-                            new NonTerminal[Numeric](new ConcreteValue[Numeric](7))
+                            new ConcreteValue(Numeric(_Int), "7")
                             )
         println(c)
 
