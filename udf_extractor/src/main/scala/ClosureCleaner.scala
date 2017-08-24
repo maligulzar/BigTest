@@ -40,7 +40,6 @@ import org.apache.spark.internal.Logging
     val thistype = Type.getArgumentTypes(desc)
     val thisreturn = Type.getReturnType(desc)
     val aname = thistype.map{s => println(s)}
-
     val cname  = thisreturn.getClassName
 
     new MethodVisitor(ASM5) {
