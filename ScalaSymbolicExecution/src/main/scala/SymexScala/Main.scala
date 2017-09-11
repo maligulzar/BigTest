@@ -3,23 +3,43 @@ package SymexScala
 import org.apache.spark.{ SparkContext, SparkConf }
 import org.apache.log4j.{ Logger, Level }
 import org.apache.spark.rdd._
+import java.util.Properties
+
+import gov.nasa.jpf.tool.RunJPF
+import gov.nasa.jpf.JPF
+import gov.nasa.jpf.Config
+import gov.nasa.jpf.util.Pair
+import gov.nasa.jpf.symbc.SymbolicListener
+import gov.nasa.jpf.symbc.numeric.Expression
+import gov.nasa.jpf.symbc.numeric.PathCondition
+import gov.nasa.jpf.symbc.numeric.BinaryLinearIntegerExpression
+import gov.nasa.jpf.symbc.numeric.SymbolicInteger
+import gov.nasa.jpf.symbc.numeric.Operator._
+import gov.nasa.jpf.symbc.numeric.IntegerConstant
+import gov.nasa.jpf.symbc.numeric.Comparator._
+
+
+import NumericUnderlyingType._
+import NonNumericUnderlyingType._
 
 object Main {
 
     def main(args: Array[String]): Unit = {
-        // val x = Conjunction.parseConjunction("x < 1 && y == 2 && z>y")
-        import ComparisonOp._
-        import ArithmeticOp._
-        import NumericUnderlyingType._
-        import NonNumericUnderlyingType._
 
-        val c = new Clause(new NonTerminal(new SymVar(Numeric(_Int), "x"),
-                                            new Operator(Numeric(_Int), Addition),
-                                            new ConcreteValue(Numeric(_Int), "5")),
-                            LessThanOrEq,
-                            new ConcreteValue(Numeric(_Int), "7")
-                            )
-        println(c)
+        val props = System.getProperties()
+        println(System.getProperty("java.class.path"))
+
+        val injectedListener = new PathEffectListenerImp()
+        val arguments = Array("../../jpf/jpf-symbc/src/examples/Effect.jpf")
+        val config: Config = JPF.createConfig(arguments)
+        val jpf: JPF = new JPF(config)
+        val symbc: SymbolicListener = new SymbolicListener(config, jpf)
+        symbc.registerPathEffectListener(injectedListener)
+        jpf.addListener(symbc)
+        jpf.run()
+
+        injectedListener.convertAll("x")
+
 
         // Logger.getLogger("org").setLevel(Level.OFF)
         // Logger.getLogger("akka").setLevel(Level.OFF)
@@ -36,7 +56,7 @@ object Main {
         // val output = SymbolicEngine.run(numbers, "text")
         // println(output)
         //inputDataSet: RDD[Int], udf: Function1[Int,Int], constraint: Constraint
-        // val pc1 = new PathConstraint(numbers, new Constraint("true && x > 100"), new Function1[Int, Int] {def apply(x: Int) = x})
-        // val pc2 = new PathConstraint(numbers, new Constraint("true && x <= 100"), new Function1[Int, Int] {def apply(x: Int) = 0})
+        // val pc1 = new PathAndEffect(numbers, new Constraint("true && x > 100"), new Function1[Int, Int] {def apply(x: Int) = x})
+        // val pc2 = new PathAndEffect(numbers, new Constraint("true && x <= 100"), new Function1[Int, Int] {def apply(x: Int) = 0})
     }
 }

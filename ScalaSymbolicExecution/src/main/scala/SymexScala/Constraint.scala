@@ -2,10 +2,10 @@ package SymexScala
 
 import scala.collection.mutable.ArrayBuffer
 import scala.reflect.runtime.universe._
-// import SymexScala.TriState
 
 import NumericUnderlyingType._
 import NonNumericUnderlyingType._
+ 
 
 object ComparisonOp extends Enumeration {
     type ComparisonOp = Value
@@ -30,12 +30,12 @@ object ArithmeticOp extends Enumeration {
 import ComparisonOp._
 import ArithmeticOp._
 
-class Conjunction(c: Array[Clause]) {
+class Constraint(c: Array[Clause]) {
     val clauses: Array[Clause] = c //there are (implicit) conjunctions among elements of array (clauses)
 
-    def conjunctWith(other: Conjunction): Conjunction = {
+    def conjunctWith(other: Constraint): Constraint = {
         //TODO: might want to simplify before merging, in case there are inconsistent clauses or repetitive ones
-        new Conjunction(clauses ++ other.clauses)
+        new Constraint(clauses ++ other.clauses)
     }
 
     override def toString: String = {
@@ -65,11 +65,11 @@ class Conjunction(c: Array[Clause]) {
 }
 
 //companion object
-object Conjunction {
-    def parseConjunction(str: String): Conjunction = {
+object Constraint {
+    def parseConstraint(str: String): Constraint = {
         val strClauses = str.replaceAll("\\s", "").split("&&")
         val clauses: Array[Clause] = strClauses.map(str => parseClause(str))
-        new Conjunction(clauses)
+        new Constraint(clauses)
     }
 
     def parseClause(str: String): Clause = {
@@ -164,15 +164,17 @@ abstract class Expr {
 
 abstract class Terminal extends Expr {}
 
-case class Operator(atype: VType, op: ArithmeticOp) /*extends Terminal*/ {
+case class SymOp(atype: VType, op: ArithmeticOp) /*extends Terminal*/ {
     val actualType = atype
-    override def toString: String = {"op("+op+")"}
+    override def toString: String = {op.toString}
 }
 
 case class SymVar(atype: VType, name: String) extends Terminal {
     val actualType = atype
 
-    override def toString: String = {"SymVar("+name+"): "+actualType}
+    override def toString: String = {name/*+": "+actualType*/}
+
+    def getName(): String = {name}
 
     override def replace(x: SymVar, updated: Expr): Expr = {
         if(this.equals(x)) updated
@@ -207,17 +209,17 @@ case class ConcreteValue(atype: VType, value: String) extends Terminal {
             else true
     })
 
-    override def toString: String = {value.toString+" of type "+actualType}
+    override def toString: String = {value.toString/*+" of type "+actualType*/}
 
     override def replace(x: SymVar, updated: Expr): Expr = {this}
 
     override def checkValidity(ss: SymbolicState): Boolean = {true}
 }
 
-// case class UnaryExpr(op: Operator, right: Expr) extends Expr{}
+// case class UnaryExpr(op: SymOp, right: Expr) extends Expr{}
 
-case class NonTerminal(left: Expr, middle: Operator, right: Expr) extends Expr {
-    val op: Operator = middle
+case class NonTerminal(left: Expr, middle: SymOp, right: Expr) extends Expr {
+    val op: SymOp = middle
 
     val leftExpr: Expr = left
     val rightExpr: Expr = right
@@ -233,6 +235,10 @@ case class NonTerminal(left: Expr, middle: Operator, right: Expr) extends Expr {
 
     override def checkValidity(ss: SymbolicState): Boolean = {
         leftExpr.checkValidity(ss) && rightExpr.checkValidity(ss)
+    }
+
+    override def toString(): String = {
+        left.toString+" "+op.toString+" "+right.toString
     }
 }
 

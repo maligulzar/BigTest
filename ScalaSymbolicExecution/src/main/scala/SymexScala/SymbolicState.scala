@@ -3,10 +3,14 @@ package SymexScala
 import scala.collection.mutable.ArrayBuffer
 import scala.collection.mutable.Map
 
-class SymbolicState(init: SetOfConstraints) {
+class SymbolicState(init: SymbolicResult) {
     val symbolicEnv: Map[String, SymbolicVarDef] = Map[String, SymbolicVarDef]()
-    val pc: SetOfConstraints = init
+    val pc: SymbolicResult = init
     val scopePointer: Int = 0
+
+    def this() {
+        this(new SymbolicResult()) //p = true and no variable is defined yet
+    }
 
     def updateVarInEnv(name: String, vt: VType, newSymValue: Expr) = {
         var varDef = symbolicEnv.getOrElse(name, null)
@@ -35,6 +39,13 @@ class SymbolicState(init: SetOfConstraints) {
         else false
     }
 
+    //returns null if no variable is defined under such a name!
+    def getSymVar(name: String): SymVar = {
+        val found = symbolicEnv.getOrElse(name, null)
+        if(found != null) found.variable
+        else null   
+    }
+
     // def test() {
     //     symbolicEnv += new SymbolicVarDef[Int]("x")
     //     symbolicEnv += new SymbolicVarDef[String]("y")
@@ -54,6 +65,9 @@ class SymbolicVarDef(name: String, vt: VType, sid: Int) {
     var symbolicValue: Expr = variable //initially it is same as symbolicVariable
     val scopeID: Int = sid
 
+    override def toString: String = {
+        "scope ID "+scopeID+": "+variable.toString+" -> "+symbolicValue.toString
+    }
 
     def updateEffect(effect: Expr) = {
         println("Variable "+name+" updated from "+symbolicValue+" to "+effect)

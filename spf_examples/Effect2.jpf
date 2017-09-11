@@ -1,0 +1,14 @@
+target=Effect2
+
+classpath=${jpf-symbc}/../../Test-Minimization-in-Big-Data/spf_examples
+
+symbolic.method= Effect2.test(sym#sym)
+
+#symbolic.dp=yices
+
+#symbolic.debug=true
+
+#listener = .symbc.SymbolicListener
+listener = gov.nasa.jpf.symbc.sequences.SymbolicSequenceListener
+
+symbolic.lazy=on
