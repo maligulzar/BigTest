@@ -1,0 +1,11 @@
+target=WordCountanonfunmain1
+
+classpath=${jpf-symbc}/build/examples
+#sourcepath=${jpf-symbc}/src/examples
+
+symbolic.method=WordCountanonfunmain1.apply$mcII$sp(sym)
+
+symbolic.debug=true
+
+listener = gov.nasa.jpf.symbc.SymbolicListener
+#listener = gov.nasa.jpf.symbc.sequences.SymbolicSequenceListener #for test-case generation
