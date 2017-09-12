@@ -6,5 +6,6 @@ scalaVersion := "2.11.8"
 
 libraryDependencies ++= Seq(
   "org.scala-lang" % "scala-reflect" % scalaVersion.value,
-  "org.scala-lang" % "scala-compiler" % scalaVersion.value
+  "org.scala-lang" % "scala-compiler" % scalaVersion.value,
+  "org.apache.xbean" % "xbean-asm5-shaded" % "3.17"
 )
