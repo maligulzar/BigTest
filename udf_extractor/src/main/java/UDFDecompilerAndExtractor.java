@@ -36,25 +36,23 @@ public class UDFDecompilerAndExtractor extends Logging {
             public boolean visit(MethodDeclaration node) {
                 SimpleName name = node.getName();
                 this.names.add(name.getIdentifier());
-                if (name.toString().contains("apply")) {
-                    current_fun = name.toString();
-                    loginfo(LogType.DEBUG, node.toString());
-                    Modifier mod = ((Modifier) node.modifiers().get(0));
-                    mod.setKeyword(Modifier.ModifierKeyword.STATIC_KEYWORD);
-                    u_writer.enrollFunction(name.toString() , node.toString() + "\n  ");
-                }
+                current_fun = name.toString();
+                loginfo(LogType.DEBUG, node.toString());
+                Modifier mod = ((Modifier) node.modifiers().get(0));
+                mod.setKeyword(Modifier.ModifierKeyword.STATIC_KEYWORD);
+                u_writer.enrollFunction(name.toString(), node.toString() + "\n  ");
                 return true;
             }
 
             public boolean visit(MethodInvocation inv) {
-                if (call_graph.containsKey(current_fun) && !current_fun.equals(inv.getName().toString()) ) {
+                if (call_graph.containsKey(current_fun) && !current_fun.equals(inv.getName().toString())) {
 
                     call_graph.get(current_fun).add(inv.getName().toString());
                 } else {
                     ArrayList<String> temp = new ArrayList<String>();
                     temp.add(inv.getName().toString());
-                    if(!current_fun.equals(inv.getName().toString()))
-                    call_graph.put(current_fun, temp);
+                    if (!current_fun.equals(inv.getName().toString()))
+                        call_graph.put(current_fun, temp);
                 }
                 loginfo(LogType.DEBUG, "Function invoked  " + inv.getName().toString());
                 return true;
@@ -64,8 +62,8 @@ public class UDFDecompilerAndExtractor extends Logging {
         Set<String> functions_set = new HashSet<>();
         String jpffunction = getJPFFunction("apply");
         functions_set.add(jpffunction);
-        getAllCallee( jpffunction, functions_set);
-        u_writer.write(functions_set , jpffunction);
+        getAllCallee(jpffunction, functions_set);
+        u_writer.write(functions_set, jpffunction);
         u_writer.close();
         return u_writer.filename.replace(".java", "");
     }
@@ -86,15 +84,15 @@ public class UDFDecompilerAndExtractor extends Logging {
         return fileData.toString();
     }
 
-    public void getAllCallee(String s , Set<String> callees) {
+    public void getAllCallee(String s, Set<String> callees) {
         ArrayList<String> fun = call_graph.get(s);
         if (fun == null) {
             return;
-        }else {
+        } else {
             callees.addAll(fun);
-            for(String fun_name : fun){
-                if(!callees.contains(fun))
-                getAllCallee(fun_name, callees);
+            for (String fun_name : fun) {
+                if (!callees.contains(fun))
+                    getAllCallee(fun_name, callees);
             }
         }
     }
@@ -106,7 +104,7 @@ public class UDFDecompilerAndExtractor extends Logging {
             return s;
         }
         //Set<String> key = call_graph.keySet();
-      for(String funname : fun){
+        for (String funname : fun) {
             if (funname.contains("apply"))
                 return getJPFFunction(funname);
         }
@@ -131,7 +129,7 @@ public class UDFDecompilerAndExtractor extends Logging {
     }
 
     public void createJPFile(String target, String fun_name, String jpfPath) throws Exception {
-        String content = Configuration.JPF_FILE_PLACEHOLDER(target, fun_name , outputJava);
+        String content = Configuration.JPF_FILE_PLACEHOLDER(target, fun_name, outputJava);
         FileWriter fw = null;
         try {
             File file = new File(jpfPath);
@@ -172,7 +170,7 @@ public class UDFDecompilerAndExtractor extends Logging {
             for (String a : args) {
                 s = s + "  " + a;
             }
-            loginfo(LogType.INFO , "Running Command : " + s )  ;
+            loginfo(LogType.INFO, "Running Command : " + s);
             Runtime runt = Runtime.getRuntime();
             Process p = runt.exec(s);
             BufferedReader stdInput = new BufferedReader(new
@@ -180,16 +178,16 @@ public class UDFDecompilerAndExtractor extends Logging {
             BufferedReader stdError = new BufferedReader(new
                     InputStreamReader(p.getErrorStream()));
             // read the output from the command
-            StringBuilder stdout =  new StringBuilder("");
+            StringBuilder stdout = new StringBuilder("");
             while ((s = stdInput.readLine()) != null) {
-               stdout.append(s);
+                stdout.append(s);
             }
-            loginfo(LogType.INFO , stdout.toString());
-            StringBuilder stderr =  new StringBuilder("");
+            loginfo(LogType.INFO, stdout.toString());
+            StringBuilder stderr = new StringBuilder("");
             while ((s = stdError.readLine()) != null) {
                 stderr.append(s);
-                 }
-            loginfo(LogType.WARN , stderr.toString());
+            }
+            loginfo(LogType.WARN, stderr.toString());
             stdError.close();
             stdInput.close();
         } catch (IOException e) {
