@@ -1,7 +1,5 @@
 package SymexScala
 
-import org.apache.spark.rdd._
-
 class NotFoundPathCondition(message: String, cause: Throwable = null) 
     extends RuntimeException("Not found Pa in C(A) for record "+message, cause) {}
 

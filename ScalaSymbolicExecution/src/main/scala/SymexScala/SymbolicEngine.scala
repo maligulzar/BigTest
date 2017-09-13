@@ -1,6 +1,5 @@
 package SymexScala
 
-import org.apache.spark.rdd._
 import sys.process._
 
 class parseEffectException(message: String, cause: Throwable = null) extends RuntimeException("Effect: "+message, cause) {}

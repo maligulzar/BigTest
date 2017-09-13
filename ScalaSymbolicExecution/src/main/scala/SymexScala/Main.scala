@@ -1,9 +1,9 @@
 package SymexScala
 
-import org.apache.spark.{ SparkContext, SparkConf }
-import org.apache.log4j.{ Logger, Level }
-import org.apache.spark.rdd._
-import java.util.Properties
+// import org.apache.spark.{ SparkContext, SparkConf }
+// import org.apache.log4j.{ Logger, Level }
+// import org.apache.spark.rdd._
+//import java.util.Properties
 
 import gov.nasa.jpf.tool.RunJPF
 import gov.nasa.jpf.JPF
@@ -26,12 +26,17 @@ object Main {
 
     def main(args: Array[String]): Unit = {
 
-        val props = System.getProperties()
-        println(System.getProperty("java.class.path"))
+        // val props = System.getProperties()
+        // println(System.getProperty("java.class.path"))
+
+        if(args.size < 1) {
+            println("Please provide JPF file pathname as an argument.")
+            exit(1)
+        }
 
         val injectedListener = new PathEffectListenerImp()
-        val arguments = Array("../../jpf/jpf-symbc/src/examples/Effect.jpf")
-        val config: Config = JPF.createConfig(arguments)
+        //sending args directly to jpf --> jpf will check their validity
+        val config: Config = JPF.createConfig(args)
         val jpf: JPF = new JPF(config)
         val symbc: SymbolicListener = new SymbolicListener(config, jpf)
         symbc.registerPathEffectListener(injectedListener)
