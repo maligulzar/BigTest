@@ -2,22 +2,22 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Set;
 
 
 public class UDFWriter {
     String filename = null;
     BufferedWriter bw = null;
-    public UDFWriter(String filen , String argsToMain) {
+    HashMap<String, String> functions = new HashMap<>();
+    String argsToMain = null;
+    public UDFWriter(String filen , String argsmain) {
+        argsToMain = argsmain;
         try {
 
             filename = filen.replace("$" , "");
             String arr[] = filename.split("/");
             String file_name = arr[arr.length-1];
-            String skeleton =
-                    "public class " + file_name.replace(".java" , "") + " { \n" +
-                    "   public static void main(String[] args) { \n" +
-                    "       apply("+ argsToMain+");\n" +
-                    "   }\n " ;
             File file = new File(filename);
             filename=file_name;
             if (!file.exists()) {
@@ -25,15 +25,31 @@ public class UDFWriter {
             }
             FileWriter fw = new FileWriter(file);
             bw = new BufferedWriter(fw);
-            bw.write(skeleton);
+           // bw.write(skeleton);
         } catch (Exception ex) {
             ex.printStackTrace();
         }
     }
 
-    public void write(String mycontent) {
+
+    public void enrollFunction(String name, String code ){
+        functions.put(name, code);
+    }
+    public void write(Set<String> used_func , String target_func) {
+        String skeleton =
+                "public class " + filename.replace(".java" , "") + " { \n" +
+                        "   public static void main(String[] args) { \n" +
+                        "       "+target_func+"("+ argsToMain+");\n" +
+                        "   }\n " ;
+
+        String content = skeleton;
+        for(String fun : used_func){
+            if(functions.containsKey(fun))
+            content += functions.get(fun);
+        }
+
         try {
-            bw.write(mycontent);
+            bw.write(content);
         } catch (IOException ioe) {
             ioe.printStackTrace();
         } finally {
