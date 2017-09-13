@@ -76,8 +76,8 @@ public class SystemCommandExecutor
         {
             ProcessBuilder pb = new ProcessBuilder(commandInformation);
             Map<String, String> env = pb.environment();
-            env.put("JUNIT_HOME", "/Users/malig/workspace/jpf/");
-            env.put("JPF", "/Users/malig/workspace/jpf/jpf-core");
+            env.put("JUNIT_HOME", Configuration.JUNIT_HOME);
+            env.put("JPF",  Configuration.JPF_HOME + "jpf-core");
             if(directory!= null){
                 pb.directory(new File(directory));
             }

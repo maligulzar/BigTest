@@ -5,19 +5,18 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.eclipse.jdt.core.dom.*;
-import org.eclipse.jdt.internal.core.util.ExceptionAttribute;
 
-public class UDFDecompilerAndExtractor {
-    //use ASTParse to parse string
-    String classfile = "/Users/malig/workspace/git/Test-Minimization-in-Big-Data/udf_extractor/target/scala-2.11/classes/WordCount$$anonfun$main$1";
-    String classFile_jad = classfile.split("/")[classfile.split("/").length - 1] + ".jad";
-    String mainArgs = "15";
-    String outputJava = "/Users/malig/workspace/jpf/jpf-symbc/src/examples/spf/";
+public class UDFDecompilerAndExtractor extends Logging {
+
+    String classfile = null;
+    String classFile_jad = null;
+    String mainArgs = null;
+    String outputJava = null;
     HashMap<String, ArrayList<String>> call_graph = new HashMap<String, ArrayList<String>>();
 
     public UDFDecompilerAndExtractor(String classf, String classf_jad, String args, String output_java) {
         classfile = classf;
-        classf_jad = classf_jad;
+        classFile_jad = classf_jad;
         mainArgs = args;
         outputJava = output_java;
     }
@@ -39,29 +38,34 @@ public class UDFDecompilerAndExtractor {
                 this.names.add(name.getIdentifier());
                 if (name.toString().contains("apply")) {
                     current_fun = name.toString();
-                    System.out.println("\n******* Printing Java UDF ********");
-                    System.out.println(node.toString());
+                    loginfo(LogType.DEBUG, node.toString());
                     Modifier mod = ((Modifier) node.modifiers().get(0));
                     mod.setKeyword(Modifier.ModifierKeyword.STATIC_KEYWORD);
-                    //  node.modifiers().add(1 , "Static");
-                    u_writer.write(node.toString() + "\n  ");
-                    System.out.println("**********************************");
+                    u_writer.enrollFunction(name.toString() , node.toString() + "\n  ");
                 }
                 return true;
             }
 
             public boolean visit(MethodInvocation inv) {
-                if (call_graph.containsKey(current_fun)) {
+                if (call_graph.containsKey(current_fun) && !current_fun.equals(inv.getName().toString()) ) {
+
                     call_graph.get(current_fun).add(inv.getName().toString());
                 } else {
                     ArrayList<String> temp = new ArrayList<String>();
                     temp.add(inv.getName().toString());
+                    if(!current_fun.equals(inv.getName().toString()))
                     call_graph.put(current_fun, temp);
                 }
-                System.out.println("INV : " + inv.getName().toString());
+                loginfo(LogType.DEBUG, "Function invoked  " + inv.getName().toString());
                 return true;
             }
         });
+
+        Set<String> functions_set = new HashSet<>();
+        String jpffunction = getJPFFunction("apply");
+        functions_set.add(jpffunction);
+        getAllCallee( jpffunction, functions_set);
+        u_writer.write(functions_set , jpffunction);
         u_writer.close();
         return u_writer.filename.replace(".java", "");
     }
@@ -82,6 +86,19 @@ public class UDFDecompilerAndExtractor {
         return fileData.toString();
     }
 
+    public void getAllCallee(String s , Set<String> callees) {
+        ArrayList<String> fun = call_graph.get(s);
+        if (fun == null) {
+            return;
+        }else {
+            callees.addAll(fun);
+            for(String fun_name : fun){
+                if(!callees.contains(fun))
+                getAllCallee(fun_name, callees);
+            }
+        }
+    }
+
 
     public String getJPFFunction(String s) {
         ArrayList<String> fun = call_graph.get(s);
@@ -89,11 +106,9 @@ public class UDFDecompilerAndExtractor {
             return s;
         }
         //Set<String> key = call_graph.keySet();
-        while (!fun.isEmpty()) {
-            String temp = fun.get(0);
-            if (temp.contains("apply"))
-                return getJPFFunction(temp);
-            fun.remove(0);
+      for(String funname : fun){
+            if (funname.contains("apply"))
+                return getJPFFunction(funname);
         }
         return s;
     }
@@ -102,29 +117,21 @@ public class UDFDecompilerAndExtractor {
     public void ParseFilesInDir(String jpfJar, String jpfModel) throws Exception {
 
         if (new File(classFile_jad).exists()) {
+            loginfo(LogType.INFO, "Deleting file " + classFile_jad + " ...");
             new File(classFile_jad).delete();
         }
         String classFile_class = classfile + ".class";
         decompileProgram(classFile_class);
         String new_classname = parse(readFileToString(classFile_jad), outputJava + classFile_jad.replace(".jad", ""), mainArgs);
-        //System.out.println(" --> " + getJPFFunction("apply"));
         createJPFile(new_classname, getJPFFunction("apply"), jpfModel);
+        Runner.runCommand(new String[]{"javac", "-g",
+                        Configuration.JPF_HOME + "jpf-symbc/src/examples/spf/" + new_classname + ".java"},
+                Configuration.JAVA_RUN_DIR);
 
     }
 
     public void createJPFile(String target, String fun_name, String jpfPath) throws Exception {
-        String content = "target=" + target + "\n" +
-                "\n" +
-                "classpath=${jpf-symbc}/build/examples\n" +
-                "#sourcepath=${jpf-symbc}/src/examples\n" +
-                "\n" +
-                "symbolic.method=" + target + "." + fun_name + "(sym)\n" +
-                "\n" +
-                "symbolic.debug=true\n" +
-                "\n" +
-                "listener = gov.nasa.jpf.symbc.SymbolicListener\n" +
-                "#listener = gov.nasa.jpf.symbc.sequences.SymbolicSequenceListener #for test-case generation";
-
+        String content = Configuration.JPF_FILE_PLACEHOLDER(target, fun_name , outputJava);
         FileWriter fw = null;
         try {
             File file = new File(jpfPath);
@@ -155,8 +162,7 @@ public class UDFDecompilerAndExtractor {
 //    }
 
     public void decompileProgram(String file) {
-        String jad_exe = "/Users/malig/workspace/git/Test-Minimization-in-Big-Data/udf_extractor/jadmx158/jad";
-        String[] args = new String[]{jad_exe, file};
+        String[] args = new String[]{Configuration.JAD_EXE, file};
         runCommand(args);
     }
 
@@ -166,30 +172,28 @@ public class UDFDecompilerAndExtractor {
             for (String a : args) {
                 s = s + "  " + a;
             }
+            loginfo(LogType.INFO , "Running Command : " + s )  ;
             Runtime runt = Runtime.getRuntime();
-            Process p = runt.exec(s, new String[]{"PATH=$PATH", "JUNIT_HOME=/Users/malig/workspace/jpf/", "JPF=/Users/malig/workspace/jpf/jpf-core"});
+            Process p = runt.exec(s);
             BufferedReader stdInput = new BufferedReader(new
                     InputStreamReader(p.getInputStream()));
             BufferedReader stdError = new BufferedReader(new
                     InputStreamReader(p.getErrorStream()));
             // read the output from the command
-            System.out.println("Here is the standard output of the command:\n");
+            StringBuilder stdout =  new StringBuilder("");
             while ((s = stdInput.readLine()) != null) {
-                System.out.println(s);
+               stdout.append(s);
             }
-            // read any errors from the attempted command
-            System.out.println("Here is the standard error of the command (if any):\n");
+            loginfo(LogType.INFO , stdout.toString());
+            StringBuilder stderr =  new StringBuilder("");
             while ((s = stdError.readLine()) != null) {
-                System.out.println(s);
-            }
+                stderr.append(s);
+                 }
+            loginfo(LogType.WARN , stderr.toString());
             stdError.close();
             stdInput.close();
         } catch (IOException e) {
-            System.out.println("exception happened - here's what I know: ");
             e.printStackTrace();
-            System.exit(-1);
         }
     }
-
-
 }
