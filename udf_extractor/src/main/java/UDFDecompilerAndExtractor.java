@@ -31,6 +31,10 @@ public class UDFDecompilerAndExtractor extends Logging {
             String current_fun = "";
 
             public boolean visit(MethodDeclaration node) {
+                SimpleName name = node.getName();
+                this.names.add(name.getIdentifier());
+                current_fun = name.toString();
+                
                 // Check if the method declaration is for parameter overloading
                 //Todo: Come up with a better fix // FIXME: 9/13/17
                 if (node.getReturnType2() != null) {
@@ -44,9 +48,7 @@ public class UDFDecompilerAndExtractor extends Logging {
                         if(vol) return true;
                     }
                 }
-                SimpleName name = node.getName();
-                this.names.add(name.getIdentifier());
-                current_fun = name.toString();
+
                 loginfo(LogType.DEBUG, node.toString());
                 Modifier mod = ((Modifier) node.modifiers().get(0));
                 mod.setKeyword(Modifier.ModifierKeyword.STATIC_KEYWORD);
