@@ -1,8 +1,5 @@
 import java.io.*;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 import org.eclipse.jdt.core.dom.*;
 
@@ -34,6 +31,19 @@ public class UDFDecompilerAndExtractor extends Logging {
             String current_fun = "";
 
             public boolean visit(MethodDeclaration node) {
+                // Check if the method declaration is for parameter overloading
+                //Todo: Come up with a better fix // FIXME: 9/13/17
+                if (node.getReturnType2() != null) {
+                    if (node.getReturnType2().toString().equals("Object")){
+                        boolean vol = false;
+                        for(Modifier m : (List<Modifier>)node.modifiers() ){
+                            if(m.isVolatile()){
+                                vol = true;
+                            }
+                        }
+                        if(vol) return true;
+                    }
+                }
                 SimpleName name = node.getName();
                 this.names.add(name.getIdentifier());
                 current_fun = name.toString();
@@ -45,9 +55,9 @@ public class UDFDecompilerAndExtractor extends Logging {
             }
 
             public boolean visit(MethodInvocation inv) {
-                if (call_graph.containsKey(current_fun) && !current_fun.equals(inv.getName().toString())) {
-
-                    call_graph.get(current_fun).add(inv.getName().toString());
+                if (call_graph.containsKey(current_fun)) {
+                    if (!current_fun.equals(inv.getName().toString()))
+                        call_graph.get(current_fun).add(inv.getName().toString());
                 } else {
                     ArrayList<String> temp = new ArrayList<String>();
                     temp.add(inv.getName().toString());
