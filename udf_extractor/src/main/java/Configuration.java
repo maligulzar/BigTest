@@ -16,7 +16,9 @@ public class Configuration {
                 "\n" +
                 "symbolic.debug=true\n" +
                 "\n" +
-                "listener = gov.nasa.jpf.symbc.SymbolicListener\n" +
-                "#listener = gov.nasa.jpf.symbc.sequences.SymbolicSequenceListener #for test-case generation";
+                "#listener = gov.nasa.jpf.symbc.SymbolicListener\n" +
+                "#listener = gov.nasa.jpf.symbc.sequences.SymbolicSequenceListener #for test-case generation" +
+                "\n" + 
+                "symbolic.dp=no_solver";
     }
 }
