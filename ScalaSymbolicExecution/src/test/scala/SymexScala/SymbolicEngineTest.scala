@@ -36,7 +36,7 @@ class SymbolicEngineTest extends FlatSpec with BeforeAndAfterAll with Matchers {
     //Toy#1
     "testAddIntegers" should "return path constraint for a simple map" in {
         SymbolicEngine.defineVar("x", Numeric(_Int))
-        val engineResult = SymbolicEngine.run("map(x: Int => if(x > 100) x else 0)", 1)
+        val engineResult = SymbolicEngine.run("map(x => if(x > 100) x else 0)", 1)
         assert(engineResult.isInstanceOf[SymbolicResult])
 
 
@@ -75,7 +75,7 @@ class SymbolicEngineTest extends FlatSpec with BeforeAndAfterAll with Matchers {
 
     "testAddEvenIntegersGT100" should "return path constraint for a simple map and filter" in {
         SymbolicEngine.defineVar("x", Numeric(_Int))
-        var engineResult = SymbolicEngine.run("map(x: Int => if(x > 100) x else 0).filter(_%2 == 0)", 2)
+        var engineResult = SymbolicEngine.run("map(x => if(x > 100) x else 0).filter(_%2 == 0)", 2)
         assert(engineResult.isInstanceOf[SymbolicResult])
 
 
@@ -124,7 +124,7 @@ class SymbolicEngineTest extends FlatSpec with BeforeAndAfterAll with Matchers {
 
     "testMapFilterMap(Terminating)" should "return path constraint for both terminating and non-terminating paths" in {
         SymbolicEngine.defineVar("x", Numeric(_Int))
-        val sourceCode = """map(x: Int => if(x > 100) x else 0)
+        val sourceCode = """map(x => if(x > 100) x else 0)
                             .filter(_%2 == 0)
                             .map(x => if(x < 200) -200 else x)"""
         val engineResult = SymbolicEngine.run(sourceCode, 3)
