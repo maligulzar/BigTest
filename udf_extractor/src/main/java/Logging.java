@@ -53,4 +53,69 @@ public class Logging {
                 + ANSI_RESET);
     }
 
+
+
+    static void logerr( String log) {
+        StackTraceElement[] stackTraceElements = Thread.currentThread().getStackTrace();
+        StackTraceElement lastinvoc = stackTraceElements[stackTraceElements.length - 1];
+        String pattern = "HH:mm:ss yyyy-MM-dd";
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat(pattern);
+        String date = simpleDateFormat.format(new Date());
+
+        String color = null;
+        String debug_level = null;
+                color = ANSI_RED;
+                debug_level = "WARN";
+
+        System.out.println(color
+                + "[" + date
+                + " " + debug_level
+                + " " + lastinvoc.getClassName() + " in " + lastinvoc.getFileName() + ":" + lastinvoc.getLineNumber()
+                + "] " + log
+                + ANSI_RESET);
+    }
+
+    static void logdebug( String log) {
+        StackTraceElement[] stackTraceElements = Thread.currentThread().getStackTrace();
+        StackTraceElement lastinvoc = stackTraceElements[stackTraceElements.length - 1];
+        String pattern = "HH:mm:ss yyyy-MM-dd";
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat(pattern);
+        String date = simpleDateFormat.format(new Date());
+
+        String color = null;
+        String debug_level = null;
+                color = ANSI_GREEN;
+                debug_level = "DEBUG";
+
+
+        System.out.println(color
+                + "[" + date
+                + " " + debug_level
+                + " " + lastinvoc.getClassName() + " in " + lastinvoc.getFileName() + ":" + lastinvoc.getLineNumber()
+                + "] " + log
+                + ANSI_RESET);
+    }
+
+    static void loginfo(String log) {
+        StackTraceElement[] stackTraceElements = Thread.currentThread().getStackTrace();
+        StackTraceElement lastinvoc = stackTraceElements[stackTraceElements.length - 1];
+        String pattern = "HH:mm:ss yyyy-MM-dd";
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat(pattern);
+        String date = simpleDateFormat.format(new Date());
+
+        String color = null;
+        String debug_level = null;
+                color = ANSI_YELLOW;
+                debug_level = "INFO";
+
+
+        System.out.println(color
+                + "[" + date
+                + " " + debug_level
+                + " " + lastinvoc.getClassName() + " in " + lastinvoc.getFileName() + ":" + lastinvoc.getLineNumber()
+                + "] " + log
+                + ANSI_RESET);
+    }
+
+
 }
