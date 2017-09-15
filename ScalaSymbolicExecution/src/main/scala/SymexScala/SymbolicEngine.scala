@@ -1,22 +1,19 @@
 package SymexScala
 
-import sys.process._
+//import sys.process._
+import gov.nasa.jpf.JPF
+import gov.nasa.jpf.Config
+import gov.nasa.jpf.symbc.SymbolicListener
+
 
 class parseEffectException(message: String, cause: Throwable = null) extends RuntimeException("Effect: "+message, cause) {}
 
 object SymbolicEngine {
 
-    var afterMap: SymbolicResult = null
     val currentState: SymbolicState = new SymbolicState()
 
+    /*
     def run(source: String, testId: Int): SymbolicResult = {
-        //1) parse source code to create AST
-        //2) lift UDFs off the tree
-        //3) run SPF on lifted udfs to get their path constraints
-        // val result: String = "java -cp .:../../jpf/jpf-symbc/build/jpf-symbc-classes.jar -jar ../../jpf/jpf-core/build/RunJPF.jar spf/UDF.jpf".!!
-        // //4) call SymbolicResult spark operation APIs according to the source code operations
-        // //   to get the final set of path constraints for whole program
-
         val c1 = Constraint.parseConstraint("x > 100")
         val path1 = new PathAndEffect(c1)
 
@@ -80,8 +77,55 @@ object SymbolicEngine {
             terminatingResPaths(1) = path2.conjunctWith(path4).asInstanceOf[TerminatingPath]
             return new SymbolicResult(resultPaths, terminatingResPaths)
         }
-        
+    }
+    */
+    
+    def callSPF(jpfFile: String): SymbolicResult = {
+        val injectedListener = new PathEffectListenerImp()
+        val config: Config = JPF.createConfig(Array(jpfFile))
+        val jpf: JPF = new JPF(config)
+        val symbc: SymbolicListener = new SymbolicListener(config, jpf)
+        symbc.registerPathEffectListener(injectedListener)
+        jpf.addListener(symbc)
+        jpf.run()
 
+        val udfResult = injectedListener.convertAll("x")
+        udfResult
+    }
+
+    /*
+        used for unit testing data flow symbolic execution with "true" as initial path constraint
+    */
+    def executeDFOperator(dfName: String, jpfFile: String): SymbolicResult = {
+        val init = new SymbolicResult(new SymbolicState()) //non-T: true, T: null
+        val udfResult = callSPF(jpfFile)
+        
+        dfName match {
+            case "map" => init.map(udfResult)
+            case "filter" => init.filter(udfResult)
+            case _ => throw new NotSupportedRightNow("This data flow operation is yet not supported!")
+        }
+    }
+
+    def executeSymbolicDF(opJpfList: Array[Tuple2[String, String]]): SymbolicResult = {
+        var currentPaths: SymbolicResult = new SymbolicResult(new SymbolicState())
+
+        for((dfName, jpfFile) <- opJpfList) {
+            val udfResult = callSPF(jpfFile)
+            //println(udfResult)
+            //println("--------------")
+
+            currentPaths = dfName match {
+                case "map" => currentPaths.map(udfResult)
+                case "filter" => currentPaths.filter(udfResult)
+                case _ => throw new NotSupportedRightNow("This data flow operation is yet not supported!")
+            }
+
+            println("after "+dfName)
+            println(currentPaths)
+        }
+
+        currentPaths
     }
 
     def parseEffect(effectStr: String): Tuple2[SymVar, Expr] = {

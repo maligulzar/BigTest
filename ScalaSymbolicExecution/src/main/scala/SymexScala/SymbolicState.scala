@@ -3,14 +3,9 @@ package SymexScala
 import scala.collection.mutable.ArrayBuffer
 import scala.collection.mutable.Map
 
-class SymbolicState(init: SymbolicResult) {
+class SymbolicState() {
     val symbolicEnv: Map[String, SymbolicVarDef] = Map[String, SymbolicVarDef]()
-    val pc: SymbolicResult = init
     val scopePointer: Int = 0
-
-    def this() {
-        this(new SymbolicResult()) //p = true and no variable is defined yet
-    }
 
     def updateVarInEnv(name: String, vt: VType, newSymValue: Expr) = {
         var varDef = symbolicEnv.getOrElse(name, null)
@@ -45,18 +40,6 @@ class SymbolicState(init: SymbolicResult) {
         if(found != null) found.variable
         else null   
     }
-
-    // def test() {
-    //     symbolicEnv += new SymbolicVarDef[Int]("x")
-    //     symbolicEnv += new SymbolicVarDef[String]("y")
-    //     symbolicEnv += new SymbolicVarDef[Int]("z")
-
-    //     println("------------------------------")
-    //     println(symbolicEnv(0).variable.typeOfVar)
-    //     println(symbolicEnv(1).variable.typeOfVar)
-    //     println(symbolicEnv(2).variable.typeOfVar)
-    //     println("------------------------------")
-    // }
 
 }
 

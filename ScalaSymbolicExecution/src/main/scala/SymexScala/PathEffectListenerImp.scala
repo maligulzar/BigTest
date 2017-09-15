@@ -99,12 +99,12 @@ class PathEffectListenerImp extends PathEffectListener  {
     }
 
     /*
-        we assume that we will be given the (input argument = return value = record) name
+        TODO: we assume that we will be given the (input argument = return value = record) name
     */
-    def convertAll(returnVarName: String) {
+    def convertAll(returnVarName: String): SymbolicResult = {
         val pathVector = super.getListOfPairs()
         allPathEffects = new Array[PathAndEffect](pathVector.size())
-        println(pathVector.size())
+        //println(pathVector.size())
 
         val it: Iterator[Pair[PathCondition, Expression]] = pathVector.iterator();
         var i = 0
@@ -115,9 +115,11 @@ class PathEffectListenerImp extends PathEffectListener  {
             val effect = new Tuple2[SymVar, Expr](new SymVar(effectFromSPF.actualType, returnVarName), effectFromSPF)
 
             allPathEffects(i) = new PathAndEffect(convertPathCondition(pair._1), effect)
-            System.out.println(allPathEffects(i));
             i += 1
         }
+
+        //there is no terminating path in the scope of udf
+        new SymbolicResult(null, allPathEffects)
         
     }
 

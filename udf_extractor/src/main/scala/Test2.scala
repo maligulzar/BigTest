@@ -11,7 +11,7 @@ object Test2 {
         val sum = sc.textFile("input")
                     .map(line => Integer.parseInt(line))
                     .map(x => if(x > 100) x else 0)
-                    .filter(_%2 == 0)
+                    .filter(x => x > 0)
                     //.reduce(_+_)
 
         // println("Sum: "+sum)

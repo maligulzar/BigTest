@@ -48,11 +48,13 @@ class Constraint(c: Array[Clause]) {
         result
     }
 
-    def replace(x: SymVar, updated: Expr) = {
-        for(c <- clauses) {
-            // if(c.contains(x)) 
-            c.replace(x, updated)
-        }
+    def applyEffect(x: SymVar, effect: Expr): Constraint = {
+        val updated = clauses.map(_.applyEffect(x, effect))
+        // for(c <- clauses) {
+        //     // if(c.contains(x)) 
+        //     c.applyEffect(x, effect)
+        // }
+        new Constraint(updated)
     }
 
     def checkValidity(ss: SymbolicState): Boolean = {
@@ -137,12 +139,15 @@ class Clause (left: Expr, op: ComparisonOp = null, right: Expr = null) {
         else leftExpr.toString+" "+compOp.toString+" "+rightExpr.toString
     }
 
-    def replace(x: SymVar, updated: Expr) = {
-        leftExpr = leftExpr.replace(x, updated)
+    def applyEffect(x: SymVar, effect: Expr): Clause = {
+        val newLeftExpr = leftExpr.applyEffect(x, effect)
 
-        if(rightExpr != null) {
-            rightExpr = rightExpr.replace(x, updated)
-        }
+        val newRightExpr = 
+            if(rightExpr != null) {
+                rightExpr.applyEffect(x, effect)
+            } else null
+
+        new Clause(newLeftExpr, this.compOp, newRightExpr)
     }
 
     def checkValidity(ss: SymbolicState): Boolean = {
@@ -158,7 +163,7 @@ abstract class Expr {
     val actualType: VType
 
     def toString: String
-    def replace(x: SymVar, updated: Expr): Expr
+    def applyEffect(x: SymVar, effect: Expr): Expr
     def checkValidity(ss: SymbolicState): Boolean
 }
 
@@ -176,8 +181,8 @@ case class SymVar(atype: VType, name: String) extends Terminal {
 
     def getName(): String = {name}
 
-    override def replace(x: SymVar, updated: Expr): Expr = {
-        if(this.equals(x)) updated
+    override def applyEffect(x: SymVar, effect: Expr): Expr = {
+        if(this.equals(x)) effect
         else this
     }
 
@@ -211,7 +216,7 @@ case class ConcreteValue(atype: VType, value: String) extends Terminal {
 
     override def toString: String = {value.toString/*+" of type "+actualType*/}
 
-    override def replace(x: SymVar, updated: Expr): Expr = {this}
+    override def applyEffect(x: SymVar, effect: Expr): Expr = {this}
 
     override def checkValidity(ss: SymbolicState): Boolean = {true}
 }
@@ -229,8 +234,8 @@ case class NonTerminal(left: Expr, middle: SymOp, right: Expr) extends Expr {
     assert(op.actualType == leftExpr.actualType && op.actualType == rightExpr.actualType)
     val actualType = op.actualType
 
-    override def replace(x: SymVar, updated: Expr): Expr = {
-        new NonTerminal(left.replace(x, updated), op, right.replace(x, updated))
+    override def applyEffect(x: SymVar, effect: Expr): Expr = {
+        new NonTerminal(left.applyEffect(x, effect), op, right.applyEffect(x, effect))
     }
 
     override def checkValidity(ss: SymbolicState): Boolean = {

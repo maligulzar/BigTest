@@ -1,40 +1,35 @@
 package SymexScala
 
+import scala.collection.mutable.ArrayBuffer
+
 class NotFoundPathCondition(message: String, cause: Throwable = null) 
     extends RuntimeException("Not found Pa in C(A) for record "+message, cause) {}
 
-class TriState(s: String) {
 
-    var state: String = {
-        if(s.toLowerCase == "terminating") "Terminating"
-        else if (s.toLowerCase == "true") "True"
-        else "False"
-    }
-
-    def toBoolean: Boolean = {state == "True"} //or else that is Terminating or False
-
-    override def toString: String = {state}
-}
-
-class SymbolicResult(ps: Array[PathAndEffect]) {
-    //different paths each being satisfied by an equivalent class of tuples in dataset V
-    val paths: Array[PathAndEffect] = ps
-    var terminating: Array[TerminatingPath] = null
+/* 
+    paths = different paths each being satisfied by an equivalent class of tuples in dataset V
+*/
+class SymbolicResult(ss: SymbolicState, nonT: Array[PathAndEffect], t: ArrayBuffer[TerminatingPath] = null) {
+    val state: SymbolicState = ss
+    val paths: Array[PathAndEffect] = nonT
+    val terminating: ArrayBuffer[TerminatingPath] = t
 
     override def toString: String = {
-        var result = "Set of Constraints for this dataset V:"+"\n"
+        var result = "Set of Constraints for this dataset V:\nNon-terminating:\n"
         paths.foreach(result += _.toString+"\n")
+
+        if(terminating != null) {
+            result += "terminating:\n"
+            terminating.foreach(result += _.toString+"\n")
+        }
+
         result
     }
 
-    def this() {
-        this(new Array[PathAndEffect](1))
+    def this(ss: SymbolicState) {
+        //terminating path is null now -> "false"
+        this(ss, new Array[PathAndEffect](1))
         paths(0) = new PathAndEffect(Constraint.parseConstraint("true"))
-    }
-
-    def this(nonT: Array[PathAndEffect], t: Array[TerminatingPath]) {
-        this(nonT)
-        this.terminating = t
     }
 
     def numOfPaths: Int = {paths.size}
@@ -42,34 +37,46 @@ class SymbolicResult(ps: Array[PathAndEffect]) {
     def numOfTerminating: Int = {terminating.size}
 
     def map(udfSymbolicResult: SymbolicResult): SymbolicResult = {
-        //val state: SymbolicState = new SymbolicState(this)
         //returns Cartesian product of already existing paths *  set of paths from given udf
         val product = new Array[PathAndEffect](paths.size * udfSymbolicResult.numOfPaths)
         var i = 0  
         for(pa <- paths) {
             for(udfPath <- udfSymbolicResult.paths) {
-                product(i) = pa.conjunctWith(udfPath)
+                product(i) = udfPath.conjunctedTo(pa)
                 i += 1
             }
         }
-        new SymbolicResult(product)
+        new SymbolicResult(this.state, product, this.terminating)
     }
 
-    //TODO: later I have to generalize this API more so as to instead of taking a PathAndEffect,
-    //it would take a function(f) of Any to Boolean and creates a path consisting of f(x) == true as its constraint and identity as its effect
-    // as well as another terminating path with f(x) != true as its constraint
     def filter(udfSymbolicResult: SymbolicResult): SymbolicResult = {
-        val product = new Array[PathAndEffect](paths.size * udfSymbolicResult.numOfPaths)
-        var i = 0
-        for(pa <- paths) {
-            for(udfPath <- udfSymbolicResult.paths) {
-                //val extraConj = Constraint.parseConstraint("f(x) == true")
-                product(i) = pa.conjunctWith(udfPath)
-                i += 1
+        // println(udfSymbolicResult)
+        // println("------------------------------")
+        val product = new ArrayBuffer[PathAndEffect]()
+        val terminatingPaths = new ArrayBuffer[TerminatingPath]()
+        if(this.terminating != null) {
+            terminatingPaths ++= this.terminating
+        }
+
+        for(udfPath: PathAndEffect <- udfSymbolicResult.paths) {
+            //we need to check the effect to see whether it is a terminating or a non-terminating one
+            if(udfPath.effect._2.toString == "0") { //terminating
+                val udfTerminating = new TerminatingPath(udfPath.pathConstraint)
+                for(pa <- this.paths) {
+                    // print(pa.toString+" && "+udfTerminating.toString+" = ")
+                    val conjuncted = udfTerminating.conjunctedTo(pa)
+                    // println("conjuncted "+conjuncted)
+                    terminatingPaths += conjuncted
+                }
+
+            } else {
+                for(pa <- this.paths) {
+                    product += udfPath.conjunctedTo(pa)
+                }
             }
         }
 
-        new SymbolicResult(product)
+        new SymbolicResult(this.state, product.toArray, terminatingPaths)
     }
 
     override def equals(other: Any): Boolean = {
@@ -80,8 +87,8 @@ class SymbolicResult(ps: Array[PathAndEffect]) {
     } 
 }
 
-class PathAndEffect(c: Constraint, udfEffect: Tuple2[SymVar, Expr]) {
-    var pc: Constraint = c
+class PathAndEffect(pc: Constraint, udfEffect: Tuple2[SymVar, Expr]) {
+    var pathConstraint: Constraint = pc
     var effect: Tuple2[SymVar, Expr] = udfEffect
 
     def this(c: Constraint) {
@@ -99,22 +106,31 @@ class PathAndEffect(c: Constraint, udfEffect: Tuple2[SymVar, Expr]) {
             e = /*effect._1.getName+" -> "+*/effect._2.toString
             rName = effect._1.getName
         }
-        "pc: {"+pc.toString+"}\n "+"effect: {"+e+" | for all "+rName+" member of V, pc("+rName+")} ---------\n"
+        "path constraint: {"+pathConstraint.toString+"} effect: {"+e+" | for all "+rName+" member of V, pathConstraint("+rName+")} ---------"
     }
 
-    def conjunctWith(other: PathAndEffect): PathAndEffect = {
+    def conjunctedTo(old: PathAndEffect): PathAndEffect = {
         //reflect previous effect into coming path constraint variables
-        if(effect != null) other.replace(effect._1, effect._2)
-        other
+        val toBeAdded: PathAndEffect = 
+            if(old.effect != null) {
+                this.applyEffect(old.effect._1, old.effect._2)
+            } else this
+
+        val newPathConstraint = toBeAdded.pathConstraint.conjunctWith(old.pathConstraint)
+        new PathAndEffect(newPathConstraint, this.effect)
     }
 
-    def replace(x: SymVar, updated: Expr) = {
-        this.pc.replace(x, updated)
-        if(effect != null) effect = (effect._1, effect._2.replace(x, updated))
+    def applyEffect(x: SymVar, lastEffect: Expr): PathAndEffect = {
+        val newPathConstraint: Constraint = this.pathConstraint.applyEffect(x, lastEffect)
+        val newEffect: Tuple2[SymVar, Expr] = 
+            if(this.effect != null) {
+                (this.effect._1, this.effect._2.applyEffect(x, lastEffect))
+            } else null
+        new PathAndEffect(newPathConstraint, newEffect)
     }
 
     def checkValidity(ss: SymbolicState): Boolean = {
-        var result = this.pc.checkValidity(ss)
+        var result = this.pathConstraint.checkValidity(ss)
         if(effect != null) result &= effect._2.checkValidity(ss)
         result
     }
@@ -124,15 +140,27 @@ class PathAndEffect(c: Constraint, udfEffect: Tuple2[SymVar, Expr]) {
 case class TerminatingPath(c: Constraint) extends PathAndEffect(c) {
     
     override def toString: String = {
-        "pc = "+pc.toString+"\n"+"{terminating | for all v member of V, pc(v)}\n"+"--------------------"
+        "path constraint: {"+pathConstraint.toString+"} ----------------"
     }
 
-    override def replace(x: SymVar, updated: Expr) = {
-        this.pc.replace(x, updated)
+    override def conjunctedTo(old: PathAndEffect): TerminatingPath = {
+        //reflect previous effect into coming path constraint variables
+        val toBeAdded: PathAndEffect = 
+            if(old.effect != null) {
+                this.applyEffect(old.effect._1, old.effect._2)
+            } else this
+
+        val newPathConstraint = toBeAdded.pathConstraint.conjunctWith(old.pathConstraint)
+        new TerminatingPath(newPathConstraint)
     }
+
+    //TODO:
+    // override def applyEffect(x: SymVar, effect: Expr) = {
+    //     this.pathConstraint.applyEffect(x, effect)
+    // }
 
     override def checkValidity(ss: SymbolicState): Boolean = {
-        this.pc.checkValidity(ss)
+        this.pathConstraint.checkValidity(ss)
     }
 
 } 
