@@ -1,3 +1,5 @@
+package udfExtractor;
+
 import org.eclipse.jdt.core.dom.*;
 
 import java.io.BufferedWriter;

@@ -1,3 +1,5 @@
+package udfExtractor;
+
 import java.io.*;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -94,12 +96,3 @@ public class UDFDecompilerAndExtractor extends Logging {
         }
     }
 }
- class JPFDAGNode{
-     String operator_name ;
-     String jpf_file;
-
-     public JPFDAGNode(String op, String file){
-         operator_name  = op;
-         jpf_file = file;
-     }
- }

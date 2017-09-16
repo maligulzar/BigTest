@@ -1,3 +1,5 @@
+package udfExtractor;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -21,7 +23,7 @@ public class Configuration {
                 "\n" +
                 "symbolic.method=" + target + "." + fun_name + "(sym)\n" +
                 "\n" +
-                "symbolic.debug=true\n" +
+                "#symbolic.debug=true\n" +
                 "\n" +
                 "#listener = gov.nasa.jpf.symbc.SymbolicListener\n" +
                 "#listener = gov.nasa.jpf.symbc.sequences.SymbolicSequenceListener #for test-case generation" +
