@@ -15,8 +15,8 @@ object SymbolicEngine {
         val injectedListener = new PathEffectListenerImp()
         val config: Config = JPF.createConfig(Array(jpfFile))
         val jpf: JPF = new JPF(config)
-        val symbc: SymbolicListener = new SymbolicListener(config, jpf)
-        symbc.registerPathEffectListener(injectedListener)
+        val symbc: SymbolicListener = new SymbolicListener(config, jpf, injectedListener)
+        // symbc.registerPathEffectListener(injectedListener)
         jpf.addListener(symbc)
         jpf.run()
 
