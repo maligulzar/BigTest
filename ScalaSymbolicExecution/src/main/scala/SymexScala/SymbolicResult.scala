@@ -27,9 +27,8 @@ class SymbolicResult(ss: SymbolicState, nonT: Array[PathAndEffect], t: ArrayBuff
     }
 
     def this(ss: SymbolicState) {
-        //terminating path is null now -> "false"
-        this(ss, new Array[PathAndEffect](1))
-        paths(0) = new PathAndEffect(Constraint.parseConstraint("true"))
+        this(ss, new Array[PathAndEffect](1)) //terminating path is null now -> "false" maybe?
+        paths(0) = new PathAndEffect(new Constraint()) //true
     }
 
     def numOfPaths: Int = {paths.size}
@@ -42,7 +41,7 @@ class SymbolicResult(ss: SymbolicState, nonT: Array[PathAndEffect], t: ArrayBuff
         var i = 0  
         for(pa <- paths) {
             for(udfPath <- udfSymbolicResult.paths) {
-                product(i) = udfPath.conjunctedTo(pa)
+                product(i) = udfPath.conjunctPathEffect(pa)
                 i += 1
             }
         }
@@ -50,8 +49,6 @@ class SymbolicResult(ss: SymbolicState, nonT: Array[PathAndEffect], t: ArrayBuff
     }
 
     def filter(udfSymbolicResult: SymbolicResult): SymbolicResult = {
-        // println(udfSymbolicResult)
-        // println("------------------------------")
         val product = new ArrayBuffer[PathAndEffect]()
         val terminatingPaths = new ArrayBuffer[TerminatingPath]()
         if(this.terminating != null) {
@@ -60,18 +57,18 @@ class SymbolicResult(ss: SymbolicState, nonT: Array[PathAndEffect], t: ArrayBuff
 
         for(udfPath: PathAndEffect <- udfSymbolicResult.paths) {
             //we need to check the effect to see whether it is a terminating or a non-terminating one
-            if(udfPath.effect._2.toString == "0") { //terminating
-                val udfTerminating = new TerminatingPath(udfPath.pathConstraint)
+            if(udfPath.effect._2.last.toString == "0") { //terminating
+                val udfTerminating = new TerminatingPath(udfPath.pathConstraint, null)
                 for(pa <- this.paths) {
                     // print(pa.toString+" && "+udfTerminating.toString+" = ")
-                    val conjuncted = udfTerminating.conjunctedTo(pa)
-                    // println("conjuncted "+conjuncted)
+                    val conjuncted = udfTerminating.conjunctPathEffect(pa)
                     terminatingPaths += conjuncted
                 }
 
             } else {
+                val removedEffect = new PathAndEffect(udfPath.pathConstraint.deepCopy, null)
                 for(pa <- this.paths) {
-                    product += udfPath.conjunctedTo(pa)
+                    product += removedEffect.conjunctPathEffect(pa)
                 }
             }
         }
@@ -87,71 +84,124 @@ class SymbolicResult(ss: SymbolicState, nonT: Array[PathAndEffect], t: ArrayBuff
     } 
 }
 
-class PathAndEffect(pc: Constraint, udfEffect: Tuple2[SymVar, Expr]) {
+class PathAndEffect(pc: Constraint, udfEffect: Tuple2[SymVar, ArrayBuffer[Expr]]) {
     var pathConstraint: Constraint = pc
-    var effect: Tuple2[SymVar, Expr] = udfEffect
+    var effect: Tuple2[SymVar, ArrayBuffer[Expr]] = udfEffect
 
     def this(c: Constraint) {
         this(c, null) //no effects on variables
     }
 
     override def toString: String = {
-        var e: String = ""
+        var eString: String = ""
         var rName: String = ""
         if(effect == null) {
-            e = "x"
+            eString = ""
             rName = "x"
         }
         else {
-            e = /*effect._1.getName+" -> "+*/effect._2.toString
+            for(e <- effect._2) {
+                eString += effect._1.getName+" = "+e+", "
+            }
+            if(effect._2.size > 0) eString = eString.substring(0, eString.length-2)
+
             rName = effect._1.getName
         }
-        "path constraint: {"+pathConstraint.toString+"} effect: {"+e+" | for all "+rName+" member of V, pathConstraint("+rName+")} ---------"
+        "path constraint: {"+pathConstraint.toString+"}\t effect: {"+eString+"} ---------"
+        //+" | for all "+rName+" member of V, pathConstraint("+rName+")} ---------"
     }
 
-    def conjunctedTo(old: PathAndEffect): PathAndEffect = {
-        //reflect previous effect into coming path constraint variables
-        val toBeAdded: PathAndEffect = 
-            if(old.effect != null) {
-                this.applyEffect(old.effect._1, old.effect._2)
-            } else this
+    /*
+        reflect last previous effect on the incoming path constraint variables
+        and update effect array
+    */
+    def conjunctPathEffect(prev: PathAndEffect): PathAndEffect = {
+        val newPathEffect: PathAndEffect = 
+            if(prev.effect != null) {
+                this.applyLastEffect(prev.effect._1, prev.effect._2.last)
+            }
+            else {
+                this.deepCopy
+            }
+        newPathEffect.pathConstraint.conjunctWith(prev.pathConstraint)
 
-        val newPathConstraint = toBeAdded.pathConstraint.conjunctWith(old.pathConstraint)
-        new PathAndEffect(newPathConstraint, this.effect)
+        //updates the effects buffer
+        if(prev.effect != null && newPathEffect.effect != null) {
+            val prepended = prev.effect._2 ++ newPathEffect.effect._2
+            newPathEffect.effect = (newPathEffect.effect._1, prepended)
+        }
+        else if(prev.effect != null && newPathEffect.effect == null) {
+            //deep-copy of prev.effect
+            val newBuffer = new ArrayBuffer[Expr]
+            prev.effect._2.copyToBuffer(newBuffer)
+            newPathEffect.effect = (prev.effect._1, newBuffer)
+        } 
+        //else if prev.effect == null -> newPathEffect.effect would be the same as the result of applyLastEffect on this.effect     
+        newPathEffect
     }
 
-    def applyEffect(x: SymVar, lastEffect: Expr): PathAndEffect = {
-        val newPathConstraint: Constraint = this.pathConstraint.applyEffect(x, lastEffect)
-        val newEffect: Tuple2[SymVar, Expr] = 
+    def deepCopy: PathAndEffect = {
+        val effectCopy: Tuple2[SymVar, ArrayBuffer[Expr]] = 
             if(this.effect != null) {
-                (this.effect._1, this.effect._2.applyEffect(x, lastEffect))
+                val newBuffer = new ArrayBuffer[Expr]
+                this.effect._2.copyToBuffer(newBuffer)
+                (this.effect._1, newBuffer)
+            } else null
+
+        new PathAndEffect(this.pathConstraint.deepCopy, effectCopy)
+    }
+
+    /*
+        returns a new instance of PathAndEffect 
+        by applying the given effect on to (this) instance's path condition and effects
+        this instance should be modified
+    */
+    def applyLastEffect(x: SymVar, lastEffect: Expr): PathAndEffect = {
+        val newPathConstraint: Constraint = this.pathConstraint.applyEffect(x, lastEffect)
+        val newEffect: Tuple2[SymVar, ArrayBuffer[Expr]] = 
+            if(this.effect != null) {
+                val newEffectArray = this.effect._2.map(_.applyEffect(x, lastEffect))
+                (this.effect._1, newEffectArray)
             } else null
         new PathAndEffect(newPathConstraint, newEffect)
     }
 
     def checkValidity(ss: SymbolicState): Boolean = {
         var result = this.pathConstraint.checkValidity(ss)
-        if(effect != null) result &= effect._2.checkValidity(ss)
+        if(effect != null) {
+            effect._2.foreach(effect => result &= effect.checkValidity(ss))
+        }
         result
     }
 
 }
 
-case class TerminatingPath(c: Constraint) extends PathAndEffect(c) {
+case class TerminatingPath(c: Constraint, u: Tuple2[SymVar, ArrayBuffer[Expr]]) extends PathAndEffect(c, u) {
     
-    override def toString: String = {
-        "path constraint: {"+pathConstraint.toString+"} ----------------"
-    }
+    // override def toString: String = {
+    //     "path constraint: {"+pathConstraint.toString+"} ----------------"
+    // }
 
-    override def conjunctedTo(old: PathAndEffect): TerminatingPath = {
-        //reflect previous effect into coming path constraint variables
-        val toBeAdded: PathAndEffect = 
-            if(old.effect != null) {
-                this.applyEffect(old.effect._1, old.effect._2)
-            } else this
+    /*
+        reflect last previous effect on the incoming path constraint variables
+    */
+    override def conjunctPathEffect(prev: PathAndEffect): TerminatingPath = {
+        val newPathEffect: PathAndEffect = 
+            if(prev.effect != null) {
+                this.applyLastEffect(prev.effect._1, prev.effect._2.last)
+            }
+            else {
+                this.deepCopy
+            }
+        newPathEffect.pathConstraint.conjunctWith(prev.pathConstraint)
 
-        val newPathConstraint = toBeAdded.pathConstraint.conjunctWith(old.pathConstraint)
-        new TerminatingPath(newPathConstraint)
+        if(prev.effect != null) {
+            //deep-copy of prev.effect
+            val newBuffer = new ArrayBuffer[Expr]
+            prev.effect._2.copyToBuffer(newBuffer)
+            newPathEffect.effect = (prev.effect._1, newBuffer)
+        }
+        new TerminatingPath(newPathEffect.pathConstraint, newPathEffect.effect)
     }
 
     //TODO:

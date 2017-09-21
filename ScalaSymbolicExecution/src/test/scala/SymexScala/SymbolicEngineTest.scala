@@ -10,10 +10,10 @@ import NonNumericUnderlyingType._
 
 class SymbolicEngineTest extends FlatSpec with BeforeAndAfterAll with Matchers {
 
+    /*
     private var sc: SparkContext = _
     private var numbers: RDD[Int] = _
-    // private val cut = new SymbolicEngine()
- 
+    
     override def beforeAll() {
 
         Logger.getLogger("org").setLevel(Level.OFF)
@@ -28,10 +28,11 @@ class SymbolicEngineTest extends FlatSpec with BeforeAndAfterAll with Matchers {
         numbers = sc.textFile(srcPath)
                     .map(line => Integer.parseInt(line))
     }
-
+    
     override def afterAll() {
         sc.stop()
     }
+    */
 
     //Toy#1
     "testAddIntegers" should "return path constraint for a simple map" in {
@@ -73,6 +74,7 @@ class SymbolicEngineTest extends FlatSpec with BeforeAndAfterAll with Matchers {
     //     // println(result)
     // }
 
+    /*
     "testAddEvenIntegersGT100" should "return path constraint for a simple map and filter" in {
         SymbolicEngine.defineVar("x", Numeric(_Int))
         var engineResult = SymbolicEngine.run("map(x => if(x > 100) x else 0).filter(_%2 == 0)", 2)
@@ -181,7 +183,8 @@ class SymbolicEngineTest extends FlatSpec with BeforeAndAfterAll with Matchers {
         finalResult.paths.size should be (4)
         // assert(mapFilterResult.equlas(engineResult))
     }
-
+    */
+    
     // "testMapFilter(Effect)" should "return path constraint correctly for proceeding non-terminating paths including the effect of previous udf" in {
     //     val sourceCode = """map((x: Int, y: Int) => 
     //                             if(x > 100) {

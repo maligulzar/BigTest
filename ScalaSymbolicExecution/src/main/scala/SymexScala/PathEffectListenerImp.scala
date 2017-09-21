@@ -112,7 +112,9 @@ class PathEffectListenerImp extends PathEffectListener  {
             val pair: Pair[PathCondition, Expression] = it.next()
 
             val effectFromSPF: Expr = convertExpressionToExpr(pair._2)
-            val effect = new Tuple2[SymVar, Expr](new SymVar(effectFromSPF.actualType, returnVarName), effectFromSPF)
+            val effectBuffer = new ArrayBuffer[Expr]()
+            effectBuffer += effectFromSPF
+            val effect = new Tuple2[SymVar, ArrayBuffer[Expr]](new SymVar(effectFromSPF.actualType, returnVarName), effectBuffer)
 
             allPathEffects(i) = new PathAndEffect(convertPathCondition(pair._1), effect)
             i += 1

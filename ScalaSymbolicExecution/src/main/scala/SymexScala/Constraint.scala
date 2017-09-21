@@ -31,11 +31,16 @@ import ComparisonOp._
 import ArithmeticOp._
 
 class Constraint(c: Array[Clause]) {
-    val clauses: Array[Clause] = c //there are (implicit) conjunctions among elements of array (clauses)
+    var clauses: Array[Clause] = c //there are (implicit) conjunctions among elements of array (clauses)
 
-    def conjunctWith(other: Constraint): Constraint = {
+    def this() {
+        this(new Array[Clause](0))
+    }
+    
+    def conjunctWith(other: Constraint) = {
         //TODO: might want to simplify before merging, in case there are inconsistent clauses or repetitive ones
-        new Constraint(clauses ++ other.clauses)
+        //new Constraint(clauses ++ other.clauses)
+        clauses = clauses ++ other.clauses
     }
 
     override def toString: String = {
@@ -49,6 +54,9 @@ class Constraint(c: Array[Clause]) {
     }
 
     def applyEffect(x: SymVar, effect: Expr): Constraint = {
+        /*
+            map builds a new collection(Array)
+        */
         val updated = clauses.map(_.applyEffect(x, effect))
         // for(c <- clauses) {
         //     // if(c.contains(x)) 
@@ -63,6 +71,12 @@ class Constraint(c: Array[Clause]) {
             result &= c.checkValidity(ss)
         }
         result
+    }
+
+    def deepCopy: Constraint = {
+        val newArray = new Array[Clause](this.clauses.size)
+        this.clauses.copyToArray(newArray) //TODO TEST: might shallow copying the clauses
+        new Constraint(newArray)
     }
 }
 
@@ -183,7 +197,7 @@ case class SymVar(atype: VType, name: String) extends Terminal {
 
     override def applyEffect(x: SymVar, effect: Expr): Expr = {
         if(this.equals(x)) effect
-        else this
+        else this //TODO TEST: may need to do a deep-copy instead of returning the same instance, in case of further effects 
     }
 
     override def checkValidity(ss: SymbolicState): Boolean = {
