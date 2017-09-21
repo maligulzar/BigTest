@@ -5,12 +5,16 @@ import org.apache.spark.{ SparkContext, SparkConf }
 import org.apache.log4j.{ Logger, Level }
 import org.apache.spark.rdd._
 
+import udfExtractor.Runner
+import udfExtractor.JPFDAGNode
+import java.util.ArrayList
+
 import NumericUnderlyingType._
 import NonNumericUnderlyingType._
 
 class SymbolicEngineTest extends FlatSpec with BeforeAndAfterAll with Matchers {
 
-    /*
+/*
     private var sc: SparkContext = _
     private var numbers: RDD[Int] = _
     
@@ -32,159 +36,165 @@ class SymbolicEngineTest extends FlatSpec with BeforeAndAfterAll with Matchers {
     override def afterAll() {
         sc.stop()
     }
-    */
+*/
 
-    //Toy#1
-    "testAddIntegers" should "return path constraint for a simple map" in {
-        SymbolicEngine.defineVar("x", Numeric(_Int))
-        val engineResult = SymbolicEngine.run("map(x => if(x > 100) x else 0)", 1)
+    "test1" should "return path constraint for a simple map" in {
+        Runner.main(Array("Test1"))
+        val dagOpList = Main.convertList(Runner.getDataFlowDAG)
+        val engineResult = SymbolicEngine.executeSymbolicDF(dagOpList)
         assert(engineResult.isInstanceOf[SymbolicResult])
 
+        assert(engineResult.numOfPaths == 2)
+        assert(engineResult.numOfTerminating == 0)
 
-        val c1 = Constraint.parseConstraint("x > 100")
-        val path1 = new PathAndEffect(c1)
-
-        val c2 = Constraint.parseConstraint("x <= 100")
-        val e2 = SymbolicEngine.parseEffect("x = 0;")
-        val path2 = new PathAndEffect(c2, e2)
-
-        val allUdfPaths = new Array[PathAndEffect](2)
-        allUdfPaths(0) = path1
-        allUdfPaths(1) = path2
-
-        val udfSymbolicResult = new SymbolicResult(allUdfPaths)
-
-        val mapResult = new SymbolicResult().map(udfSymbolicResult)
-
-        assert(mapResult.isInstanceOf[SymbolicResult])
-        mapResult.paths.size should be (2)
-
-        // println(mapResult)
-        // println("-------------")
-        // println(udfSymbolicResult)
-        assert(mapResult.equals(udfSymbolicResult)) //only because previous to map, our only path was true 
-        assert(mapResult.equals(engineResult))
+        assert(engineResult.paths(0).toString == "path constraint: {x <= 100}\t effect: {x = 0} ---------")
+        assert(engineResult.paths(0).pathConstraint.toString == "x <= 100")
+        assert(engineResult.paths(0).effect._1.equals(new SymVar(Numeric(_Int), "x")))
+        assert(engineResult.paths(0).effect._2(0).equals(new ConcreteValue(Numeric(_Int), "0")))
+        
+        assert(engineResult.paths(1).toString == "path constraint: {x > 100}\t effect: {x = x} ---------")
+        assert(engineResult.paths(1).pathConstraint.toString == "x > 100")
+        val x = new SymVar(Numeric(_Int), "x")
+        assert(engineResult.paths(1).effect._1.equals(x))
+        assert(engineResult.paths(1).effect._2(0).equals(x))
     }
 
-    // it should "return path constraint for a simple map and reduce" in {
-    //     val result = cut.run("map(line => Integer.parseInt(line)).reduce(_+_)")
-    //     assert(result.isInstanceOf[ReducePathAndEffect])
-    //     assert(result == new ReducePathAndEffect(new Array[PathAndEffect](), new Constraint("true")))
-    //     result.toString should be ("for all records in (ta) in A, such that Pa is a member of C(A) where Pa(ta) && true")
-    //     // println(result)
-    // }
 
-    /*
-    "testAddEvenIntegersGT100" should "return path constraint for a simple map and filter" in {
-        SymbolicEngine.defineVar("x", Numeric(_Int))
-        var engineResult = SymbolicEngine.run("map(x => if(x > 100) x else 0).filter(_%2 == 0)", 2)
+    "test2" should "return path constraint for a simple map and filter" in {
+        Runner.main(Array("Test2"))
+        val dagOpList = Main.convertList(Runner.getDataFlowDAG)
+        val engineResult = SymbolicEngine.executeSymbolicDF(dagOpList)
         assert(engineResult.isInstanceOf[SymbolicResult])
 
+        assert(engineResult.numOfPaths == 2)
+        assert(engineResult.numOfTerminating == 2)
 
-        val c1 = Constraint.parseConstraint("x > 100")
-        val path1 = new PathAndEffect(c1)
-
-        val c2 = Constraint.parseConstraint("x <= 100")
-        val e2 = SymbolicEngine.parseEffect("x = 0;")
-        val path2 = new PathAndEffect(c2, e2)
-
-        val allMapPaths = new Array[PathAndEffect](2)
-        allMapPaths(0) = path1
-        allMapPaths(1) = path2
-
-        val c3 = Constraint.parseConstraint("x%2 == 0")
-        val path3 = new PathAndEffect(c3)
+        assert(engineResult.paths(0).toString == "path constraint: {0 > 0 && x <= 100}\t effect: {x = 0} ---------")
+        assert(engineResult.paths(0).pathConstraint.toString == "0 > 0 && x <= 100")
+        assert(engineResult.paths(0).effect._1.equals(new SymVar(Numeric(_Int), "x")))
+        assert(engineResult.paths(0).effect._2(0).equals(new ConcreteValue(Numeric(_Int), "0")))
         
-        val nonTpaths = new Array[PathAndEffect](1)
-        nonTpaths(0) = path3
+        assert(engineResult.paths(1).toString == "path constraint: {x + 1 > 0 && x > 100}\t effect: {x = x + 1} ---------")
+        assert(engineResult.paths(1).pathConstraint.toString == "x + 1 > 0 && x > 100")
+        val x = new SymVar(Numeric(_Int), "x")
+        assert(engineResult.paths(1).effect._1.equals(x))
+        assert(engineResult.paths(1).effect._2(0).toString == "x + 1")
 
-        val c4 = Constraint.parseConstraint("x%2 != 0")
-        val path4 = new TerminatingPath(c4)
+        assert(engineResult.terminating(0).toString == "path constraint: {0 <= 0 && x <= 100}\t effect: {x = 0} ---------")
+        assert(engineResult.terminating(0).pathConstraint.toString == "0 <= 0 && x <= 100")
+        assert(engineResult.terminating(0).effect._1.equals(new SymVar(Numeric(_Int), "x")))
+        assert(engineResult.terminating(0).effect._2(0).equals(new ConcreteValue(Numeric(_Int), "0")))
         
-        val terminPaths = new Array[TerminatingPath](1)
-        terminPaths(0) = path4
-
-        val mapSymbolicResult = new SymbolicResult(allMapPaths)
-        val filterSymbolicResult = new SymbolicResult(nonTpaths, terminPaths)
-
-        val mapResult = new SymbolicResult().map(mapSymbolicResult)
-        val mapFilterResult = new SymbolicResult().map(mapSymbolicResult).filter(filterSymbolicResult)
-
-        mapFilterResult.paths.size should be (2) //only 2 remaining terminating path
-
-        val resultPaths = new Array[PathAndEffect](2)
-        resultPaths(0) = path1.conjunctWith(path3)
-        resultPaths(1) = path2.conjunctWith(path3)
-        
-        val terminatingResPaths = new Array[TerminatingPath](2)
-        terminatingResPaths(0) = path1.conjunctWith(path4).asInstanceOf[TerminatingPath]
-        terminatingResPaths(1) = path2.conjunctWith(path4).asInstanceOf[TerminatingPath]
-
-        engineResult = new SymbolicResult(resultPaths, terminatingResPaths)
-        assert(mapFilterResult.equals(engineResult))
+        assert(engineResult.terminating(1).toString == "path constraint: {x + 1 <= 0 && x > 100}\t effect: {x = x + 1} ---------")
+        assert(engineResult.terminating(1).pathConstraint.toString == "x + 1 <= 0 && x > 100")
+        assert(engineResult.terminating(1).effect._1.equals(x))
+        assert(engineResult.terminating(1).effect._2(0).toString == "x + 1")
     }
 
-    "testMapFilterMap(Terminating)" should "return path constraint for both terminating and non-terminating paths" in {
-        SymbolicEngine.defineVar("x", Numeric(_Int))
-        val sourceCode = """map(x => if(x > 100) x else 0)
-                            .filter(_%2 == 0)
-                            .map(x => if(x < 200) -200 else x)"""
-        val engineResult = SymbolicEngine.run(sourceCode, 3)
+    "test3" should "return path constraint for a map,filter,map program" in {
+        Runner.main(Array("Test3"))
+        val dagOpList = Main.convertList(Runner.getDataFlowDAG)
+        val engineResult = SymbolicEngine.executeSymbolicDF(dagOpList)
         assert(engineResult.isInstanceOf[SymbolicResult])
 
-        //first Map UDF
-        val c1 = Constraint.parseConstraint("x > 100")
-        val path1 = new PathAndEffect(c1)
+        assert(engineResult.numOfPaths == 4)
+        assert(engineResult.numOfTerminating == 2)
 
-        val c2 = Constraint.parseConstraint("x <= 100")
-        val e2 = SymbolicEngine.parseEffect("x = 0;")
-        val path2 = new PathAndEffect(c2, e2)
+        val x = new SymVar(Numeric(_Int), "x")
 
-        val allMapPaths = new Array[PathAndEffect](2)
-        allMapPaths(0) = path1
-        allMapPaths(1) = path2
-
-        val mapSymbolicResult = new SymbolicResult(allMapPaths)
+        assert(engineResult.paths(0).toString == "path constraint: {0 >= 200 && 0 > 0 && x <= 100}\t effect: {x = 0, x = 0} ---------")
+        assert(engineResult.paths(0).pathConstraint.toString == "0 >= 200 && 0 > 0 && x <= 100")
+        assert(engineResult.paths(0).effect._1.equals(x))
+        assert(engineResult.paths(0).effect._2.size == 2)
         
-        //filter UDF
-        val c3 = Constraint.parseConstraint("x%2 == 0")
-        val path3 = new PathAndEffect(c3)
+        assert(engineResult.paths(1).toString == "path constraint: {0 < 200 && 0 > 0 && x <= 100}\t effect: {x = 0, x = -200} ---------")
+        assert(engineResult.paths(1).pathConstraint.toString == "0 < 200 && 0 > 0 && x <= 100")
+        assert(engineResult.paths(1).effect._1.equals(x))
+        assert(engineResult.paths(1).effect._2.size == 2)
+
+        assert(engineResult.paths(2).toString == "path constraint: {x + 1 >= 200 && x + 1 > 0 && x > 100}\t effect: {x = x + 1, x = x + 1} ---------")
+        assert(engineResult.paths(2).pathConstraint.toString == "x + 1 >= 200 && x + 1 > 0 && x > 100")
+        assert(engineResult.paths(2).effect._1.equals(x))
+        assert(engineResult.paths(2).effect._2.size == 2)
         
-        val nonTpaths = new Array[PathAndEffect](1)
-        nonTpaths(0) = path3
+        assert(engineResult.paths(3).toString == "path constraint: {x + 1 < 200 && x + 1 > 0 && x > 100}\t effect: {x = x + 1, x = -200} ---------")
+        assert(engineResult.paths(3).pathConstraint.toString == "x + 1 < 200 && x + 1 > 0 && x > 100")
+        assert(engineResult.paths(3).effect._1.equals(x))
+        assert(engineResult.paths(3).effect._2.size == 2)
 
-        val c4 = Constraint.parseConstraint("x%2 != 0")
-        val path4 = new TerminatingPath(c4)
+
+        assert(engineResult.terminating(0).toString == "path constraint: {0 <= 0 && x <= 100}\t effect: {x = 0} ---------")
+        assert(engineResult.terminating(0).pathConstraint.toString == "0 <= 0 && x <= 100")
+        assert(engineResult.terminating(0).effect._1.equals(new SymVar(Numeric(_Int), "x")))
+        assert(engineResult.terminating(0).effect._2(0).equals(new ConcreteValue(Numeric(_Int), "0")))
         
-        val terminPaths = new Array[TerminatingPath](1)
-        terminPaths(0) = path4
-
-        val filterSymbolicResult = new SymbolicResult(nonTpaths, terminPaths)
-
-        //second Map UDF
-        val c5 = Constraint.parseConstraint("x < 200")
-        val e5 = SymbolicEngine.parseEffect("x = -200;")
-        val path5 = new PathAndEffect(c5, e5)
-
-        val c6 = Constraint.parseConstraint("x >= 200")
-        val path6 = new PathAndEffect(c6)
-
-        val allMap2Paths = new Array[PathAndEffect](2)
-        allMap2Paths(0) = path5
-        allMap2Paths(1) = path6
-
-        val secondMapSymbolicResult = new SymbolicResult(allMap2Paths)
-
-        val mapResult = new SymbolicResult().map(mapSymbolicResult)
-        val mapFilterResult = new SymbolicResult().map(mapSymbolicResult).filter(filterSymbolicResult)
-
-        val finalResult = mapFilterResult.map(secondMapSymbolicResult)
-
-        finalResult.paths.size should be (4)
-        // assert(mapFilterResult.equlas(engineResult))
+        assert(engineResult.terminating(1).toString == "path constraint: {x + 1 <= 0 && x > 100}\t effect: {x = x + 1} ---------")
+        assert(engineResult.terminating(1).pathConstraint.toString == "x + 1 <= 0 && x > 100")
+        assert(engineResult.terminating(1).effect._1.equals(x))
+        assert(engineResult.terminating(1).effect._2(0).toString == "x + 1")
     }
-    */
-    
+
+    "test4" should "return path constraint for a map,filter,map,filter program" in {
+        Runner.main(Array("Test4"))
+        val dagOpList = Main.convertList(Runner.getDataFlowDAG)
+        val engineResult = SymbolicEngine.executeSymbolicDF(dagOpList)
+        assert(engineResult.isInstanceOf[SymbolicResult])
+
+        assert(engineResult.numOfPaths == 4)
+        assert(engineResult.numOfTerminating == 6)
+        val x = new SymVar(Numeric(_Int), "x")
+
+        // assert(engineResult.paths(0).toString == "path constraint: {0 > 0 && 0 >= 200 && 0 > 10 && x <= 100}\t effect: {x = 0, x = 0} ---------")
+        assert(engineResult.paths(0).pathConstraint.toString == "0 > 0 && 0 >= 200 && 0 > 10 && x <= 100")
+        assert(engineResult.paths(0).effect._1.equals(x))
+        assert(engineResult.paths(0).effect._2(0).equals(new ConcreteValue(Numeric(_Int), "0")))
+
+        assert(engineResult.paths(1).pathConstraint.toString == "-200 > 0 && 0 < 200 && 0 > 10 && x <= 100")
+        assert(engineResult.paths(1).effect._1.equals(x))
+        assert(engineResult.paths(1).effect._2(0).equals(new ConcreteValue(Numeric(_Int), "0")))
+        assert(engineResult.paths(1).effect._2(1).equals(new ConcreteValue(Numeric(_Int), "-200")))
+
+        assert(engineResult.paths(2).pathConstraint.toString == "x > 0 && x >= 200 && x > 10 && x > 100")
+        assert(engineResult.paths(2).effect._1.equals(x))
+        assert(engineResult.paths(2).effect._2(0).equals(x))
+        assert(engineResult.paths(2).effect._2(1).equals(x))
+
+        assert(engineResult.paths(3).pathConstraint.toString == "-200 > 0 && x < 200 && x > 10 && x > 100")
+        assert(engineResult.paths(3).effect._1.equals(x))
+        assert(engineResult.paths(3).effect._2(0).equals(x))
+        assert(engineResult.paths(3).effect._2(1).equals(new ConcreteValue(Numeric(_Int), "-200")))
+
+        assert(engineResult.terminating(0).pathConstraint.toString == "0 <= 10 && x <= 100")
+        assert(engineResult.terminating(0).effect._1.equals(x))
+        assert(engineResult.terminating(0).effect._2(0).equals(new ConcreteValue(Numeric(_Int), "0")))
+        
+        assert(engineResult.terminating(1).pathConstraint.toString == "x <= 10 && x > 100")
+        assert(engineResult.terminating(1).effect._1.equals(x))
+        assert(engineResult.terminating(1).effect._2(0).equals(x))
+        
+        assert(engineResult.terminating(2).pathConstraint.toString == "0 <= 0 && 0 >= 200 && 0 > 10 && x <= 100")
+        assert(engineResult.terminating(2).effect._1.equals(x))
+        assert(engineResult.terminating(2).effect._2(0).equals(new ConcreteValue(Numeric(_Int), "0")))
+        assert(engineResult.terminating(2).effect._2(1).equals(new ConcreteValue(Numeric(_Int), "0")))
+        
+        assert(engineResult.terminating(3).pathConstraint.toString == "-200 <= 0 && 0 < 200 && 0 > 10 && x <= 100")
+        assert(engineResult.terminating(3).effect._1.equals(x))
+        assert(engineResult.terminating(3).effect._2(0).equals(new ConcreteValue(Numeric(_Int), "0")))
+        assert(engineResult.terminating(3).effect._2(1).equals(new ConcreteValue(Numeric(_Int), "-200")))
+        
+        assert(engineResult.terminating(4).pathConstraint.toString == "x <= 0 && x >= 200 && x > 10 && x > 100")
+        assert(engineResult.terminating(4).effect._1.equals(x))
+        assert(engineResult.terminating(4).effect._2(0).equals(x))
+        assert(engineResult.terminating(4).effect._2(1).equals(x))
+        
+        assert(engineResult.terminating(5).pathConstraint.toString == "-200 <= 0 && x < 200 && x > 10 && x > 100")
+        assert(engineResult.terminating(5).effect._1.equals(x))
+        assert(engineResult.terminating(5).effect._2(0).equals(x))
+        assert(engineResult.terminating(5).effect._2(1).equals(new ConcreteValue(Numeric(_Int), "-200")))
+
+    }
+
+
     // "testMapFilter(Effect)" should "return path constraint correctly for proceeding non-terminating paths including the effect of previous udf" in {
     //     val sourceCode = """map((x: Int, y: Int) => 
     //                             if(x > 100) {
@@ -218,12 +228,4 @@ class SymbolicEngineTest extends FlatSpec with BeforeAndAfterAll with Matchers {
     //     assert(result.toString == afterMapFilter.toString)
     // }
 
-    // "testAddEvenIntegers" should "return path constraint for a simple map" in {
-    //     val result = cut.run("map(line => Integer.parseInt(line)).filter(_%2 == 0).reduce(_+_)")
-    //     assert(result.isInstanceOf[ReducePathAndEffect])
-    //     val filterC = new Array[PathAndEffect]()
-    //     filterC += new FilterPathAndEffect(new Array[PathAndEffect](), new Constraint("x%2 == 0"))
-    //     assert(result == new ReducePathAndEffect(filterC, new Constraint("true")))
-    //     // println(result)
-    // }
 }

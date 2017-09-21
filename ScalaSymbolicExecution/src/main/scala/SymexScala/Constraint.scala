@@ -5,7 +5,6 @@ import scala.reflect.runtime.universe._
 
 import NumericUnderlyingType._
 import NonNumericUnderlyingType._
- 
 
 object ComparisonOp extends Enumeration {
     type ComparisonOp = Value
@@ -24,7 +23,7 @@ object ArithmeticOp extends Enumeration {
     val Addition = Value("+")
     val Subtraction = Value("-")
     val Multiplication = Value("*")
-    val Division = Value("/")        
+    val Division = Value("/")
 }
 
 import ComparisonOp._
@@ -36,7 +35,7 @@ class Constraint(c: Array[Clause]) {
     def this() {
         this(new Array[Clause](0))
     }
-    
+
     def conjunctWith(other: Constraint) = {
         //TODO: might want to simplify before merging, in case there are inconsistent clauses or repetitive ones
         //new Constraint(clauses ++ other.clauses)
@@ -44,11 +43,11 @@ class Constraint(c: Array[Clause]) {
     }
 
     override def toString: String = {
-        if(clauses.length == 0)
+        if (clauses.length == 0)
             return ""
         var result = clauses(0).toString
-        for(i <- 1 to clauses.length-1) {
-            result += " && "+clauses(i)
+        for (i <- 1 to clauses.length - 1) {
+            result += " && " + clauses(i)
         }
         result
     }
@@ -67,7 +66,7 @@ class Constraint(c: Array[Clause]) {
 
     def checkValidity(ss: SymbolicState): Boolean = {
         var result: Boolean = true
-        for(c <- clauses) {
+        for (c <- clauses) {
             result &= c.checkValidity(ss)
         }
         result
@@ -92,8 +91,8 @@ object Constraint {
         //TODO: remove () from beginning and end of clause
         val op = """<=|>=|==|!=|<|>""".r
         val matched = op.findAllIn(str).toArray
-        if(matched.length > 1) {
-            println("Parse Error: More than one comparison operator in one clause: "+str)
+        if (matched.length > 1) {
+            println("Parse Error: More than one comparison operator in one clause: " + str)
             exit(1)
         } else if (matched.length == 0) {
             return new Clause(parseExpr(str)) //Expr
@@ -141,7 +140,7 @@ object Constraint {
     }
 }
 
-class Clause (left: Expr, op: ComparisonOp = null, right: Expr = null) {
+class Clause(left: Expr, op: ComparisonOp = null, right: Expr = null) {
 
     var leftExpr: Expr = left
     val compOp: ComparisonOp = op
@@ -149,15 +148,15 @@ class Clause (left: Expr, op: ComparisonOp = null, right: Expr = null) {
     assert(left != null)
 
     override def toString: String = {
-        if(compOp == null || rightExpr == null) leftExpr.toString
-        else leftExpr.toString+" "+compOp.toString+" "+rightExpr.toString
+        if (compOp == null || rightExpr == null) leftExpr.toString
+        else leftExpr.toString + " " + compOp.toString + " " + rightExpr.toString
     }
 
     def applyEffect(x: SymVar, effect: Expr): Clause = {
         val newLeftExpr = leftExpr.applyEffect(x, effect)
 
-        val newRightExpr = 
-            if(rightExpr != null) {
+        val newRightExpr =
+            if (rightExpr != null) {
                 rightExpr.applyEffect(x, effect)
             } else null
 
@@ -167,11 +166,10 @@ class Clause (left: Expr, op: ComparisonOp = null, right: Expr = null) {
     def checkValidity(ss: SymbolicState): Boolean = {
         var leftRes = leftExpr.checkValidity(ss)
 
-        if(rightExpr != null) leftRes && rightExpr.checkValidity(ss)
+        if (rightExpr != null) leftRes && rightExpr.checkValidity(ss)
         else leftRes
     }
 }
-
 
 abstract class Expr {
     val actualType: VType
@@ -185,18 +183,18 @@ abstract class Terminal extends Expr {}
 
 case class SymOp(atype: VType, op: ArithmeticOp) /*extends Terminal*/ {
     val actualType = atype
-    override def toString: String = {op.toString}
+    override def toString: String = { op.toString }
 }
 
 case class SymVar(atype: VType, name: String) extends Terminal {
     val actualType = atype
 
-    override def toString: String = {name/*+": "+actualType*/}
+    override def toString: String = { name /*+": "+actualType*/ }
 
-    def getName(): String = {name}
+    def getName(): String = { name }
 
     override def applyEffect(x: SymVar, effect: Expr): Expr = {
-        if(this.equals(x)) effect
+        if (this.equals(x)) effect
         else this //TODO TEST: may need to do a deep-copy instead of returning the same instance, in case of further effects 
     }
 
@@ -211,28 +209,27 @@ case class ConcreteValue(atype: VType, value: String) extends Terminal {
     //check validity of passed ConcreteValue
     assert(atype match {
         case t: Numeric => try {
-                val v = value.toDouble
-                true
-            } catch {
-                case _: java.lang.NumberFormatException => false
-            }
+            val v = value.toDouble
+            true
+        } catch {
+            case _: java.lang.NumberFormatException => false
+        }
         case t: NonNumeric =>
-            if(t.underlyingType == _Boolean) {
+            if (t.underlyingType == _Boolean) {
                 try {
                     val b = value.toBoolean
                     true
                 } catch {
-                    case _:java.lang.IllegalArgumentException => false
+                    case _: java.lang.IllegalArgumentException => false
                 }
-            }
-            else true
+            } else true
     })
 
-    override def toString: String = {value.toString/*+" of type "+actualType*/}
+    override def toString: String = { value.toString /*+" of type "+actualType*/ }
 
-    override def applyEffect(x: SymVar, effect: Expr): Expr = {this}
+    override def applyEffect(x: SymVar, effect: Expr): Expr = { this }
 
-    override def checkValidity(ss: SymbolicState): Boolean = {true}
+    override def checkValidity(ss: SymbolicState): Boolean = { true }
 }
 
 // case class UnaryExpr(op: SymOp, right: Expr) extends Expr{}
@@ -257,8 +254,7 @@ case class NonTerminal(left: Expr, middle: SymOp, right: Expr) extends Expr {
     }
 
     override def toString(): String = {
-        left.toString+" "+op.toString+" "+right.toString
+        left.toString + " " + op.toString + " " + right.toString
     }
 }
-
 

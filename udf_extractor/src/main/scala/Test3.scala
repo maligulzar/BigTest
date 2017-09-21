@@ -10,8 +10,8 @@ object Test3 {
         val sc = new SparkContext(conf)
         val sum = sc.textFile("input")
                     .map(line => Integer.parseInt(line))
-                    .map(x => if(x > 100) x else 0)
-                    .filter(_%2 == 0)
+                    .map(x => if(x > 100) x+1 else 0)
+                    .filter(x => x > 0)
                     .map(x => if(x < 200) -200 else x)
                     //.reduce(_+_)
 

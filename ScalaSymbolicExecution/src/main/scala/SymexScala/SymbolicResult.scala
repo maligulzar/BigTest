@@ -33,7 +33,10 @@ class SymbolicResult(ss: SymbolicState, nonT: Array[PathAndEffect], t: ArrayBuff
 
     def numOfPaths: Int = {paths.size}
 
-    def numOfTerminating: Int = {terminating.size}
+    def numOfTerminating: Int = {
+        if(terminating != null) terminating.size
+        else 0
+    }
 
     def map(udfSymbolicResult: SymbolicResult): SymbolicResult = {
         //returns Cartesian product of already existing paths *  set of paths from given udf

@@ -6,7 +6,6 @@ import gov.nasa.jpf.symbc.SymbolicListener
 
 import udfExtractor.Runner
 import udfExtractor.JPFDAGNode
-
 import java.util.ArrayList
 
 import NumericUnderlyingType._
@@ -39,7 +38,7 @@ object Main {
         // }
 
         Runner.main(args)
-        println(Runner.getDataFlowDAG)
+        //println(Runner.getDataFlowDAG)
         val dagOpList: ArrayList[JPFDAGNode] = Runner.getDataFlowDAG
         val result2 = SymbolicEngine.executeSymbolicDF(convertList(dagOpList))
         // println(result2)
