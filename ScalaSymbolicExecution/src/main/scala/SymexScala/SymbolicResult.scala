@@ -9,10 +9,15 @@ class NotFoundPathCondition(message: String, cause: Throwable = null)
 /* 
     paths = different paths each being satisfied by an equivalent class of tuples in dataset V
 */
-class SymbolicResult(ss: SymbolicState, nonT: Array[PathAndEffect], t: ArrayBuffer[TerminatingPath] = null) {
+class SymbolicResult(ss: SymbolicState, 
+                    nonT: Array[PathAndEffect],
+                    t: ArrayBuffer[TerminatingPath] = null,
+                    rVar: SymVar = null) {
+    
     val state: SymbolicState = ss
     val paths: Array[PathAndEffect] = nonT
     val terminating: ArrayBuffer[TerminatingPath] = t
+    val returnVar: SymVar = rVar
 
     override def toString: String = {
         var result = "Set of Constraints for this dataset V:\nNon-terminating:\n"
@@ -84,7 +89,11 @@ class SymbolicResult(ss: SymbolicState, nonT: Array[PathAndEffect], t: ArrayBuff
             val castedOther = other.asInstanceOf[SymbolicResult]
             castedOther.numOfPaths == this.numOfPaths
         } else false
-    } 
+    }
+
+    // def substitudeWithFreshNames = {
+        
+    // } 
 }
 
 class PathAndEffect(pc: Constraint, udfEffect: Tuple2[SymVar, ArrayBuffer[Expr]]) {
@@ -107,6 +116,10 @@ class PathAndEffect(pc: Constraint, udfEffect: Tuple2[SymVar, ArrayBuffer[Expr]]
                 eString += effect._1.getName+" = "+e+", "
             }
             if(effect._2.size > 0) eString = eString.substring(0, eString.length-2)
+
+            if(pathConstraint.clauses.size > 1) {
+                eString += " && x2 = x1"
+            }
 
             rName = effect._1.getName
         }

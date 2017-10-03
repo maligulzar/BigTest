@@ -101,7 +101,8 @@ class PathEffectListenerImp extends PathEffectListener  {
     /*
         TODO: we assume that we will be given the (input argument = return value = record) name
     */
-    def convertAll(returnVarName: String): SymbolicResult = {
+    def convertAll(symState: SymbolicState): SymbolicResult = {
+        val returnVarName: String = "x"
         val pathVector = super.getListOfPairs()
         allPathEffects = new Array[PathAndEffect](pathVector.size())
         //println(pathVector.size())

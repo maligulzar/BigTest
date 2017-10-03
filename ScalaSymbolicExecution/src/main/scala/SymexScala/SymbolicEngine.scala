@@ -11,7 +11,7 @@ object SymbolicEngine {
 
     val currentState: SymbolicState = new SymbolicState()
     
-    def callSPF(jpfFile: String): SymbolicResult = {
+    def callSPF(jpfFile: String, symState: SymbolicState): SymbolicResult = {
         val injectedListener = new PathEffectListenerImp()
         val config: Config = JPF.createConfig(Array(jpfFile))
         val jpf: JPF = new JPF(config)
@@ -20,7 +20,7 @@ object SymbolicEngine {
         jpf.addListener(symbc)
         jpf.run()
 
-        val udfResult = injectedListener.convertAll("x")
+        val udfResult = injectedListener.convertAll(symState)
         udfResult
     }
 
@@ -28,8 +28,9 @@ object SymbolicEngine {
         used for unit testing data flow symbolic execution with "true" as initial path constraint
     */
     def executeDFOperator(dfName: String, jpfFile: String): SymbolicResult = {
-        val init = new SymbolicResult(new SymbolicState()) //non-T: true, T: null
-        val udfResult = callSPF(jpfFile)
+        val symState = new SymbolicState()
+        val init = new SymbolicResult(symState) //non-T: true, T: null
+        val udfResult = callSPF(jpfFile, symState)
         
         dfName match {
             case "map" => init.map(udfResult)
@@ -39,23 +40,27 @@ object SymbolicEngine {
     }
 
     def executeSymbolicDF(opJpfList: Array[Tuple2[String, String]]): SymbolicResult = {
-        var currentPaths: SymbolicResult = new SymbolicResult(new SymbolicState())
-
+        val symState = new SymbolicState()
+        var currentPaths: SymbolicResult = new SymbolicResult(symState)
+        // val res = callSPF(opJpfList(0)._2, symState) 
+        //opJpfList(0)._1 
+        
         for((dfName, jpfFile) <- opJpfList) {
-            val udfResult = callSPF(jpfFile)
+            val udfResult = callSPF(jpfFile, symState)
             //println(udfResult)
             //println("--------------")
 
             currentPaths = dfName match {
                 case "map" => currentPaths.map(udfResult)
                 case "filter" => currentPaths.filter(udfResult)
+                // case "join" => 
                 case _ => throw new NotSupportedRightNow("This data flow operation is yet not supported!")
             }
 
             println("after "+dfName)
             println(currentPaths)
         }
-
+        
         currentPaths
     }
 
@@ -84,11 +89,4 @@ object SymbolicEngine {
         parsed
     }
 
-    def defineVar(varName: String, varType: VType): String = {
-        if(currentState.getSymVar(varName) == null) {
-            currentState.updateVarInEnv(varName, varType, null)
-            varName
-        }
-        else "" //has to redefine with another name also keep the oldName and return new Name!
-    }
 }
