@@ -1,5 +1,8 @@
 package SymexScala
 
+import java.util
+
+
 import scala.collection.mutable.ArrayBuffer
 
 class NotFoundPathCondition(message: String, cause: Throwable = null) 
@@ -36,6 +39,17 @@ class SymbolicResult(ss: SymbolicState,
         }
 
         result
+    }
+
+    def solveWithZ3(): Unit = {
+        for (path <- paths) {
+            var str = path.toZ3Query();
+            println("------------------------")
+            print(path.toString)
+            println(str)
+            println("------------------------")
+
+        }
     }
 
     def numOfPaths: Int = {paths.size}
@@ -136,6 +150,45 @@ class PathAndEffect(pc: Constraint, udfEffect: ArrayBuffer[Tuple2[SymVar, Expr]]
 
         "path constraint: {"+pathConstraint.toString+"}\t effect: {"+eString+"} ---------"
     }
+
+
+    def getEffectZ3Query(initial: util.HashSet[(String , VType)]): String = {
+        var eString: String = ""
+        var rName: String = ""
+        // val clauses: util.ArrayList[Clause] = new util.ArrayList[Clause]()
+        val clauses: Array[Clause] = new Array[Clause](effects.size)
+            var i =0 ;
+            for (e <- effects) {
+                clauses(i) = new Clause(e._1,
+                    ComparisonOp.Equality,
+                    e._2)
+                i =  i + 1
+            }
+            val pathCond = new Constraint(clauses.toArray)
+            return pathCond.toZ3Query(initial)
+    }
+
+
+    def toZ3Query(): String = {
+
+        val list: util.HashSet[(String, VType)] = new util.HashSet[(String, VType)]();
+        val pc = pathConstraint.toZ3Query(list) + "\n" + getEffectZ3Query(list)
+        var decls = ""
+        val itr = list.iterator()
+        while(itr.hasNext){
+            val i = itr.next()
+            decls +=
+              s""" (declare-fun ${i._1} () ${i._2.toZ3Query()} )
+                  |""".stripMargin
+        }
+        s"""$decls
+           |$pc
+           |(check-sat)
+           |(get-model)
+     """.stripMargin
+
+    }
+
 
     override def equals(other: Any): Boolean = {
         if(other != null && other.isInstanceOf[PathAndEffect]) {
