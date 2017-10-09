@@ -34,3 +34,9 @@ case class Numeric(ut: NumericUnderlyingType) extends VType {
 case class NonNumeric(ut: NonNumericUnderlyingType) extends VType {
     val underlyingType: NonNumericUnderlyingType = ut
 }
+
+case class Tuple(ut1: VType, ut2: VType) extends VType {
+    val underlyingType: Tuple2[VType, VType] = new Tuple2(ut1, ut2)
+    val _1Type = ut1
+    val _2Type = ut2 
+}

@@ -22,7 +22,7 @@ import NumericUnderlyingType._
 import NonNumericUnderlyingType._
 
 class NotSupportedRightNow(message: String, cause: Throwable = null) 
-    extends RuntimeException("This type/operator is not supported right now: "+message, cause) {}
+    extends RuntimeException("This is not supported right now: "+message, cause) {}
 
 class PathEffectListenerImp extends PathEffectListener  {
 
@@ -114,14 +114,25 @@ class PathEffectListenerImp extends PathEffectListener  {
         val pathVector: Vector[Pair[PathCondition, Expression]] = super.getListOfPairs()
         val argsInfo: Vector[Pair[String, String]] = super.getArgsInfo()
 
-        for(i <- 0 until argsInfo.size) {
-            //println(argsInfo.get(i)._1+" "+argsInfo.get(i)._2)
-            argsMap += (argsInfo.get(i)._1 -> symState.getFreshSymVar(argsInfo.get(i)._2))
-        }
-        //println("-------------------------")
-
-        val inputVar = argsMap(argsInfo.get(0)._1)
-        val outputVar = symState.getFreshSymVar(argsInfo.get(0)._2)
+        val (inputVar: SymVar, outputVar: SymVar) = 
+            if(argsInfo.size == 1) {
+                val freshVar : SymVar = symState.getFreshSymVar(argsInfo.get(0)._2)
+                argsMap += (argsInfo.get(0)._1 -> freshVar)
+                (freshVar, symState.getFreshSymVar(argsInfo.get(0)._2))
+            }
+            else if(argsInfo.size == 2) {
+                val freshTuple: SymTuple = symState.getFreshSymTuple(argsInfo.get(0)._2, argsInfo.get(1)._2)
+                argsMap += (argsInfo.get(0)._1 -> freshTuple._1)
+                argsMap += (argsInfo.get(1)._1 -> freshTuple._2)
+                (freshTuple, symState.getFreshSymTuple(argsInfo.get(0)._2, argsInfo.get(1)._2))
+            }
+            else {
+                for(i <- 0 until argsInfo.size) {
+                    println(argsInfo.get(i)._1+" "+argsInfo.get(i)._2)
+                }
+                println("------------"+argsInfo.size+"-------------")
+                throw new NotSupportedRightNow("more than 2 input arguments!")
+            }
 
         allPathEffects = new Array[PathAndEffect](pathVector.size())
         for(i <- 0 until pathVector.size){
@@ -132,6 +143,8 @@ class PathEffectListenerImp extends PathEffectListener  {
             allPathEffects(i) = new PathAndEffect(convertPathCondition(pathVector.get(i)._1), effectBuffer)
         }
 
+        println(inputVar)
+        println(outputVar)
         //there is no terminating path in the scope of udf
         new SymbolicResult(symState, allPathEffects, null, inputVar, outputVar)
     }

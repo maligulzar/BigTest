@@ -87,6 +87,7 @@ class Constraint(c: Array[Clause]) {
 }
 
 //companion object
+/*
 object Constraint {
     def parseConstraint(str: String): Constraint = {
         val strClauses = str.replaceAll("\\s", "").split("&&")
@@ -113,39 +114,8 @@ object Constraint {
 
         return new Clause(leftStr, comp, rightStr)
     }
-
-    def parseExpr(str: String): Expr = {
-        //first check for partialExpr
-        val op = """\+|-|\*|/""".r
-        return SymVar(Numeric(_Int), str)
-        // op.findFirstIn(str) match {
-        //     case Some(matched) => {
-        //         //ArithmeticOp(matched)
-        //         val index = str.indexOf(matched)
-        //         val left = str.substring(0, index)
-        //         val right = str.substring(index + 1)
-        //         return PartialExpr(parseExpr(left), ArithmeticOp.withName(matched), parseExpr(right))
-        //     }
-        //     case None => { //it did not contain any arithmetic operator
-        //         try {
-        //             val parsed = Integer.parseInt(str)
-        //             return ConcreteValue[Numeric](parsed)
-        //         } catch {
-        //             case e: NumberFormatException => {
-        //                 try { 
-        //                     val bool = str.toBoolean
-        //                     return ConcreteValue[NonNumeric](parsed)
-        //                 } catch {
-        //                     case e: Exception => {
-        //                         return SymVar[Numeric](str) //TODO: how should I know?
-        //                     }
-        //                 }
-        //             }
-        //         }
-        //     }
-        // }
-    }
 }
+*/
 
 class Clause(left: Expr, op: ComparisonOp = null, right: Expr = null) {
 
@@ -200,12 +170,12 @@ case class SymOp(atype: VType, op: ArithmeticOp) /*extends Terminal*/ {
     override def toString: String = { op.toString }
 }
 
-case class SymVar(atype: VType, name: String) extends Terminal {
+class SymVar(atype: VType, name: String) extends Terminal {
     val actualType = atype
 
     override def toString: String = { name /*+": "+actualType*/ }
 
-    def getName(): String = { name }
+    def getName: String = { name }
 
     override def applyEffect(x: SymVar, effect: Expr): Expr = {
         if (this.equals(x)) effect
@@ -217,6 +187,29 @@ case class SymVar(atype: VType, name: String) extends Terminal {
     }
 }
 
+case class SymTuple(ttype: Tuple, name: String) extends SymVar(ttype, name) {
+    override val actualType = ttype
+
+    val _1: SymVar = new SymVar(ttype._1Type, name+"_1") 
+    val _2: SymVar = new SymVar(ttype._2Type, name+"_2") 
+
+    override def toString: String ={ name+"=("+_1.getName+", "+_2.getName+")"}
+
+    //TODO: update this for tuple
+    override def applyEffect(x: SymVar, effect: Expr): Expr = {
+        if (this.equals(x)) effect
+        else this
+    }
+
+    override def checkValidity(ss: SymbolicState): Boolean = {
+        ss.isDefined(_1)
+        ss.isDefined(_2)
+    }
+
+    def getFirst: SymVar = {_1}
+    def getSecond: SymVar = {_2}
+
+}
 case class ConcreteValue(atype: VType, value: String) extends Terminal {
     val actualType = atype
 

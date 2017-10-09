@@ -37,12 +37,12 @@ object Main {
         //     exit(1)
         // }
 
-        Runner.main(args)
-        println(Runner.getDataFlowDAG)
-        val dagOpList: Array[Tuple2[String, String]] = convertList(Runner.getDataFlowDAG)
+        // Runner.main(args)
+        // println(Runner.getDataFlowDAG)
+        // val dagOpList: Array[Tuple2[String, String]] = convertList(Runner.getDataFlowDAG)
 
-        // val dagOpList: Array[Tuple2[String, String]] = new Array[Tuple2[String, String]](1)
-        // dagOpList(0) = new Tuple2("map", "/Users/amytis/Projects/jpf/jpf-symbc/src/examples/Example2.jpf")
+        val dagOpList: Array[Tuple2[String, String]] = new Array[Tuple2[String, String]](1)
+        dagOpList(0) = new Tuple2("map", "/Users/amytis/Projects/jpf/jpf-symbc/src/examples/Example2.jpf")
         val result2 = SymbolicEngine.executeSymbolicDF(dagOpList)
         // println(result2)
 

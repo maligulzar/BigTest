@@ -10,6 +10,7 @@ class parseEffectException(message: String, cause: Throwable = null) extends Run
 object SymbolicEngine {
     
     def callSPF(jpfFile: String, symState: SymbolicState): SymbolicResult = {
+        println(jpfFile)
         val injectedListener = new PathEffectListenerImp()
         val config: Config = JPF.createConfig(Array(jpfFile))
         val jpf: JPF = new JPF(config)
@@ -40,9 +41,9 @@ object SymbolicEngine {
     def executeSymbolicDF(opJpfList: Array[Tuple2[String, String]]): SymbolicResult = {
         val symState = new SymbolicState()
         var currentPaths: SymbolicResult = new SymbolicResult(symState)
-        //val res = callSPF(opJpfList(0)._2, symState) 
-        //println(res)
-        
+        val res = callSPF(opJpfList(0)._2, symState) 
+        println(res)
+        /*
         for((dfName, jpfFile) <- opJpfList) {
             val udfResult = callSPF(jpfFile, symState)
             //println(udfResult)
@@ -58,7 +59,7 @@ object SymbolicEngine {
             println("after "+dfName)
             println(currentPaths)
         }
-        
+        */
         currentPaths
     }
 

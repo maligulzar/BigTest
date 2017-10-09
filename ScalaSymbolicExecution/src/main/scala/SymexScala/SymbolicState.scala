@@ -35,7 +35,7 @@ class SymbolicState() {
     */
 
     def isDefined(x: SymVar): Boolean = {
-        val found = symbolicEnv.getOrElse(x.name, null)
+        val found = symbolicEnv.getOrElse(x.getName, null)
         if(found != null && found.equals(x)) true
         else false
     }
@@ -47,37 +47,56 @@ class SymbolicState() {
         else null   
     }
 
+    def getVType(primitive: String): VType = {
+        primitive match {
+            case "int" => Numeric(_Int)
+            case "double" => Numeric(_Double)
+            case _ => NonNumeric(_Unit)
+        }
+    }
+
     def getFreshName: String = {
         index = index+1
         "x"+index.toString
     }
 
-    def getFreshSymVar(varType: String): SymVar = {
-        val vType = varType match {
-            case "int" => Numeric(_Int)
-            case "double" => Numeric(_Double)
-            case _ => NonNumeric(_Unit)
-        }
-
+    def getFreshSymVar(primitive: String): SymVar = {
+        val vType = getVType(primitive)
         val varName = getFreshName
-        val newVarDef = new SymbolicVarDef(varName, vType)
+        val newVar = new SymVar(vType, varName)
+
+        val newVarDef = new SymbolicVarDef(newVar)
         symbolicEnv += (varName -> newVarDef)
 
-        newVarDef.variable
+        newVar
+    }
+
+    def getFreshSymTuple(first: String, second: String): SymTuple = {
+        val vType1 = getVType(first)
+        val vType2 = getVType(second)
+        val tupleType = Tuple(vType1, vType2)
+
+        val varName = getFreshName
+        val newTuple = new SymTuple(tupleType, varName)
+
+        val newVarDef = new SymbolicVarDef(newTuple)
+        symbolicEnv += (varName -> newVarDef)
+
+        newTuple
     }
 
 }
 
-class SymbolicVarDef(name: String, vt: VType) {
-    val variable: SymVar = new SymVar(vt, name) //!!
-    var symbolicValue: Expr = variable //initially it is same as symbolicVariable
+class SymbolicVarDef(v: SymVar) {
+    val variable: SymVar = v
+    var symbolicValue: Expr = v //initially it is same as symbolicVariable
 
     override def toString: String = {
         variable.toString+" -> "+symbolicValue.toString
     }
 
     def updateEffect(effect: Expr) = {
-        println("Variable "+name+" updated from "+symbolicValue+" to "+effect)
+        println("Variable "+v.getName+" updated from "+symbolicValue+" to "+effect)
         symbolicValue = effect
     }
 }
