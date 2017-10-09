@@ -1,7 +1,11 @@
 package SymexScala
 
+import java.io.{BufferedWriter, FileWriter, File}
 import java.util
 
+
+import udfExtractor.Logging.LogType
+import udfExtractor.SystemCommandExecutor
 
 import scala.collection.mutable.ArrayBuffer
 
@@ -16,7 +20,7 @@ class SymbolicResult(ss: SymbolicState,
                     nonT: Array[PathAndEffect],
                     t: ArrayBuffer[TerminatingPath] = null,
                     iVar: SymVar = null,
-                    oVar: SymVar = null) {
+                    oVar: SymVar = null , Z3DIR:String="") {
     
     val state: SymbolicState = ss
     val paths: Array[PathAndEffect] = nonT
@@ -41,9 +45,49 @@ class SymbolicResult(ss: SymbolicState,
         result
     }
 
+    def writeTempSMTFile(filename: String , z3: String): Unit ={
+       try {
+           val file: File = new File(filename)
+           if (!file.exists) {
+               file.createNewFile
+           }
+           val fw: FileWriter = new FileWriter(file)
+           val bw = new BufferedWriter(fw)
+           bw.write(z3);
+           bw.close();
+       } catch{
+             case ex: Exception =>
+                ex .printStackTrace();
+    }
+
+    }
+    def runZ3Command(filename: String , Z3dir:String): Unit ={
+        // build the system command we want to run
+        val s: String = Z3dir+"/build/z3 -smt2 " + filename
+        try {
+            val commands: util.List[String] = new util.ArrayList[String]
+            commands.add("/bin/sh")
+            commands.add("-c")
+            commands.add(s)
+            val commandExecutor: SystemCommandExecutor = new SystemCommandExecutor(commands, Z3dir)
+            val result: Int = commandExecutor.executeCommand();
+            val stdout: java.lang.StringBuilder = commandExecutor.getStandardOutputFromCommand
+            val stderr: java.lang.StringBuilder = commandExecutor.getStandardErrorFromCommand
+            println("Model --> \n" + stdout.toString)
+        }
+        catch {
+            case e: Exception => {
+                e.printStackTrace
+            }
+        }
+    }
+
     def solveWithZ3(): Unit = {
         for (path <- paths) {
             var str = path.toZ3Query();
+            var filename = "/tmp/"+path.hashCode();
+            writeTempSMTFile(filename , str);
+            runZ3Command(filename , Z3DIR);
             println("------------------------")
             print(path.toString)
             println(str)
