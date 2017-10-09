@@ -7,7 +7,7 @@ object NumericUnderlyingType extends Enumeration {
     type NumericUnderlyingType = Value
     val _Byte = Value("Byte")
     val _Short = Value("Short")
-    val _Int = Value("Integer")
+    val _Int = Value("Int")
     val _Long = Value("Long")
     val _Double = Value("Double")
     val _Float = Value("Float")

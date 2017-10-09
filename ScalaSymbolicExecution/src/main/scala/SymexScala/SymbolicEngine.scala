@@ -56,9 +56,10 @@ object SymbolicEngine {
                 case _ => throw new NotSupportedRightNow("This data flow operation is yet not supported!")
             }
 
-            // println("after "+dfName)
-            // println(currentPaths)
+            println("after "+dfName)
+            println(currentPaths)
         }
+        currentPaths.Z3DIR = "/Users/amytis/Downloads/z3-master"
         currentPaths.solveWithZ3
         currentPaths
     }

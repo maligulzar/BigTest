@@ -20,8 +20,8 @@ class SymbolicResult(ss: SymbolicState,
                     nonT: Array[PathAndEffect],
                     t: ArrayBuffer[TerminatingPath] = null,
                     iVar: SymVar = null,
-                    oVar: SymVar = null , Z3DIR:String="") {
-    
+                    oVar: SymVar = null) {
+    var Z3DIR: String = ""    
     val state: SymbolicState = ss
     val paths: Array[PathAndEffect] = nonT
     val terminating: ArrayBuffer[TerminatingPath] = t
