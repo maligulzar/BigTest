@@ -1,5 +1,7 @@
 package SymexScala
 
+import java.util
+
 import scala.collection.mutable.ArrayBuffer
 import scala.reflect.runtime.universe._
 
@@ -8,7 +10,7 @@ import NonNumericUnderlyingType._
 
 object ComparisonOp extends Enumeration {
     type ComparisonOp = Value
-    val Equality = Value("==")
+    val Equality = Value("=")
     val Inequality = Value("!=")
     val LessThan = Value("<")
     val LessThanOrEq = Value("<=")
@@ -44,6 +46,20 @@ class Constraint(c: Array[Clause]) {
             result += " && " + clauses(i)
         }
         result
+    }
+    def toZ3Query(initials :util.HashSet[(String , VType)] ): String = {
+        if (clauses.length == 0)
+            return ""
+        val idx = 0
+        s""" (assert (${andClauses(idx , initials)}) )"""
+    }
+
+    def andClauses(idx :Int , initials :util.HashSet[(String , VType)] ): String ={
+        if(idx == clauses.length -1){
+            clauses(idx).toZ3Query(initials)
+        }else{
+            s""" and ${(clauses(idx).toZ3Query(initials))} ${andClauses(idx+1 , initials)} """
+        }
     }
 
     override def equals(other: Any): Boolean = {
@@ -129,6 +145,18 @@ class Clause(left: Expr, op: ComparisonOp = null, right: Expr = null) {
         else leftExpr.toString + " " + compOp.toString + " " + rightExpr.toString
     }
 
+    def toZ3Query(initials :util.HashSet[(String , VType)] ): String = {
+        if (compOp == null || rightExpr == null)
+            leftExpr.toString
+        else
+        {
+            //Z3 -- > Assertion (assert (> x 2))
+            //  if(leftExpr.isInstanceOf[Terminal] && rightExpr.isInstanceOf[Terminal])
+            return s"""(${compOp.toString}  ${leftExpr.toZ3Query(initials)} ${rightExpr.toZ3Query(initials)} )"""
+        }
+        ""
+    }
+
     override def equals(other: Any): Boolean = {
         if(other != null && other.isInstanceOf[Clause]) {
             this.toString == other.asInstanceOf[Clause].toString
@@ -161,6 +189,8 @@ abstract class Expr {
     def toString: String
     def applyEffect(x: SymVar, effect: Expr): Expr
     def checkValidity(ss: SymbolicState): Boolean
+    def toZ3Query(initials :util.HashSet[(String , VType)] ): String
+
 }
 
 abstract class Terminal extends Expr {}
@@ -176,6 +206,11 @@ class SymVar(atype: VType, name: String) extends Terminal {
     override def toString: String = { name /*+": "+actualType*/ }
 
     def getName: String = { name }
+
+    override def toZ3Query(initials :util.HashSet[(String , VType)] ): String = {
+        initials.add((name , actualType));
+        name
+    }
 
     override def applyEffect(x: SymVar, effect: Expr): Expr = {
         if (this.equals(x)) effect
@@ -234,6 +269,10 @@ case class ConcreteValue(atype: VType, value: String) extends Terminal {
 
     override def toString: String = { value.toString /*+" of type "+actualType*/ }
 
+    override def toZ3Query(initials :util.HashSet[(String , VType)]): String = {
+        value.toString
+    }
+
     override def applyEffect(x: SymVar, effect: Expr): Expr = { this }
 
     override def checkValidity(ss: SymbolicState): Boolean = { true }
@@ -262,6 +301,12 @@ case class NonTerminal(left: Expr, middle: SymOp, right: Expr) extends Expr {
 
     override def toString(): String = {
         left.toString + " " + op.toString + " " + right.toString
+    }
+    override def toZ3Query(initials :util.HashSet[(String , VType)]): String = {
+        // left.toString + " " + op.toString + " " + right.toString
+        s"""(${op.toString}  ${leftExpr.toZ3Query(initials)} ${rightExpr.toZ3Query(initials)} )"""
+        //"FIX NON TERMINAL Z3 QUERY"
+
     }
 }
 
