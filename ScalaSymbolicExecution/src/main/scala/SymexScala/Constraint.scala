@@ -36,12 +36,6 @@ class Constraint(c: Array[Clause]) {
         this(new Array[Clause](0))
     }
 
-    def conjunctWith(other: Constraint) = {
-        //TODO: might want to simplify before merging, in case there are inconsistent clauses or repetitive ones
-        //new Constraint(clauses ++ other.clauses)
-        clauses = clauses ++ other.clauses
-    }
-
     override def toString: String = {
         if (clauses.length == 0)
             return ""
@@ -50,6 +44,19 @@ class Constraint(c: Array[Clause]) {
             result += " && " + clauses(i)
         }
         result
+    }
+
+    override def equals(other: Any): Boolean = {
+        if(other != null && other.isInstanceOf[Constraint]) {
+            this.clauses.deep == other.asInstanceOf[Constraint].clauses.deep
+        }
+        else false
+    }
+
+    def conjunctWith(other: Constraint) = {
+        //TODO: might want to simplify before merging, in case there are inconsistent clauses or repetitive ones
+        //new Constraint(clauses ++ other.clauses)
+        clauses = clauses ++ other.clauses
     }
 
     def applyEffect(x: SymVar, effect: Expr): Constraint = {
@@ -150,6 +157,13 @@ class Clause(left: Expr, op: ComparisonOp = null, right: Expr = null) {
     override def toString: String = {
         if (compOp == null || rightExpr == null) leftExpr.toString
         else leftExpr.toString + " " + compOp.toString + " " + rightExpr.toString
+    }
+
+    override def equals(other: Any): Boolean = {
+        if(other != null && other.isInstanceOf[Clause]) {
+            this.toString == other.asInstanceOf[Clause].toString
+        }
+        else false
     }
 
     def applyEffect(x: SymVar, effect: Expr): Clause = {

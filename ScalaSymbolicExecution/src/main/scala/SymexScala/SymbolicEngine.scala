@@ -8,8 +8,6 @@ import gov.nasa.jpf.symbc.SymbolicListener
 class parseEffectException(message: String, cause: Throwable = null) extends RuntimeException("Effect: "+message, cause) {}
 
 object SymbolicEngine {
-
-    val currentState: SymbolicState = new SymbolicState()
     
     def callSPF(jpfFile: String, symState: SymbolicState): SymbolicResult = {
         val injectedListener = new PathEffectListenerImp()
@@ -42,8 +40,8 @@ object SymbolicEngine {
     def executeSymbolicDF(opJpfList: Array[Tuple2[String, String]]): SymbolicResult = {
         val symState = new SymbolicState()
         var currentPaths: SymbolicResult = new SymbolicResult(symState)
-        // val res = callSPF(opJpfList(0)._2, symState) 
-        //opJpfList(0)._1 
+        //val res = callSPF(opJpfList(0)._2, symState) 
+        //println(res)
         
         for((dfName, jpfFile) <- opJpfList) {
             val udfResult = callSPF(jpfFile, symState)
@@ -62,31 +60,6 @@ object SymbolicEngine {
         }
         
         currentPaths
-    }
-
-    def parseEffect(effectStr: String): Tuple2[SymVar, Expr] = {
-        if(effectStr == null || effectStr == "")
-            return null
-
-        val part = effectStr.replaceAll("\\s", "")
-        // if(parts.size == 0)
-        //     throw new parseEffectException(effectStr)
-
-        var parsed: Tuple2[SymVar, Expr] = null
-        //could do it with scala map from array(parts) to an array(parsedArr)
-        
-        val assignIndex = part.indexOf("=")
-        val leftHand = currentState.getSymVar(part.substring(0, assignIndex))
-        // println("l: "+leftHand)
-        val expr = Constraint.parseExpr(part.substring(assignIndex + 1))
-        // println("expr: "+expr)
-
-        if(leftHand != null /*&& expr.checkValidity(currentState)*/) {
-            parsed = (leftHand, expr)
-        }
-        else throw new parseEffectException(part)
-
-        parsed
     }
 
 }

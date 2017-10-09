@@ -16,6 +16,7 @@ import gov.nasa.jpf.symbc.numeric.RealConstant
 import gov.nasa.jpf.symbc.numeric.SymbolicReal
 
 import scala.collection.mutable.ArrayBuffer
+import scala.collection.mutable.Map
 
 import NumericUnderlyingType._
 import NonNumericUnderlyingType._
@@ -26,9 +27,7 @@ class NotSupportedRightNow(message: String, cause: Throwable = null)
 class PathEffectListenerImp extends PathEffectListener  {
 
     var allPathEffects: Array[PathAndEffect] = null
-
-    // def this () {
-    // }
+    val argsMap: Map[String, SymVar] = Map[String, SymVar]()  //from old names to instantiations with new names
 
     def convertRealExpression(lr: RealExpression): Expr = {
         lr match {
@@ -42,7 +41,12 @@ class PathEffectListenerImp extends PathEffectListener  {
                 new NonTerminal(left, op, right)
             }
             case c: RealConstant => new ConcreteValue(Numeric(_Double), c.toString())
-            case s: SymbolicReal => new SymVar(Numeric(_Double), s.getName())
+            case s: SymbolicReal => {
+                val realVar = argsMap.getOrElse(s.getName(), null)
+                if(realVar == null) 
+                    new SymVar(Numeric(_Double), s.getName())
+                else realVar
+            }
             case _ => throw new NotSupportedRightNow(lr.getClass.getName)
         }
     }
@@ -59,7 +63,12 @@ class PathEffectListenerImp extends PathEffectListener  {
                 new NonTerminal(left, op, right)
             }
             case c: IntegerConstant => new ConcreteValue(Numeric(_Int), c.toString())
-            case s: SymbolicInteger => new SymVar(Numeric(_Int), s.getName())
+            case s: SymbolicInteger => {
+                    val intVar = argsMap.getOrElse(s.getName(), null)
+                    if(intVar == null) 
+                        new SymVar(Numeric(_Int), s.getName())
+                    else intVar
+                }
             case _ => throw new NotSupportedRightNow(li.getClass.getName)
         }
     }
@@ -99,31 +108,32 @@ class PathEffectListenerImp extends PathEffectListener  {
     }
 
     /*
-        TODO: we assume that we will be given the (input argument = return value = record) name
+        assuming first input argument is our record (which also has the same type as return variable) 
     */
     def convertAll(symState: SymbolicState): SymbolicResult = {
-        val returnVarName: String = "x"
-        val pathVector = super.getListOfPairs()
+        val pathVector: Vector[Pair[PathCondition, Expression]] = super.getListOfPairs()
+        val argsInfo: Vector[Pair[String, String]] = super.getArgsInfo()
+
+        for(i <- 0 until argsInfo.size) {
+            //println(argsInfo.get(i)._1+" "+argsInfo.get(i)._2)
+            argsMap += (argsInfo.get(i)._1 -> symState.getFreshSymVar(argsInfo.get(i)._2))
+        }
+        //println("-------------------------")
+
+        val inputVar = argsMap(argsInfo.get(0)._1)
+        val outputVar = symState.getFreshSymVar(argsInfo.get(0)._2)
+
         allPathEffects = new Array[PathAndEffect](pathVector.size())
-        //println(pathVector.size())
+        for(i <- 0 until pathVector.size){
+            val effectFromSPF: Expr = convertExpressionToExpr(pathVector.get(i)._2)
+            val effectBuffer = new ArrayBuffer[Tuple2[SymVar, Expr]]()
+            effectBuffer += new Tuple2(outputVar, effectFromSPF)
 
-        val it: Iterator[Pair[PathCondition, Expression]] = pathVector.iterator();
-        var i = 0
-        while (it.hasNext()) {
-            val pair: Pair[PathCondition, Expression] = it.next()
-
-            val effectFromSPF: Expr = convertExpressionToExpr(pair._2)
-            val effectBuffer = new ArrayBuffer[Expr]()
-            effectBuffer += effectFromSPF
-            val effect = new Tuple2[SymVar, ArrayBuffer[Expr]](new SymVar(effectFromSPF.actualType, returnVarName), effectBuffer)
-
-            allPathEffects(i) = new PathAndEffect(convertPathCondition(pair._1), effect)
-            i += 1
+            allPathEffects(i) = new PathAndEffect(convertPathCondition(pathVector.get(i)._1), effectBuffer)
         }
 
         //there is no terminating path in the scope of udf
-        new SymbolicResult(null, allPathEffects)
-        
+        new SymbolicResult(symState, allPathEffects, null, inputVar, outputVar)
     }
 
 }

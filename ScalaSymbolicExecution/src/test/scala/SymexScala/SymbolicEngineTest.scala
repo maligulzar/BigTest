@@ -14,52 +14,28 @@ import NonNumericUnderlyingType._
 
 class SymbolicEngineTest extends FlatSpec with BeforeAndAfterAll with Matchers {
 
-/*
-    private var sc: SparkContext = _
-    private var numbers: RDD[Int] = _
-    
-    override def beforeAll() {
-
-        Logger.getLogger("org").setLevel(Level.OFF)
-        Logger.getLogger("akka").setLevel(Level.OFF)
-
-        val conf = new SparkConf()
-            .setMaster("local[4]")
-            .setAppName("Scala Symex Test")
-        sc = new SparkContext(conf)
-        val srcPath = "input"
-
-        numbers = sc.textFile(srcPath)
-                    .map(line => Integer.parseInt(line))
-    }
-    
-    override def afterAll() {
-        sc.stop()
-    }
-*/
-
     "test1" should "return path constraint for a simple map" in {
         Runner.main(Array("Test1"))
         val dagOpList = Main.convertList(Runner.getDataFlowDAG)
         val engineResult = SymbolicEngine.executeSymbolicDF(dagOpList)
         assert(engineResult.isInstanceOf[SymbolicResult])
 
+        //println("here "+engineResult)
         assert(engineResult.numOfPaths == 2)
         assert(engineResult.numOfTerminating == 0)
 
-        assert(engineResult.paths(0).toString == "path constraint: {x <= 100}\t effect: {x = 0} ---------")
-        assert(engineResult.paths(0).pathConstraint.toString == "x <= 100")
-        assert(engineResult.paths(0).effect._1.equals(new SymVar(Numeric(_Int), "x")))
-        assert(engineResult.paths(0).effect._2(0).equals(new ConcreteValue(Numeric(_Int), "0")))
+        assert(engineResult.paths(0).toString == "path constraint: {x0 <= 100}\t effect: {x1 = 0} ---------")
+        assert(engineResult.paths(0).pathConstraint.toString == "x0 <= 100")
+        assert(engineResult.paths(0).effects(0)._1.equals(new SymVar(Numeric(_Int), "x1")))
+        assert(engineResult.paths(0).effects(0)._2.equals(new ConcreteValue(Numeric(_Int), "0")))
         
-        assert(engineResult.paths(1).toString == "path constraint: {x > 100}\t effect: {x = x} ---------")
-        assert(engineResult.paths(1).pathConstraint.toString == "x > 100")
-        val x = new SymVar(Numeric(_Int), "x")
-        assert(engineResult.paths(1).effect._1.equals(x))
-        assert(engineResult.paths(1).effect._2(0).equals(x))
+        assert(engineResult.paths(1).toString == "path constraint: {x0 > 100}\t effect: {x1 = x0} ---------")
+        assert(engineResult.paths(1).pathConstraint.toString == "x0 > 100")
+        val x1 = new SymVar(Numeric(_Int), "x1")
+        assert(engineResult.paths(1).effects(0)._1.equals(x1))
     }
 
-
+/*
     "test2" should "return path constraint for a simple map and filter" in {
         Runner.main(Array("Test2"))
         val dagOpList = Main.convertList(Runner.getDataFlowDAG)
@@ -194,7 +170,7 @@ class SymbolicEngineTest extends FlatSpec with BeforeAndAfterAll with Matchers {
 
     }
 
-
+*/
     // "testMapFilter(Effect)" should "return path constraint correctly for proceeding non-terminating paths including the effect of previous udf" in {
     //     val sourceCode = """map((x: Int, y: Int) => 
     //                             if(x > 100) {

@@ -47,7 +47,7 @@ class SymbolicState() {
         else null   
     }
 
-    def getFreshName(): String = {
+    def getFreshName: String = {
         index = index+1
         "x"+index.toString
     }
@@ -59,7 +59,7 @@ class SymbolicState() {
             case _ => NonNumeric(_Unit)
         }
 
-        val varName = getFreshName()
+        val varName = getFreshName
         val newVarDef = new SymbolicVarDef(varName, vType)
         symbolicEnv += (varName -> newVarDef)
 

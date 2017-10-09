@@ -4,11 +4,10 @@ import org.scalatest._
 import org.apache.spark.{ SparkContext, SparkConf }
 import org.apache.log4j.{ Logger, Level }
 import org.apache.spark.rdd._
+import scala.collection.mutable.ArrayBuffer
 
 import udfExtractor.Runner
 import udfExtractor.JPFDAGNode
-import java.util.ArrayList
-import scala.collection.mutable.ArrayBuffer
 
 import NumericUnderlyingType._
 import NonNumericUnderlyingType._
@@ -30,11 +29,11 @@ class ConstraintTest extends FlatSpec with BeforeAndAfterAll with Matchers {
         val effect1: Expr = new NonTerminal(x0,
                                             new SymOp(Numeric(_Int), Addition),
                                             ConcreteValue(Numeric(_Int),"1"))
-        val effectBuffer = new ArrayBuffer[Expr]()
-        effectBuffer += effect1
 
-        val returnVar = new SymVar(Numeric(_Int), "x1")
-        val effect = new Tuple2[SymVar, ArrayBuffer[Expr]](returnVar, effectBuffer)
+        val x1 = new SymVar(Numeric(_Int), "x1")
+
+        val effect = new ArrayBuffer[Tuple2[SymVar, Expr]]()
+        effect += new Tuple2(x1, effect1)
 
         val pe = new PathAndEffect(pathCond, effect)
 
@@ -56,16 +55,14 @@ class ConstraintTest extends FlatSpec with BeforeAndAfterAll with Matchers {
         val effect1: Expr = new NonTerminal(x0,
                                             new SymOp(Numeric(_Int), Addition),
                                             ConcreteValue(Numeric(_Int),"1"))
-
-        val effectBuffer = new ArrayBuffer[Expr]()
-        effectBuffer += effect1
-        effectBuffer += x2
-
+        
         val x1 = new SymVar(Numeric(_Int), "x1")
-        val effect = new Tuple2[SymVar, ArrayBuffer[Expr]](x1, effectBuffer)
+
+        val effect = new ArrayBuffer[Tuple2[SymVar, Expr]]()
+        effect += new Tuple2(x1, effect1)
+        effect += new Tuple2(x2, x1)
 
         val pe = new PathAndEffect(pathCond, effect)
-
     }
 
 
