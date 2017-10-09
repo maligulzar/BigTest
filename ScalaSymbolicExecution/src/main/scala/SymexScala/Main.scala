@@ -29,40 +29,20 @@ object Main {
 
     def main(args: Array[String]): Unit = {
 
-        // val props = System.getProperties()
-        // println(System.getProperty("java.class.path"))
-
         // if(args.size < 2) {
         //     println("Please provide operator name and JPF file pathname as arguments.")
         //     exit(1)
         // }
 
-        // Runner.main(args)
-        // println(Runner.getDataFlowDAG)
-        // val dagOpList: Array[Tuple2[String, String]] = convertList(Runner.getDataFlowDAG)
+        Runner.main(args)
+        println(Runner.getDataFlowDAG)
+        val dagOpList: Array[Tuple2[String, String]] = convertList(Runner.getDataFlowDAG)
 
-        val dagOpList: Array[Tuple2[String, String]] = new Array[Tuple2[String, String]](1)
-        dagOpList(0) = new Tuple2("map", "/Users/amytis/Projects/jpf/jpf-symbc/src/examples/Example2.jpf")
+        //val dagOpList: Array[Tuple2[String, String]] = new Array[Tuple2[String, String]](1)
+        //dagOpList(0) = new Tuple2("map", "/Users/amytis/Projects/jpf/jpf-symbc/src/examples/Example2.jpf")
         val result2 = SymbolicEngine.executeSymbolicDF(dagOpList)
         // println(result2)
-
-
-        // Logger.getLogger("org").setLevel(Level.OFF)
-        // Logger.getLogger("akka").setLevel(Level.OFF)
-
-        // val conf = new SparkConf()
-        //     .setAppName("Scala Symex")
-        //     .setMaster("local[4]")
-        // val sc = new SparkContext(conf)
-        // val srcPath = args(0)
-
-        // val numbers = sc.textFile(srcPath)
-        //             .map(line => Integer.parseInt(line))
-
-        // val output = SymbolicEngine.run(numbers, "text")
-        // println(output)
-        //inputDataSet: RDD[Int], udf: Function1[Int,Int], constraint: Constraint
-        // val pc1 = new PathAndEffect(numbers, new Constraint("true && x > 100"), new Function1[Int, Int] {def apply(x: Int) = x})
-        // val pc2 = new PathAndEffect(numbers, new Constraint("true && x <= 100"), new Function1[Int, Int] {def apply(x: Int) = 0})
     }
+    
+
 }

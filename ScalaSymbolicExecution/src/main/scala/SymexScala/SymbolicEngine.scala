@@ -41,9 +41,9 @@ object SymbolicEngine {
     def executeSymbolicDF(opJpfList: Array[Tuple2[String, String]]): SymbolicResult = {
         val symState = new SymbolicState()
         var currentPaths: SymbolicResult = new SymbolicResult(symState)
-        val res = callSPF(opJpfList(0)._2, symState) 
-        println(res)
-        /*
+        //val res = callSPF(opJpfList(0)._2, symState) 
+        //println(res)
+        
         for((dfName, jpfFile) <- opJpfList) {
             val udfResult = callSPF(jpfFile, symState)
             //println(udfResult)
@@ -56,10 +56,10 @@ object SymbolicEngine {
                 case _ => throw new NotSupportedRightNow("This data flow operation is yet not supported!")
             }
 
-            println("after "+dfName)
-            println(currentPaths)
+            // println("after "+dfName)
+            // println(currentPaths)
         }
-        */
+        currentPaths.solveWithZ3
         currentPaths
     }
 

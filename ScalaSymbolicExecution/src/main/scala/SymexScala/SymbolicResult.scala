@@ -87,9 +87,8 @@ class SymbolicResult(ss: SymbolicState,
 
         for(udfPath: PathAndEffect <- udfSymbolicResult.paths) {
             //we need to check the effect to see whether it is a terminating or a non-terminating one
-            //
-            // ---> (udfPath.effect._2.last.toString == "0")
-            if(udfPath.effects.last.toString == "0") { //terminating
+            // if it's terminating effect would be '0'
+            if(udfPath.effects.last._2.toString == "0") { //terminating
                 val udfTerminating = new TerminatingPath(udfPath.pathConstraint)
                 for(pa <- this.paths) {
                     // print(pa.toString+" && "+udfTerminating.toString+" = ")

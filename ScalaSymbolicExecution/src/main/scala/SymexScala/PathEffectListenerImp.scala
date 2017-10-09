@@ -143,8 +143,8 @@ class PathEffectListenerImp extends PathEffectListener  {
             allPathEffects(i) = new PathAndEffect(convertPathCondition(pathVector.get(i)._1), effectBuffer)
         }
 
-        println(inputVar)
-        println(outputVar)
+        //println(inputVar)
+        //println(outputVar)
         //there is no terminating path in the scope of udf
         new SymbolicResult(symState, allPathEffects, null, inputVar, outputVar)
     }
