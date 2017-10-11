@@ -26,7 +26,7 @@ class NotSupportedRightNow(message: String, cause: Throwable = null)
 
 class PathEffectListenerImp extends PathEffectListener  {
 
-    var allPathEffects: Array[PathAndEffect] = null
+    var allPathEffects: Array[PathEffect] = null
     val argsMap: Map[String, SymVar] = Map[String, SymVar]()  //from old names to instantiations with new names
 
     def convertRealExpression(lr: RealExpression): Expr = {
@@ -134,13 +134,13 @@ class PathEffectListenerImp extends PathEffectListener  {
                 throw new NotSupportedRightNow("more than 2 input arguments!")
             }
 
-        allPathEffects = new Array[PathAndEffect](pathVector.size())
+        allPathEffects = new Array[PathEffect](pathVector.size())
         for(i <- 0 until pathVector.size){
             val effectFromSPF: Expr = convertExpressionToExpr(pathVector.get(i)._2)
             val effectBuffer = new ArrayBuffer[Tuple2[SymVar, Expr]]()
             effectBuffer += new Tuple2(outputVar, effectFromSPF)
 
-            allPathEffects(i) = new PathAndEffect(convertPathCondition(pathVector.get(i)._1), effectBuffer)
+            allPathEffects(i) = new PathEffect(convertPathCondition(pathVector.get(i)._1), effectBuffer)
         }
 
         //println(inputVar)

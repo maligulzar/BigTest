@@ -15,14 +15,14 @@ import NonNumericUnderlyingType._
 import ComparisonOp._
 import ArithmeticOp._
 
-class PathAndEffectTest extends FlatSpec with BeforeAndAfterAll with Matchers {
+class PathEffectTest extends FlatSpec with BeforeAndAfterAll with Matchers {
 
     "test toString for empty effect" should "return {}" in {
-        val ut = new PathAndEffect(new Constraint())
+        val ut = new PathEffect(new Constraint())
         assert(ut.toString.equals("path constraint: {}\t effect: {} ---------"))
     }
 
-    "test conjuncting PathAndEffect" should "return conjuncting two path and effects" in {
+    "test conjuncting PathEffect" should "return conjuncting two path and effects" in {
         //path: x0 > 100 -> effect : x1 = x0 + 1
         val x0 = new SymVar(Numeric(_Int), "x0")
         val c0 :Array[Clause] = Array(new Clause(x0,
@@ -38,7 +38,7 @@ class PathAndEffectTest extends FlatSpec with BeforeAndAfterAll with Matchers {
         val returnVar1 = new SymVar(Numeric(_Int), "x1")
         val effects1 = new ArrayBuffer[Tuple2[SymVar, Expr]]()
         effects1 += new Tuple2(returnVar1, eff0)
-        val pe01 = new PathAndEffect(pathCond0, effects1)
+        val pe01 = new PathEffect(pathCond0, effects1)
 
 
         //path: x2 < 200 -> effect : x3 = -200
@@ -54,13 +54,13 @@ class PathAndEffectTest extends FlatSpec with BeforeAndAfterAll with Matchers {
         val returnVar3 = new SymVar(Numeric(_Int), "x3")
         val effects3 = new ArrayBuffer[Tuple2[SymVar, Expr]]()
         effects3 += new Tuple2(returnVar3, eff2)
-        val pe23 = new PathAndEffect(pathCond2, effects3)
+        val pe23 = new PathEffect(pathCond2, effects3)
 
         val link = new Tuple2(x2, returnVar1)
 
         val result = pe01.conjunctPathEffect(pe23, link)
 
-        assert(result.isInstanceOf[PathAndEffect])
+        assert(result.isInstanceOf[PathEffect])
 
         assert(result.effects.size == 3)
         assert(result.pathConstraint.clauses.size == 2)

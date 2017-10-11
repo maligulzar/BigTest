@@ -17,7 +17,7 @@ import ArithmeticOp._
 
 class SymbolicResultTest extends FlatSpec with BeforeAndAfterAll with Matchers {
 
-    private var pe: PathAndEffect = null
+    private var pe: PathEffect = null
     
     override def beforeAll() {
         val x0 = new SymVar(Numeric(_Int), "x0")
@@ -36,7 +36,7 @@ class SymbolicResultTest extends FlatSpec with BeforeAndAfterAll with Matchers {
         val effect = new ArrayBuffer[Tuple2[SymVar, Expr]]()
         effect += new Tuple2(x1, effect1)
 
-        this.pe = new PathAndEffect(pathCond, effect)
+        this.pe = new PathEffect(pathCond, effect)
     }
 
     //not possible to call spf from different test suites, probably spf has some mutil-threading issue ->

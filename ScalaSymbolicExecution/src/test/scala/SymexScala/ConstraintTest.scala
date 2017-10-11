@@ -35,7 +35,7 @@ class ConstraintTest extends FlatSpec with BeforeAndAfterAll with Matchers {
         val effect = new ArrayBuffer[Tuple2[SymVar, Expr]]()
         effect += new Tuple2(x1, effect1)
 
-        val pe = new PathAndEffect(pathCond, effect)
+        val pe = new PathEffect(pathCond, effect)
 
     }
 
@@ -62,7 +62,7 @@ class ConstraintTest extends FlatSpec with BeforeAndAfterAll with Matchers {
         effect += new Tuple2(x1, effect1)
         effect += new Tuple2(x2, x1)
 
-        val pe = new PathAndEffect(pathCond, effect)
+        val pe = new PathEffect(pathCond, effect)
     }
 
 
