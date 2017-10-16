@@ -22,6 +22,7 @@ abstract class Expr {
     def applyEffect(x: SymVar, effect: Expr): Expr
     def checkValidity(ss: SymbolicState): Boolean
     def toZ3Query(initials :HashSet[(String , VType)] ): String
+    def deepCopy: Expr
 
 }
 
@@ -35,14 +36,9 @@ case class SymOp(atype: VType, op: ArithmeticOp) /*extends Terminal*/ {
 class SymVar(atype: VType, name: String) extends Terminal {
     val actualType = atype
 
+    def getName: String = {name}
+
     override def toString: String = { name /*+": "+actualType*/ }
-
-    def getName: String = { name }
-
-    override def toZ3Query(initials :HashSet[(String , VType)] ): String = {
-        initials.add((name , actualType));
-        name
-    }
 
     override def applyEffect(x: SymVar, effect: Expr): Expr = {
         if (this.equals(x)) effect
@@ -52,13 +48,25 @@ class SymVar(atype: VType, name: String) extends Terminal {
     override def checkValidity(ss: SymbolicState): Boolean = {
         ss.isDefined(this)
     }
+
+    override def toZ3Query(initials :HashSet[(String , VType)] ): String = {
+        initials.add((name , actualType));
+        name
+    }
+
+    override def deepCopy: SymVar = {
+        new SymVar(actualType, name)
+    }
 }
 
 case class SymTuple(ttype: Tuple, name: String) extends SymVar(ttype, name) {
     override val actualType = ttype
 
     val _1: SymVar = new SymVar(ttype._1Type, name+"_1") 
-    val _2: SymVar = new SymVar(ttype._2Type, name+"_2") 
+    val _2: SymVar = new SymVar(ttype._2Type, name+"_2")
+
+    def getFirst: SymVar = {_1}
+    def getSecond: SymVar = {_2}
 
     override def toString: String ={ name+"=("+_1.getName+", "+_2.getName+")"}
 
@@ -73,8 +81,11 @@ case class SymTuple(ttype: Tuple, name: String) extends SymVar(ttype, name) {
         ss.isDefined(_2)
     }
 
-    def getFirst: SymVar = {_1}
-    def getSecond: SymVar = {_2}
+    //def toZ3Query(initials :HashSet[(String , VType)] ): String
+
+    override def deepCopy: SymTuple = {
+        new SymTuple(actualType, name)
+    }
 
 }
 case class ConcreteValue(atype: VType, value: String) extends Terminal {
@@ -101,13 +112,17 @@ case class ConcreteValue(atype: VType, value: String) extends Terminal {
 
     override def toString: String = { value.toString /*+" of type "+actualType*/ }
 
+    override def applyEffect(x: SymVar, effect: Expr): Expr = {this}
+
+    override def checkValidity(ss: SymbolicState): Boolean = {true}
+
     override def toZ3Query(initials :HashSet[(String , VType)]): String = {
         value.toString
     }
 
-    override def applyEffect(x: SymVar, effect: Expr): Expr = { this }
-
-    override def checkValidity(ss: SymbolicState): Boolean = { true }
+    override def deepCopy: ConcreteValue = {
+        new ConcreteValue(actualType, value)
+    }
 }
 
 // case class UnaryExpr(op: SymOp, right: Expr) extends Expr{}
@@ -123,6 +138,10 @@ case class NonTerminal(left: Expr, middle: SymOp, right: Expr) extends Expr {
     assert(op.actualType == leftExpr.actualType && op.actualType == rightExpr.actualType)
     val actualType = op.actualType
 
+    override def toString(): String = {
+        left.toString + " " + op.toString + " " + right.toString
+    }
+
     override def applyEffect(x: SymVar, effect: Expr): Expr = {
         new NonTerminal(left.applyEffect(x, effect), op, right.applyEffect(x, effect))
     }
@@ -131,14 +150,15 @@ case class NonTerminal(left: Expr, middle: SymOp, right: Expr) extends Expr {
         leftExpr.checkValidity(ss) && rightExpr.checkValidity(ss)
     }
 
-    override def toString(): String = {
-        left.toString + " " + op.toString + " " + right.toString
-    }
     override def toZ3Query(initials :HashSet[(String , VType)]): String = {
         // left.toString + " " + op.toString + " " + right.toString
         s"""(${op.toString}  ${leftExpr.toZ3Query(initials)} ${rightExpr.toZ3Query(initials)} )"""
         //"FIX NON TERMINAL Z3 QUERY"
 
+    }
+
+    override def deepCopy(): NonTerminal = {
+        new NonTerminal(left.deepCopy, middle, right.deepCopy)
     }
 }
 
