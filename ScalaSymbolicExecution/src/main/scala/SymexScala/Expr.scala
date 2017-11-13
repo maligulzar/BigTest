@@ -62,13 +62,13 @@ class SymVar(atype: VType, name: String) extends Terminal {
 case class SymTuple(ttype: Tuple, name: String) extends SymVar(ttype, name) {
     override val actualType = ttype
 
-    val _1: SymVar = new SymVar(ttype._1Type, name+"_1") 
-    val _2: SymVar = new SymVar(ttype._2Type, name+"_2")
+    val _1: SymVar = new SymVar(ttype._1Type, name+".key") 
+    val _2: SymVar = new SymVar(ttype._2Type, name+".val")
 
     def getFirst: SymVar = {_1}
     def getSecond: SymVar = {_2}
 
-    override def toString: String ={ name+"=("+_1.getName+", "+_2.getName+")"}
+    override def toString: String = name+"=("+_1.getName+", "+_2.getName+")"
 
     //TODO: update this for tuple
     override def applyEffect(x: SymVar, effect: Expr): Expr = {

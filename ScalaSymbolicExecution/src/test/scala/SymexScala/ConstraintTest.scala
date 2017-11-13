@@ -16,7 +16,6 @@ import ArithmeticOp._
 
 class ConstraintTest extends FlatSpec with BeforeAndAfterAll with Matchers {
 
-
     "test one-clause constraint" should "return path constraint for a simple map" in {
         //path: x0 > 100 -> effect : x1 = x0 + 1
         val x0 = new SymVar(Numeric(_Int), "x0")

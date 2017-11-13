@@ -75,7 +75,7 @@ class PathEffect(pc: Constraint, udfEffect: ArrayBuffer[Tuple2[SymVar, Expr]]) {
     /*
         conjuncts this(udf) PathEffect with already-existing rdd PathEffect
     */
-    def conjunctPathEffect(rddPE: PathEffect, link: Tuple2[SymVar, SymVar]): PathEffect = {
+    def conjunctPathEffect(rddPE: PathEffect, link: Tuple2[SymVar, SymVar] = null): PathEffect = {
         val newEffects = new ArrayBuffer[Tuple2[SymVar, Expr]]() 
         rddPE.effects.copyToBuffer(newEffects)
         //adds the link between previous symOutput to the incoming symInput
@@ -131,7 +131,7 @@ case class TerminatingPath(c: Constraint, u: ArrayBuffer[Tuple2[SymVar, Expr]]) 
     /*
         conjuncts this(udf) PathEffect with already-existing rdd PathEffect
     */
-    override def conjunctPathEffect(rddPE: PathEffect, link: Tuple2[SymVar, SymVar]): TerminatingPath = {
+    override def conjunctPathEffect(rddPE: PathEffect, link: Tuple2[SymVar, SymVar] = null): TerminatingPath = {
         val newEffects = new ArrayBuffer[Tuple2[SymVar, Expr]]() 
         rddPE.effects.copyToBuffer(newEffects)
         if(link != null) newEffects += link

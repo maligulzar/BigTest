@@ -26,8 +26,8 @@ object SymbolicEngine {
     /*
         used for unit testing data flow symbolic execution with "true" as initial path constraint
     */
-    def executeDFOperator(dfName: String, jpfFile: String): SymbolicResult = {
-        val symState = new SymbolicState()
+    def executeDFOperator(symState: SymbolicState, dfName: String, jpfFile: String): SymbolicResult = {
+        // val symState = new SymbolicState()
         val init = new SymbolicResult(symState) //non-T: true, T: null
         val udfResult = callSPF(jpfFile, symState)
         
@@ -36,6 +36,19 @@ object SymbolicEngine {
             case "filter" => init.filter(udfResult)
             case _ => throw new NotSupportedRightNow("This data flow operation is yet not supported!")
         }
+    }
+
+    /*
+        used for join unit testing
+    */
+    def executeJoinOperator(first: SymbolicResult, second: SymbolicResult): SymbolicResult = {
+        val symState = new SymbolicState()
+        val init1 = new SymbolicResult(symState) //non-T: true, T: null
+        val init2 = new SymbolicResult(symState) //non-T: true, T: null
+
+        val result = first.join(second)
+        println(result)
+        result
     }
 
     def executeSymbolicDF(opJpfList: Array[Tuple2[String, String]]): SymbolicResult = {

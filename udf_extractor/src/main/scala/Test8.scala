@@ -1,7 +1,7 @@
 import org.apache.spark.{ SparkContext, SparkConf }
 import scala.language.postfixOps //for zipWithIndex
 
-object Test10 {
+object Test8 {
 
     def main(args: Array[String]): Unit = {
 
