@@ -1,4 +1,4 @@
-import org.apache.spark.{ SparkContext, SparkConf }
+           import org.apache.spark.{ SparkContext, SparkConf }
 import scala.language.postfixOps //for zipWithIndex
 
 object Test8 {

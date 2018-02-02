@@ -10,12 +10,11 @@ class parseEffectException(message: String, cause: Throwable = null) extends Run
 object SymbolicEngine {
     
     def callSPF(jpfFile: String, symState: SymbolicState): SymbolicResult = {
-        println(jpfFile)
+        println("Running first file: "+jpfFile)
         val injectedListener = new PathEffectListenerImp()
         val config: Config = JPF.createConfig(Array(jpfFile))
         val jpf: JPF = new JPF(config)
         val symbc: SymbolicListener = new SymbolicListener(config, jpf, injectedListener)
-        // symbc.registerPathEffectListener(injectedListener)
         jpf.addListener(symbc)
         jpf.run()
 
@@ -43,8 +42,8 @@ object SymbolicEngine {
     */
     def executeJoinOperator(first: SymbolicResult, second: SymbolicResult): SymbolicResult = {
         val symState = new SymbolicState()
-        val init1 = new SymbolicResult(symState) //non-T: true, T: null
-        val init2 = new SymbolicResult(symState) //non-T: true, T: null
+        //val init1 = new SymbolicResult(symState) //non-T: true, T: null
+        //val init2 = new SymbolicResult(symState) //non-T: true, T: null
 
         val result = first.join(second)
         println(result)
@@ -72,7 +71,7 @@ object SymbolicEngine {
             println("after "+dfName)
             println(currentPaths)
         }
-        currentPaths.Z3DIR = "/Users/amytis/Downloads/z3-master"
+        currentPaths.Z3DIR = "/Users/amytis/Projects/z3-master"
         currentPaths.solveWithZ3
         currentPaths
     }

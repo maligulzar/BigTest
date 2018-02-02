@@ -114,6 +114,9 @@ class PathEffectListenerImp extends PathEffectListener  {
         val pathVector: Vector[Pair[PathCondition, Expression]] = super.getListOfPairs()
         val argsInfo: Vector[Pair[String, String]] = super.getArgsInfo()
 
+
+        println("------>"+pathVector.size+" "+argsInfo.size)
+
         val (inputVar: SymVar, outputVar: SymVar) = 
             if(argsInfo.size == 1) {
                 val freshVar : SymVar = symState.getFreshSymVar(argsInfo.get(0)._2)

@@ -16,6 +16,7 @@ import ArithmeticOp._
 
 class JoinTest extends FlatSpec with BeforeAndAfterAll with Matchers {
 
+/*
     "simple join" should "return path constraint for a simple join" in {
         val symState = new SymbolicState()
         
@@ -33,23 +34,31 @@ class JoinTest extends FlatSpec with BeforeAndAfterAll with Matchers {
 
         val result = initA.join(initB)
         println(result)
-       
+        result.solveWithZ3
 
+    }
+*/
+    "join on keys" should "return path constraint for a simple join on keys" in {
+        val symState = new SymbolicState()
+        
+        val filter1 = SymbolicEngine.executeDFOperator(symState, "filter", "/Users/amytis/Projects/jpf/jpf-symbc/src/examples/spf/filter1.jpf")
+        val _A = new SymTuple(Tuple(Numeric(_Int), Numeric(_Int)), "A") //filter1.symInput
+        filter1.paths(0).addEffect(new SymVar(Numeric(_Int), "x0"), _A._1)
+        val initA = new SymbolicResult(symState, filter1.paths, filter1.terminating, _A._1, _A)
+        // initA.symOutput = _A //RDD A which is of type (Int, Int)
+        println(initA)
 
-        // //path: x0._1 < 10 -> effect : pair (input)
-        // val x0 = new SymTuple(Tuple(Numeric(_Int), Numeric(_Int)), "x0")
-        // val udfA = new SymbolicResult(symState) //non-T: true, T: null
-        // udfA.symInput = x0 //RDD A which is of type (Int, Int)
+        val filter2 = SymbolicEngine.executeDFOperator(symState, "filter", "/Users/amytis/Projects/jpf/jpf-symbc/src/examples/spf/filter2.jpf")
+        val _B = new SymTuple(Tuple(Numeric(_Int), Numeric(_Int)), "B")
+        filter2.paths(0).addEffect(new SymVar(Numeric(_Int), "x2"), _B._1)
+        val initB = new SymbolicResult(symState, filter2.paths, filter2.terminating, _B._1, _B)
+        // initB.symOutput = _B //RDD B which is also of type (Int, Int)
+        println(initB)
 
-        // val c1 :Array[Clause] = Array(new Clause(x0._1,
-        //                                         LessThan,
-        //                                         ConcreteValue(Numeric(_Int),"10")))
-        // val pathCond1 = new Constraint(c1)
-        // val effect1 = new ArrayBuffer[Tuple2[SymVar, Expr]]() //no effect, since this is a filter
-        // val pe1 = new PathEffect(pathCond1, effect1)
-
-
-
+        val result = JoinSymbolicResult(symState, initA, initB)
+        println(result)
+        result.solveWithZ3
+        
     }
 
 

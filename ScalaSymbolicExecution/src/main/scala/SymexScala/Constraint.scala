@@ -1,7 +1,6 @@
 package SymexScala
 
-import java.util
-
+import java.util.HashSet
 import scala.collection.mutable.ArrayBuffer
 import scala.reflect.runtime.universe._
 
@@ -14,11 +13,10 @@ object ComparisonOp extends Enumeration {
     val GreaterThan = Value(">")
     val GreaterThanOrEq = Value(">=")
 
-    def isComparisonOp(s: String): Boolean = values.exists(_.toString == s)
+    //def isComparisonOp(s: String): Boolean = values.exists(_.toString == s)
 }
 
 import ComparisonOp._
-
 
 class Constraint(c: Array[Clause]) {
     var clauses: Array[Clause] = c //there are (implicit) conjunctions among elements of array (clauses)
@@ -36,14 +34,14 @@ class Constraint(c: Array[Clause]) {
         }
         result
     }
-    def toZ3Query(initials :util.HashSet[(String , VType)] ): String = {
+    def toZ3Query(initials: HashSet[(String , VType)]): String = {
         if (clauses.length == 0)
             return ""
         val idx = 0
         s""" (assert (${andClauses(idx , initials)}) )"""
     }
 
-    def andClauses(idx :Int , initials :util.HashSet[(String , VType)] ): String ={
+    def andClauses(idx :Int , initials: HashSet[(String , VType)]): String ={
         if(idx == clauses.length -1){
             clauses(idx).toZ3Query(initials)
         }else{
@@ -60,7 +58,6 @@ class Constraint(c: Array[Clause]) {
 
     def conjunctWith(other: Constraint) = {
         //TODO: might want to simplify before merging, in case there are inconsistent clauses or repetitive ones
-        //new Constraint(clauses ++ other.clauses)
         clauses = clauses ++ other.clauses
     }
 
@@ -91,39 +88,7 @@ class Constraint(c: Array[Clause]) {
     }
 }
 
-//companion object
-/*
-object Constraint {
-    def parseConstraint(str: String): Constraint = {
-        val strClauses = str.replaceAll("\\s", "").split("&&")
-        val clauses: Array[Clause] = strClauses.map(str => parseClause(str))
-        new Constraint(clauses)
-    }
-
-    def parseClause(str: String): Clause = {
-        //TODO: remove () from beginning and end of clause
-        val op = """<=|>=|==|!=|<|>""".r
-        val matched = op.findAllIn(str).toArray
-        if (matched.length > 1) {
-            println("Parse Error: More than one comparison operator in one clause: " + str)
-            exit(1)
-        } else if (matched.length == 0) {
-            return new Clause(parseExpr(str)) //Expr
-        }
-
-        val comp = ComparisonOp.withName(matched(0))
-        val index = str.indexOf(matched(0))
-
-        val leftStr = parseExpr(str.substring(0, index))
-        val rightStr = parseExpr(str.substring(index + matched(0).length))
-
-        return new Clause(leftStr, comp, rightStr)
-    }
-}
-*/
-
 class Clause(left: Expr, op: ComparisonOp = null, right: Expr = null) {
-
     var leftExpr: Expr = left
     val compOp: ComparisonOp = op
     var rightExpr: Expr = right
@@ -134,7 +99,7 @@ class Clause(left: Expr, op: ComparisonOp = null, right: Expr = null) {
         else leftExpr.toString + " " + compOp.toString + " " + rightExpr.toString
     }
 
-    def toZ3Query(initials :util.HashSet[(String , VType)] ): String = {
+    def toZ3Query(initials: HashSet[(String , VType)]): String = {
         if (compOp == null || rightExpr == null)
             leftExpr.toString
         else

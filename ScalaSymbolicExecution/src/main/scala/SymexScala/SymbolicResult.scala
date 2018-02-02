@@ -2,11 +2,11 @@ package SymexScala
 
 import java.io.{BufferedWriter, FileWriter, File}
 import java.util
+import java.util.HashSet
+import scala.collection.mutable.ArrayBuffer
 
 import udfExtractor.Logging.LogType
 import udfExtractor.SystemCommandExecutor
-
-import scala.collection.mutable.ArrayBuffer
 
 import NumericUnderlyingType._
 import ComparisonOp._
@@ -22,14 +22,17 @@ class NotFoundPathCondition(message: String, cause: Throwable = null)
 class SymbolicResult(ss: SymbolicState, 
                     nonT: Array[PathEffect],
                     t: ArrayBuffer[TerminatingPath] = null,
-                    iVar: SymVar = null,
-                    oVar: SymVar = null) {
-    var Z3DIR: String = ""    
+                    iVar: Expr = null,
+                    oVar: Expr = null,
+                    j: Boolean = false) {
+    var Z3DIR: String = "/Users/amytis/Projects/z3-master"   
     val state: SymbolicState = ss
     val paths: Array[PathEffect] = nonT
     val terminating: ArrayBuffer[TerminatingPath] = t
-    var symInput: SymVar = iVar
-    var symOutput: SymVar = oVar
+    var symInput: Expr = iVar
+    var symOutput: Expr = oVar
+
+    var joined: Boolean = j
 
     def this(ss: SymbolicState) {
         this(ss, new Array[PathEffect](1))
@@ -48,7 +51,7 @@ class SymbolicResult(ss: SymbolicState,
         result
     }
 
-    def writeTempSMTFile(filename: String , z3: String): Unit ={
+    def writeTempSMTFile(filename: String , z3: String): Unit = {
        try {
            val file: File = new File(filename)
            if (!file.exists) {
@@ -61,11 +64,12 @@ class SymbolicResult(ss: SymbolicState,
        } catch{
              case ex: Exception =>
                 ex .printStackTrace();
+        }
     }
 
-    }
-    def runZ3Command(filename: String , Z3dir:String): Unit ={
+    def runZ3Command(filename: String , Z3dir:String): Unit = {
         // build the system command we want to run
+        println("run z3 for filename "+filename)
         val s: String = Z3dir+"/build/z3 -smt2 " + filename
         try {
             val commands: util.List[String] = new util.ArrayList[String]
@@ -84,19 +88,75 @@ class SymbolicResult(ss: SymbolicState,
             }
         }
     }
-
     def solveWithZ3(): Unit = {
-        for (path <- paths) {
-            var str = path.toZ3Query();
+        var first = ""
+        var second = ""
+        if(joined == false) {
+            for (path <- paths) {
+                var str = path.toZ3Query();
+                var filename = "/tmp/"+path.hashCode();
+                writeTempSMTFile(filename , str);
+                println(path.toString)
+                println("Z3Query:\n"+str)
+                println("------------------------")
+                runZ3Command(filename , Z3DIR);
+                println("------------------------")
+
+            }
+        } 
+        /*else {
+            val path = paths(0)
+            println(path)
+
+            val list: HashSet[(String, VType)] = new HashSet[(String, VType)]();
+            val pc = path.pathConstraint.toZ3Query(list)
+            var decls = ""
+            val itr = list.iterator()
+            while(itr.hasNext){
+                val i = itr.next()
+                if(i._1.indexOf(".") != -1) {
+                    val setName = i._1.substring(0, i._1.indexOf("."))
+                    decls += s"""(declare-fun ${setName} (Int) Bool)"""+"\n"
+                    if(first == "")
+                        first = setName
+                    else if(second == "")
+                        second = setName
+                }
+                // else {
+                //     decls +=
+                //     s""" (declare-fun ${i._1} () ${i._2.toZ3Query()} )
+                //     |""".stripMargin
+                // }
+            }
+
+            var result = ""
+            result += "(declare-const c1 Int)\n"
+            result += getPartial(pc, "c1")
+            result += s"""(assert (and ($first c1) ($second c1) ) )"""+"\n\n"
+
+            result += "(declare-const c2 Int)\n"
+            result += getPartial(pc, "c2")
+            result += s"""(assert (and ($first c2) (not ($second c2)) ) )"""+"\n\n"
+
+            result += "(declare-const c3 Int)\n"
+            result += getPartial(pc, "c3")
+            result += s"""(assert (and (not ($first c3)) ($second c3) ) )"""+"\n\n"
+
+            val str = s"""$decls
+                        |$result
+                        |(check-sat)
+                        |(get-model)
+                        """.stripMargin
+
             var filename = "/tmp/"+path.hashCode();
             writeTempSMTFile(filename , str);
+            println(path.toString)
+            println("Z3Query:\n"+str)
+            println("------------------------")
             runZ3Command(filename , Z3DIR);
             println("------------------------")
-            print(path.toString)
-            println(str)
-            println("------------------------")
+        }*/
 
-        }
     }
 
     def numOfPaths: Int = {paths.size}
@@ -114,15 +174,15 @@ class SymbolicResult(ss: SymbolicState,
             for(udfPath <- udfSymbolicResult.paths) {
                 //udf -> (x2, x3) / rdd -> (x0, x1) => link -> (x2 = x1)
                 val link: Tuple2[SymVar, SymVar] = 
-                    if(this.symOutput != null) new Tuple2(udfSymbolicResult.symInput, this.symOutput)
+                    if(this.symOutput != null) new Tuple2(udfSymbolicResult.symInput.asInstanceOf[SymVar], this.symOutput.asInstanceOf[SymVar])
                     else null
 
                 product(i) = udfPath.conjunctPathEffect(pa, link)
                 i += 1
             }
         }
-        val input = if(this.symInput == null) udfSymbolicResult.symInput else this.symInput
-        new SymbolicResult(this.state, product, this.terminating, input, udfSymbolicResult.symOutput)
+        val input = if(this.symInput == null) udfSymbolicResult.symInput.asInstanceOf[SymVar] else this.symInput.asInstanceOf[SymVar]
+        new SymbolicResult(this.state, product, this.terminating, input, udfSymbolicResult.symOutput.asInstanceOf[SymVar])
     }
 
     def filter(udfSymbolicResult: SymbolicResult): SymbolicResult = {
@@ -141,7 +201,7 @@ class SymbolicResult(ss: SymbolicState,
                     // print(pa.toString+" && "+udfTerminating.toString+" = ")
                     //udf -> (x2, x3) / rdd -> (x0, x1) => link -> (x2 = x1)
                     val link: Tuple2[SymVar, SymVar] = 
-                        if(this.symOutput != null) new Tuple2(udfSymbolicResult.symInput, this.symOutput)
+                        if(this.symOutput != null) new Tuple2(udfSymbolicResult.symInput.asInstanceOf[SymVar], this.symOutput.asInstanceOf[SymVar])
                         else null
 
                     val conjuncted = udfTerminating.conjunctPathEffect(pa, link)
@@ -153,17 +213,17 @@ class SymbolicResult(ss: SymbolicState,
                 for(pa <- this.paths) {
                     //udf -> (x2, x3) / rdd -> (x0, x1) => link -> (x2 = x1)
                     val link: Tuple2[SymVar, SymVar] = 
-                        if(this.symOutput != null) new Tuple2(udfSymbolicResult.symInput, this.symOutput)
+                        if(this.symOutput != null) new Tuple2(udfSymbolicResult.symInput.asInstanceOf[SymVar], this.symOutput.asInstanceOf[SymVar])
                         else null
                     product += removedEffect.conjunctPathEffect(pa, link)
                 }
             }
         }
 
-        val input = if(this.symInput == null) udfSymbolicResult.symInput else this.symInput
+        val input = if(this.symInput == null) udfSymbolicResult.symInput.asInstanceOf[SymVar] else this.symInput.asInstanceOf[SymVar]
         //udf symOutput is dis-regarded as it is either false or true
         //and since filter is side-effect free symInput is considered as output of whole
-        new SymbolicResult(this.state, product.toArray, terminatingPaths, input, udfSymbolicResult.symInput)
+        new SymbolicResult(this.state, product.toArray, terminatingPaths, input, input)
     }
 
     def join(secondRDD: SymbolicResult): SymbolicResult = {
@@ -206,7 +266,7 @@ class SymbolicResult(ss: SymbolicState,
         val input = new SymTuple(Tuple(this.symInput.actualType, secondRDD.symInput.actualType), "x0-x1")
         val output = new SymTuple(Tuple(Numeric(_Int), Tuple(Numeric(_Int), Numeric(_Int))), "x0.x1")
         // val input = if(this.symInput == null) udfSymbolicResult.symInput else this.symInput
-        return new SymbolicResult(this.state, joinedPaths, terminatingPaths, input, output)
+        return new SymbolicResult(this.state, joinedPaths, terminatingPaths, input, output, true)
     }
 
     // override def equals(other: Any): Boolean = {

@@ -17,7 +17,7 @@ object Test2 {
                         else 0
                     )
                     .filter(x => x > 0)
-                    //.reduce(_+_)
+                    .reduce(_+_)
 
         // println("Sum: "+sum)
 

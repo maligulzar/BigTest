@@ -107,6 +107,16 @@ public class SparkProgramVisitor extends ASTVisitor {
     UDFWriter u_writer;
     int op_id = 0;
 
+    public void addToCallGraph(String caller, String callee){
+        ArrayList<String> temp = new ArrayList<String>();
+        temp.add(callee);
+        call_graph.put(caller, temp);
+    }
+    String target_func_jpf  = null;
+    public void setTargetJPF(String fun){
+            target_func_jpf = fun;
+    }
+
     public void startUDFClass() {
         op_id += 1;
         String class_name = current_method_inc + op_id;
@@ -121,7 +131,7 @@ public class SparkProgramVisitor extends ASTVisitor {
         String jpffunction = getJPFFunction("apply");
         functions_set.add(jpffunction);
         getAllCallee(jpffunction, functions_set);
-        u_writer.write(functions_set, jpffunction);
+        u_writer.write(functions_set, jpffunction , this);
         u_writer.close();
         String new_classname = u_writer.filename.replace(".java", "");
         try {
@@ -139,6 +149,10 @@ public class SparkProgramVisitor extends ASTVisitor {
     }
 
     public void createJPFile(String target, String fun_name, String jpfPath) throws Exception {
+        if(target_func_jpf!=null)
+        {
+            fun_name = target_func_jpf;
+        }
         String content = Configuration.JPF_FILE_PLACEHOLDER(target, fun_name, log.outputJava);
         FileWriter fw = null;
         try {

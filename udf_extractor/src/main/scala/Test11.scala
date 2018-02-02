@@ -20,7 +20,7 @@ object Test11 {
                         val parts = line.split(" ")
                         (Integer.parseInt(parts(0)), Integer.parseInt(parts(1)))
                     })
-                    .filter(pair => pair._1 < 10)
+                    .filter(pair => pair._1 > 5 && pair._2 > 10)    //x0 > 5 AND x1 > 10 AND p1.key = x0 AND p1.value = x1
         println("First RDD ---------------------------")
         println(firstRDD.collect().mkString("\n"))
 
@@ -29,7 +29,7 @@ object Test11 {
                         val parts = line.split(" ")
                         (Integer.parseInt(parts(0)), Integer.parseInt(parts(1)))
                     })
-                    .filter(pair => pair._1 < 15)
+                    .filter(pair => pair._1 > 15 && pair._2 > 20)   //x2 > 15 AND x3 > 20 AND p2.key = x2 AND p2.value = x3
         println("Second RDD ---------------------------")
         println(secondRDD.collect().mkString("\n"))
 

@@ -5,7 +5,9 @@ import java.util.HashSet
 
 class PathEffect(pc: Constraint, udfEffect: ArrayBuffer[Tuple2[SymVar, Expr]]) {
     var pathConstraint: Constraint = pc
-    val effects: ArrayBuffer[Tuple2[SymVar, Expr]] = udfEffect
+
+    //TODO: change it back to effects after handling Spark DAG
+    var effects: ArrayBuffer[Tuple2[SymVar, Expr]] = udfEffect
 
     def this(c: Constraint) {
         this(c, new ArrayBuffer[Tuple2[SymVar, Expr]]()) //no effects on variables
@@ -23,6 +25,10 @@ class PathEffect(pc: Constraint, udfEffect: ArrayBuffer[Tuple2[SymVar, Expr]]) {
         // }
 
         "path constraint: {"+pathConstraint.toString+"}\t effect: {"+eString+"} ---------"
+    }
+
+    def addEffect(_var: SymVar, updatedExpr: Expr) = {
+        effects += new Tuple2(_var, updatedExpr)
     }
 
 
@@ -52,7 +58,7 @@ class PathEffect(pc: Constraint, udfEffect: ArrayBuffer[Tuple2[SymVar, Expr]]) {
         while(itr.hasNext){
             val i = itr.next()
             decls +=
-              s""" (declare-fun ${i._1} () ${i._2.toZ3Query()} )
+              s""" (declare-fun ${i._1} () ${i._2.toZ3Query()})
                   |""".stripMargin
         }
         s"""$decls
@@ -60,7 +66,6 @@ class PathEffect(pc: Constraint, udfEffect: ArrayBuffer[Tuple2[SymVar, Expr]]) {
            |(check-sat)
            |(get-model)
      """.stripMargin
-
     }
 
 
@@ -83,7 +88,7 @@ class PathEffect(pc: Constraint, udfEffect: ArrayBuffer[Tuple2[SymVar, Expr]]) {
         newEffects.appendAll(this.effects)
 
         val newPathEffect = new PathEffect(rddPE.pathConstraint.deepCopy, newEffects)
-        newPathEffect.pathConstraint.conjunctWith(this.pathConstraint)     
+        newPathEffect.pathConstraint.conjunctWith(this.pathConstraint)
         newPathEffect
     }
 
@@ -136,8 +141,9 @@ case class TerminatingPath(c: Constraint, u: ArrayBuffer[Tuple2[SymVar, Expr]]) 
         rddPE.effects.copyToBuffer(newEffects)
         if(link != null) newEffects += link
         newEffects.appendAll(this.effects)
-        val newPathEffect = new TerminatingPath(rddPE.pathConstraint.deepCopy, newEffects)
-        newPathEffect.pathConstraint.conjunctWith(this.pathConstraint)
+
+        val newPathEffect = new TerminatingPath(this.pathConstraint.deepCopy, newEffects)
+        newPathEffect.pathConstraint.conjunctWith(rddPE.pathConstraint)
         newPathEffect
     }
 

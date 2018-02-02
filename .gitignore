@@ -2,3 +2,4 @@
 */project
 *.jad
 *.project
+*/lib/udfextractor-*

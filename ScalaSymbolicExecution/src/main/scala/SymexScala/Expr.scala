@@ -28,12 +28,11 @@ abstract class Expr {
 
 abstract class Terminal extends Expr {}
 
-case class SymOp(atype: VType, op: ArithmeticOp) /*extends Terminal*/ {
-    val actualType = atype
-    override def toString: String = { op.toString }
+abstract class SymRDD extends Terminal {
+    def getName: String
 }
 
-class SymVar(atype: VType, name: String) extends Terminal {
+case class SymVar(atype: VType, name: String) extends SymRDD {
     val actualType = atype
 
     def getName: String = {name}
@@ -49,8 +48,8 @@ class SymVar(atype: VType, name: String) extends Terminal {
         ss.isDefined(this)
     }
 
-    override def toZ3Query(initials :HashSet[(String , VType)] ): String = {
-        initials.add((name , actualType));
+    override def toZ3Query(initials: HashSet[(String , VType)]): String = {
+        initials.add((name , actualType))
         name
     }
 
@@ -59,6 +58,44 @@ class SymVar(atype: VType, name: String) extends Terminal {
     }
 }
 
+case class SymTuple(ttype: Tuple, name: String) extends SymRDD {
+    val actualType = ttype
+
+    def getName: String = {name}
+
+    val _1: SymVar = new SymVar(ttype._1Type, name+".key") 
+    val _2: SymVar = new SymVar(ttype._2Type, name+".val")
+
+    def getFirst: SymVar = {_1}
+    def getSecond: SymVar = {_2}
+
+    override def toString: String = name+"=("+_1.getName+", "+_2.getName+")"
+
+    //TODO: update this for tuple
+    override def applyEffect(x: SymVar, effect: Expr): Expr = {
+        if (this.equals(x)) effect
+        else this
+    }
+
+    override def checkValidity(ss: SymbolicState): Boolean = {
+        ss.isDefined(_1)
+        ss.isDefined(_2)
+    }
+
+    def toZ3Query(initials :HashSet[(String , VType)] ): String = {""}
+
+    override def deepCopy: SymTuple = {
+        new SymTuple(actualType, name)
+    }
+
+
+}
+
+case class SymOp(atype: VType, op: ArithmeticOp) /*extends Terminal*/ {
+    val actualType = atype
+    override def toString: String = { op.toString }
+}
+/*
 case class SymTuple(ttype: Tuple, name: String) extends SymVar(ttype, name) {
     override val actualType = ttype
 
@@ -88,7 +125,8 @@ case class SymTuple(ttype: Tuple, name: String) extends SymVar(ttype, name) {
     }
 
 }
-case class ConcreteValue(atype: VType, value: String) extends Terminal {
+*/
+case class ConcreteValue(atype: VType, value: String) extends Expr {
     val actualType = atype
 
     //check validity of passed ConcreteValue
