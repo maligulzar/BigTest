@@ -1,0 +1,6 @@
+target=arrays.map2
+classpath=${jpf-symbc}/build/examples
+symbolic.method=arrays.map2.apply$mcII$sp(sym)
+symbolic.debug=true
+symbolic.dp=no_solver
+listener=gov.nasa.jpf.symbc.SymbolicListener

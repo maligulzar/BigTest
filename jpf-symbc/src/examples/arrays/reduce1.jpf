@@ -1,0 +1,10 @@
+target=arrays.reduce1
+symbolic.method=arrays.reduce1.applyReduce(sym)
+symbolic.lazy=on
+classpath=${jpf-symbc}/build/examples
+search.multiple_errors=true
+symbolic.debug=true
+symbolic.dp=no_solver
+symbolic.arrays=true
+listener=gov.nasa.jpf.symbc.SymbolicListener
+#listener=gov.nasa.jpf.symbc.PathEffectListener
