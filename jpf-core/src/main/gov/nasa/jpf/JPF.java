@@ -32,19 +32,18 @@ import gov.nasa.jpf.vm.VM;
 import gov.nasa.jpf.vm.NoOutOfMemoryErrorProperty;
 import gov.nasa.jpf.vm.VMListener;
 import symexScala.*;
+import udfExtractor.*;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 
-
 /**
  * main class of the JPF verification framework. This reads the configuration,
  * instantiates the Search and VM objects, and kicks off the Search
  */
 public class JPF implements Runnable {
-
 	public static String VERSION = "8.0"; // the major version number
 
 	static Logger logger     = null; // initially
@@ -52,7 +51,6 @@ public class JPF implements Runnable {
 	public enum Status { NEW, RUNNING, DONE };
 
 	class ConfigListener implements ConfigChangeListener {
-
 		/**
 		 * check for new listeners that are dynamically configured
 		 */
@@ -194,21 +192,20 @@ public class JPF implements Runnable {
 			checkUnknownArgs(args);
 
 			try {
-
-				String paths[] = {"/Users/malig/workspace/up_jpf/jpf-symbc/src/examples/arrays/map2.jpf",
-						"/Users/malig/workspace/up_jpf/jpf-symbc/src/examples/arrays/reduce1.jpf"};
-				String op[] = {"map", "reduce"};
+				
+				Runner.main(args);
+				ArrayList<JPFDAGNode> paths = Runner.getDataFlowDAG();
 				SymbolicState symState = new SymbolicState();
 				SymbolicResult currentPaths = new SymbolicResult(symState);
-				for(int i = 0 ; i< paths.length ; i++) {        		
-					String args_new[] = {paths[i]};
+				for(int i = 1 ; i< paths.size() ; i++) {        		
+					String args_new[] = {paths.get(i).getJPFFileName()};		
 					Config conf1 = createConfig(args_new);
 					JPF jpf = new JPF(conf1);
 					jpf.run();
-					System.out.println("done");
+					System.out.println(paths.get(i).getOperatorName());
 					SymbolicResult udfResult  = jpf.pfl.convertAll(symState);
 					System.out.println(udfResult.toString());
-					switch(op[i]) {
+					switch(paths.get(i).getOperatorName().replaceAll("[0-9]","")) {
 					case "map": 
 						currentPaths = currentPaths.map(udfResult);
 						break;
@@ -221,8 +218,7 @@ public class JPF implements Runnable {
 					default: 
 						throw new RuntimeException("This data flow operation is yet not supported!");
 					}
-					
-
+				
 				}
 
 				currentPaths.setZ3Dir("/Users/malig/workspace/git/Test-Minimization-in-Big-Data/z3-master");
@@ -260,6 +256,8 @@ public class JPF implements Runnable {
 				}
 				// pass this on, caller has to handle
 				throw jx;
+			} catch(Exception e) {
+				e.printStackTrace();
 			}
 		}
 	}
