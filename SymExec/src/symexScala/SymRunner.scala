@@ -5,8 +5,9 @@ import java.util.ArrayList
 import NumericUnderlyingType._
 import NonNumericUnderlyingType._
 import udfExtractor.JPFDAGNode
+import udfExtractor.Runner
 
-object Main {
+object SymRunner {
 
     def convertList(dag: ArrayList[JPFDAGNode]): Array[Tuple2[String, String]] = {
         //println("removing first map function: assuming its a textFile op -------------------------")
@@ -28,7 +29,8 @@ object Main {
         //     exit(1)
         // }
 
-        // Runner.main(args)
+         Runner.main(args)
+      
         // println(Runner.getDataFlowDAG)
            // convertList(Runner.getDataFlowDAG)
         val dagOpList: Array[Tuple2[String, String]] = new Array[Tuple2[String, String]](1)

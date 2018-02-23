@@ -7,9 +7,8 @@ import java.util.HashSet
 import scala.collection.mutable.ArrayBuffer
 import NumericUnderlyingType._
 import ComparisonOp._
-import ArithmeticOp._
+import ArithmeticOp._ 
 import udfExtractor.SystemCommandExecutor
-
 
 class NotFoundPathCondition(message: String, cause: Throwable = null) 
     extends RuntimeException("Not found Pa in C(A) for record "+message, cause) {}

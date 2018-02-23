@@ -3,7 +3,6 @@ package symexScala
 //import sys.process._
 import gov.nasa.jpf.JPF
 import gov.nasa.jpf.Config
-import gov.nasa.jpf.symbc.SymbolicListener
 
 class parseEffectException(message: String, cause: Throwable = null) extends RuntimeException("Effect: "+message, cause) {}
 
@@ -11,19 +10,19 @@ object SymbolicEngine {
     
     def callSPF(jpfFile: String, symState: SymbolicState): SymbolicResult = {
         println("Running first file: "+jpfFile)
-        val injectedListener = new PathEffectListenerImp()
-        val config: Config = JPF.createConfig(Array(jpfFile));
-        config.setProperty("symbolic.dp", "no_solver")
-        config.getArgs.foreach(println)
+//        val injectedListener = new PathEffectListenerImp()
+//        val config: Config = JPF.createConfig(Array(jpfFile));
+//        config.setProperty("symbolic.dp", "no_solver")
+//        config.getArgs.foreach(println)
+//
+//
+//        val jpf: JPF = new JPF(config)
+//        val symbc: SymbolicListener = new SymbolicListener(config, jpf, injectedListener)
+//        jpf.addListener(symbc)
+//        jpf.run()
 
-
-        val jpf: JPF = new JPF(config)
-        val symbc: SymbolicListener = new SymbolicListener(config, jpf, injectedListener)
-        jpf.addListener(symbc)
-        jpf.run()
-
-        val udfResult = injectedListener.convertAll(symState)
-        udfResult
+      //  val udfResult = injectedListener.convertAll(symState)
+       null
     }
 
     /*

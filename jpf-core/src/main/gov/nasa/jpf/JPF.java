@@ -192,41 +192,49 @@ public class JPF implements Runnable {
 			checkUnknownArgs(args);
 
 			try {
-				
-				Runner.main(args);
-				ArrayList<JPFDAGNode> paths = Runner.getDataFlowDAG();
-				SymbolicState symState = new SymbolicState();
-				SymbolicResult currentPaths = new SymbolicResult(symState);
-				for(int i = 1 ; i< paths.size() ; i++) {        		
-					String args_new[] = {paths.get(i).getJPFFileName()};		
-					Config conf1 = createConfig(args_new);
-					JPF jpf = new JPF(conf1);
-					jpf.run();
-					System.out.println(paths.get(i).getOperatorName());
-					SymbolicResult udfResult  = jpf.pfl.convertAll(symState);
-					System.out.println(udfResult.toString());
-					switch(paths.get(i).getOperatorName().replaceAll("[0-9]","")) {
-					case "map": 
-						currentPaths = currentPaths.map(udfResult);
-						break;
-					case "filter" : 
-						currentPaths = currentPaths.filter(udfResult);
-						break;
-					case "reduce" :
-						currentPaths = currentPaths.reduce(udfResult);
-						break; 	
-					default: 
-						throw new RuntimeException("This data flow operation is yet not supported!");
+				if(args.length > 1) {
+					if(args[0].equals("-enableBigSample")) {
+						args[0]=args[1];
+						Runner.main(args);
+						ArrayList<JPFDAGNode> paths = Runner.getDataFlowDAG();
+						SymbolicState symState = new SymbolicState();
+						SymbolicResult currentPaths = new SymbolicResult(symState);
+						for(int i = 1 ; i< paths.size() ; i++) {        		
+							String args_new[] = {paths.get(i).getJPFFileName()};		
+							Config conf1 = createConfig(args_new);
+							JPF jpf = new JPF(conf1);
+							jpf.run();
+							System.out.println(paths.get(i).getOperatorName());
+							SymbolicResult udfResult  = jpf.pfl.convertAll(symState);
+							System.out.println(udfResult.toString());
+							switch(paths.get(i).getOperatorName().replaceAll("[0-9]","")) {
+							case "map": 
+								currentPaths = currentPaths.map(udfResult);
+								break;
+							case "filter" : 
+								currentPaths = currentPaths.filter(udfResult);
+								break;
+							case "reduce" :
+								currentPaths = currentPaths.reduce(udfResult);
+								break; 	
+							default: 
+								throw new RuntimeException("This data flow operation is yet not supported!");
+							}
+						
+						}
+
+						currentPaths.setZ3Dir("/Users/malig/workspace/git/Test-Minimization-in-Big-Data/z3-master");
+						currentPaths.solveWithZ3();
+
+						/**
+						 * Gulzar
+						 * */
+					}	
+					}else {
+						 JPF jpf = new JPF(conf);
+					     jpf.run();
 					}
 				
-				}
-
-				currentPaths.setZ3Dir("/Users/malig/workspace/git/Test-Minimization-in-Big-Data/z3-master");
-				currentPaths.solveWithZ3();
-
-				/**
-				 * Gulzar
-				 * */
 			} catch (ExitException x) {
 				logger.severe( "JPF terminated");
 
