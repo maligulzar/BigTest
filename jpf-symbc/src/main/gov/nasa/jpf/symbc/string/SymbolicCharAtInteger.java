@@ -22,8 +22,8 @@ import gov.nasa.jpf.symbc.numeric.IntegerExpression;
 import gov.nasa.jpf.symbc.numeric.SymbolicInteger;
 
 public class SymbolicCharAtInteger extends SymbolicInteger{
-	StringExpression se;
-	IntegerExpression index;
+	public StringExpression se;
+	public IntegerExpression index;
 	boolean constant;
 	public SymbolicCharAtInteger (String name, int l, int u, StringExpression se, IntegerExpression index) {
 		super (name, l, u);

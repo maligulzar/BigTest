@@ -52,6 +52,7 @@ class SymbolicState() {
             case "int" => Numeric(_Int)
             case "double" => Numeric(_Double)
             case "int[]" => CollectionNumeric(_Int)
+            case "java.lang.String" => NonNumeric(_String)
             case _ => NonNumeric(_Unit)
         }
     }

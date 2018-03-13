@@ -54,6 +54,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import gov.nasa.jpf.symbc.numeric.PathCondition;
+import gov.nasa.jpf.symbc.string.translate.TranslateToZ3str2;
 
 public class StringPathCondition {
 	  static boolean flagSolved = false;
@@ -148,12 +149,12 @@ public class StringPathCondition {
 
 	  public String stringPC() {
 	    return "SPC # = " + count + ((header == null) ? "" : "\n" + header.stringPC()) +"\n"
-	    		+ "NPC "+npc.stringPC();
+	    		+ "NPC "+npc.stringPC() + "\n----Z3------\n" + TranslateToZ3str2.solve(this) + "\n-----------------\n";
 	  }
 
 	  public String toString() {
 	    return "SPC # = " + count + ((header == null) ? "" : "\n" + header.toString()) +"\n"
-	    		+ "NPC "+npc.toString();
+	    		+ "NPC "+npc.toString() + "\n-----Z3-----\n" + TranslateToZ3str2.solve(this) + "\n-----------------\n";
 	  }
 
 	public PathCondition getNpc() {

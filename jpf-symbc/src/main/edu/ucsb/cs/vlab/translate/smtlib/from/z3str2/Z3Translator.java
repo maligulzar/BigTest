@@ -66,15 +66,15 @@ class Manager extends TranslationManager {
 
 			map(SymbolicLastIndexOfCharInteger.class, "LastIndexof $getSource ?getExpression");
 			map(SymbolicLastIndexOfChar2Integer.class,
-					"LastIndexof ( Substring $getSource %getMinDist ( - (Length $getSource ) %getMinDist )) ?getExpression");
+					"LastIndexof ( str.substr $getSource %getMinDist ( - (Length $getSource ) %getMinDist )) ?getExpression");
 
 			map(BinaryLinearIntegerExpression.class, "_getOp %getLeft %getRight");
-			map(SymbolicCharAtInteger.class, "CharAt $getExpression %getIndex");
+			map(SymbolicCharAtInteger.class, "str.at $getExpression %getIndex");
 			map(SymbolicIndexOf2Integer.class, "Indexof $getSource $getExpression %getMinIndex");
 			map(SymbolicIndexOfInteger.class, "Indexof $getSource $getExpression");
 
 			map(SymbolicLastIndexOf2Integer.class,
-					"LastIndexof ( Substring $getSource %getMinIndex ( - (Length $getSource ) %getMinIndex )) $getExpression");
+					"LastIndexof ( str.substr $getSource %getMinIndex ( - (Length $getSource ) %getMinIndex )) $getExpression");
 			map(SymbolicLastIndexOfInteger.class, "LastIndexof $getSource $getExpression");
 
 			map(SymbolicLengthInteger.class, "Length $getExpression");

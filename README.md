@@ -1,1 +1,0 @@
-# Test-Minimization-in-Big-Data

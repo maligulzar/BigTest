@@ -13,7 +13,18 @@ object ArithmeticOp extends Enumeration {
     val Division = Value("/")
 }
 
+
+object StringOp extends Enumeration {
+    type StringOp = Value
+    val Substr = Value("substring")
+    val IndexOf = Value("IndexOf")
+    val CharAt = Value("CharAt") 
+    val Length = Value("Length") 
+}
+
 import ArithmeticOp._
+import StringOp._
+
 
 abstract class Expr {
     val actualType: VType
@@ -96,6 +107,26 @@ case class SymOp(atype: VType, op: ArithmeticOp) /*extends Terminal*/ {
     val actualType = atype
     override def toString: String = { op.toString }
 }
+
+case class SymStringOp(atype: VType, op: StringOp) /*extends Terminal*/ {
+    val actualType = atype
+    override def toString: String = { 
+      op match {
+        case IndexOf =>
+              "str.indexof"
+        case CharAt =>
+              "str.at"
+        case Length =>
+              "str.len"
+        case Substr =>
+              "str.substr"
+        case _ =>
+          throw new NotSupportedRightNow("String Operator no tsupported")
+      }
+   }
+    
+}
+
 /*
 case class SymTuple(ttype: Tuple, name: String) extends SymVar(ttype, name) {
     override val actualType = ttype
@@ -149,7 +180,10 @@ case class ConcreteValue(atype: VType, var value: String) extends Expr {
                 } catch {
                     case _: java.lang.IllegalArgumentException => false
                 }
-            } else true
+            } else if(t.underlyingType == _String){
+              val b = value.toString
+              true
+            }else true
     })
 
     override def toString: String = { value.toString /*+" of type "+actualType*/ }
@@ -159,7 +193,15 @@ case class ConcreteValue(atype: VType, var value: String) extends Expr {
     override def checkValidity(ss: SymbolicState): Boolean = {true}
 
     override def toZ3Query(initials :HashSet[(String , VType)]): String = {
-        value.toString
+     atype match {
+        case t: NonNumeric =>
+           if(t.underlyingType == _String){
+              return s""" "${value}" """
+            }
+        case _ =>
+          //
+    }
+      return value.toString
     }
 
     override def deepCopy: ConcreteValue = {
@@ -204,3 +246,40 @@ case class NonTerminal(left: Expr, middle: SymOp, right: Expr) extends Expr {
     }
 }
 
+
+
+case class StringExpr(obj: Expr, op: SymStringOp , opr:Array[Expr]) extends Expr {
+
+    //check validity of this partial expression before proceeding
+    assert(obj != null)
+    assert(op.actualType == obj.actualType )//&& op.actualType == rightExpr.actualType)
+    val actualType = op.actualType
+
+    override def toString(): String = {
+        obj.toString + " " + op.toString + " " + {
+          if(opr.length!=0)
+            opr.map(s => s.toString).reduce(_+" "+_)
+          else
+            ""
+        }
+    }
+
+    override def applyEffect(x: SymVar, effect: Expr): Expr = {
+        new StringExpr(obj.applyEffect(x, effect), op, opr.map(s=> s.applyEffect(x, effect)))
+    }
+
+    override def checkValidity(ss: SymbolicState): Boolean = {
+        obj.checkValidity(ss) //&& rightExpr.checkValidity(ss)
+    }
+
+    override def toZ3Query(initials :HashSet[(String , VType)]): String = {
+        // left.toString + " " + op.toString + " " + right.toString
+        s"""( ${op.toString}  ${obj.toZ3Query(initials)}   ${opr.map(s => s.toZ3Query(initials)).reduce(_ +" " + _)} )"""
+        //"FIX NON TERMINAL Z3 QUERY"
+
+    }
+
+    override def deepCopy(): StringExpr = {
+        new StringExpr(obj.deepCopy, op, opr.clone())
+    }
+}

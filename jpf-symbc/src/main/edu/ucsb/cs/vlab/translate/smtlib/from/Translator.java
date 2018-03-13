@@ -84,7 +84,7 @@ public class Translator<Manager extends TranslationManager> {
 	}
 	
 	public String createSymbolicDeclaration(final Set<String> symbolicVars, String type) {
-		return symbolicVars.parallelStream().map((var) -> "(declare-variable " + var + " " + type + ")")
+		return symbolicVars.parallelStream().map((var) -> "(declare-fun " + var + " () " + type + ")")
 				.collect(Collectors.joining("\n"));
 	}
 

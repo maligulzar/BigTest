@@ -28,6 +28,7 @@ symbolic.string_dp=z3str2
 # "Verify..." does not work. In order to run cvc3
 # you need to go through "Run Configuration"
 
+symbolic.debug=true
 symbolic.method= strings.Tricky.test(sym)
 
 listener = gov.nasa.jpf.symbc.sequences.SymbolicSequenceListener

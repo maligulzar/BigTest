@@ -21,6 +21,14 @@ import scala.collection.mutable.Map
 
 import NumericUnderlyingType._
 import NonNumericUnderlyingType._
+import gov.nasa.jpf.symbc.string.StringPathCondition
+import gov.nasa.jpf.symbc.string.StringExpression
+import gov.nasa.jpf.symbc.string.StringConstant
+import gov.nasa.jpf.symbc.string.DerivedStringExpression
+import gov.nasa.jpf.symbc.string.StringSymbolic
+import gov.nasa.jpf.symbc.string.StringOperator
+import gov.nasa.jpf.symbc.string.SymbolicLengthInteger
+import gov.nasa.jpf.symbc.string.SymbolicCharAtInteger
 
 class NotSupportedRightNow(message: String, cause: Throwable = null) 
     extends RuntimeException("This is not supported right now: "+message, cause) {}
@@ -52,7 +60,7 @@ class PathEffectListenerImp extends PathEffectListener  {
         }
     }
 
-    def convertIntegerExpression(li: IntegerExpression): Expr = {
+    def convertIntegerExpression(li: IntegerExpression , isString: Boolean = false): Expr = {
         li match {
             case i: BinaryLinearIntegerExpression => {
                 val left: Expr = convertExpressionToExpr(i.getLeft())     //IntegerExpression -> Expr
@@ -63,19 +71,47 @@ class PathEffectListenerImp extends PathEffectListener  {
                 val op = new SymOp(Numeric(_Int), ArithmeticOp.withName(opStr))
                 new NonTerminal(left, op, right)
             }
-            case c: IntegerConstant => new ConcreteValue(Numeric(_Int), c.toString())
+            case c: IntegerConstant => 
+              if(isString){
+                val ch: Char = c.toString.toInt.toChar
+                new ConcreteValue(NonNumeric(_String), ch.toString())
+              }else{
+                new ConcreteValue(Numeric(_Int), c.toString())
+              }
+            case s:SymbolicLengthInteger =>
+               val symstring =  convertExpressionToExpr(s.parent)
+               val opString = s.getName().replace("_1_" , "")
+               val op = new SymStringOp(NonNumeric(_String),StringOp.withName(opString))
+               new StringExpr(symstring,op, Array())
+            case s:SymbolicCharAtInteger =>
+               val symstring =  convertExpressionToExpr(s.se)
+               val index =  convertExpressionToExpr(s.index)
+               val opString = s.getName().substring(0,s.getName().indexOf("("))
+               val op = new SymStringOp(NonNumeric(_String),StringOp.withName(opString))
+               new StringExpr(symstring,op, Array[Expr](index))
             case s: SymbolicInteger => {
-                    val intVar = argsMap.getOrElse(s.getName(), null)
-                    if(intVar == null) 
-                        new SymVar(Numeric(_Int), fixArrayName(s.getName()))
-                    else intVar
-                }
+               val intVar = argsMap.getOrElse(s.getName(), null)
+                 if(intVar == null) {
+                   new SymVar(Numeric(_Int), fixArrayName(s.getName()))   
+                 }
+                 else intVar
+               }
+     
             case _ => throw new NotSupportedRightNow(li.getClass.getName)
         }
     }
     
     
     def fixArrayName(str: String) : String = {
+      if(str.endsWith("_SYMSTRING")){
+        val name = str.replace("_SYMSTRING", "")
+        val mod_name = name.replaceAll("_[0-9]+", "")
+        if(this.argsMap.contains(mod_name))
+         return  mod_name
+        else{
+          name
+        }
+      }
       if(str.startsWith("[") &&  str.endsWith("]")){
         val s = str.split("\\[")
         val name  = searchInputArrayName(s(1))
@@ -112,14 +148,48 @@ class PathEffectListenerImp extends PathEffectListener  {
       * **/
     }
     
+      def convertStringExpression(se: StringExpression): Expr = {
+        se match {
+            case i: DerivedStringExpression => {
+              val  op  = i.op
+              val stringsym = convertExpressionToExpr(i.oprlist(0))
+              val len_par = i.oprlist.length
+              val pars = new Array[Expr](len_par-1)
+              for(a  <- 1 to len_par-1 ){
+                pars(a-1) = convertExpressionToExpr(i.oprlist(a))
+              } 
+              
+              var opStr = op.toString().replaceAll("\\s", "")
+              var oper: SymStringOp = null;
+              try{
+               oper = new SymStringOp(NonNumeric(_String), StringOp.withName(opStr))              
+              }catch{
+                case e: Exception=>
+                  throw new NotSupportedRightNow(opStr)
+                }
+              new StringExpr(stringsym, oper, pars) /// fix this 
+          /// Write implementation here
+            }
+            case c: StringConstant => new ConcreteValue(NonNumeric(_String), c.value())
+            case s: StringSymbolic => {
+                    val intVar = argsMap.getOrElse(s.getName().replace("_SYMSTRING", ""), null)
+                    if(intVar == null) 
+                        new SymVar(NonNumeric(_String), fixArrayName(s.getName()))
+                    else intVar
+                }
+            case _ => throw new NotSupportedRightNow(se.getClass.getName)
+        }
+    }
+    
     def convertExpressionToExpr(e: Expression): Expr = {
         e match {
             case li: IntegerExpression => convertIntegerExpression(li)
             //we are not supporting non-linear integer expr for now!
-
             case lr: RealExpression => convertRealExpression(lr)
 
             case se: SelectExpression => convertSelectExpression(se)
+            
+            case se: StringExpression => convertStringExpression(se)
             
             case _ => throw new NotSupportedRightNow(e.getClass.getName)
         }
@@ -136,12 +206,43 @@ class PathEffectListenerImp extends PathEffectListener  {
         new Clause (left, comp, right) 
     }
 
-    def convertPathCondition(pc: PathCondition): Constraint = {
+    
+     def convertConstraintToClause(cons: gov.nasa.jpf.symbc.string.StringConstraint): Clause = {
+        val left: Expr =  convertExpressionToExpr(cons.getLeft())
+        val right: Expr = convertExpressionToExpr(cons.getRight())
+
+        var compStr = cons.getComparator().toString().replaceAll("\\s", "")
+        //if(compStr == "=") compStr = "=="
+        val comp = ComparisonOp.withName(compStr) 
+
+        new Clause (left, comp, right) 
+    }
+    
+       def convertPathCondition(pc: StringPathCondition): Constraint = {
         val clauses: ArrayBuffer[Clause] = new ArrayBuffer[Clause]()
         var current = pc.header //: gov.nasa.jpf.symbc.numeric.Constraint
         while(current != null) {
             clauses += convertConstraintToClause(current)
-
+            val next = current.and
+            current = next
+        }
+      /*  var clses  = List[Clause]()
+        for((k,v) <- this.argsMap){
+          clses = new Clause(new SymVar(Numeric(_Int),k),  
+              ComparisonOp.withName("=") ,
+              v) ::clses
+        }*/
+        new Constraint(clauses.toArray)// ++ clses)
+    }
+       
+    
+    
+    def convertPathCondition(pc: PathCondition): Constraint = {
+        val clauses: ArrayBuffer[Clause] = new ArrayBuffer[Clause]()
+        var current = pc.header //: gov.nasa.jpf.symbc.numeric.Constraint
+        val s_constraints =  convertPathCondition(pc.spc)
+        while(current != null) {
+            clauses += convertConstraintToClause(current)
             val next = current.and
             current = next
         }
@@ -151,7 +252,9 @@ class PathEffectListenerImp extends PathEffectListener  {
               ComparisonOp.withName("=") ,
               v) ::clses
         }
-        new Constraint(clauses.toArray ++ clses)
+        
+        val in_cls = s_constraints.clauses ++ clses
+        new Constraint(clauses.toArray ++ in_cls)
     }
 
     /*

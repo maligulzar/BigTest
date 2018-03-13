@@ -427,7 +427,6 @@ public class SymbolicStringConstraintsGeneral {
 		}
 		
 		else if(solver.equals(Z3STR2)){
-			System.out.println("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
 			System.out.println("Calling Z3str2\n");
 			final Output dpresult = TranslateToZ3str2.solve(pc);
 			constraintCount = constraintCount + 1;

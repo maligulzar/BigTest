@@ -12,11 +12,15 @@ object ComparisonOp extends Enumeration {
     val LessThanOrEq = Value("<=")
     val GreaterThan = Value(">")
     val GreaterThanOrEq = Value(">=")
+    val Equals = Value("equals")
+    val Notequals = Value("notequals")
+    
 
     //def isComparisonOp(s: String): Boolean = values.exists(_.toString == s)
 }
 
 import ComparisonOp._
+import gov.nasa.jpf.symbc.string.SymbolicCharAtInteger
 
 class Constraint(c: Array[Clause]) {
     var clauses: Array[Clause] = c //there are (implicit) conjunctions among elements of array (clauses)
@@ -103,17 +107,47 @@ class Clause(left: Expr, op: ComparisonOp = null, right: Expr = null) {
     }
 
     def toZ3Query(initials: HashSet[(String , VType)]): String = {
+      var isString = false;
+      if(leftExpr.isInstanceOf[StringExpr] || leftExpr.isInstanceOf[StringExpr]){
+        isString = true;
+      }
+      
+      var leftstr = leftExpr.toZ3Query(initials)
+      var rightstr = rightExpr.toZ3Query(initials)
+      try{
+         if(leftExpr.isInstanceOf[ConcreteValue] && isString){
+           leftstr = leftstr.toInt.toChar.toString()
+           leftstr = s""" "${leftstr}" """
+         } else if(rightExpr.isInstanceOf[ConcreteValue] && isString){
+           rightstr = rightstr.toInt.toChar.toString()
+           rightstr = s""" "${rightstr}" """
+
+         }
+      }catch{
+        case e:Exception => 
+          
+      }
+      
+      
         if (compOp == null || rightExpr == null)
             leftExpr.toString
         else
         {
-            //Z3 -- > Assertion (assert (> x 2))
-            //  if(leftExpr.isInstanceOf[Terminal] && rightExpr.isInstanceOf[Terminal])
-            return s"""(${compOp.toString}  ${leftExpr.toZ3Query(initials)} ${rightExpr.toZ3Query(initials)} )"""
+          
+          if(compOp == Notequals || compOp ==Inequality){
+                    return s""" (not (=  ${leftstr} ${rightstr} ))"""
+           }else{      
+                    //Z3 -- > Assertion (assert (> x 2))
+                    //  if(leftExpr.isInstanceOf[Terminal] && rightExpr.isInstanceOf[Terminal])
+                    return s"""(${if(compOp == Notequals || compOp == Equals){
+                      "="
+                    }else{
+                      compOp.toString()
+                    }
+                    }  ${leftstr} ${rightstr} )"""
         }
-        ""
+      }
     }
-
     override def equals(other: Any): Boolean = {
         if(other != null && other.isInstanceOf[Clause]) {
             this.toString == other.asInstanceOf[Clause].toString

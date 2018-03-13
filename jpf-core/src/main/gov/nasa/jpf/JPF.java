@@ -230,9 +230,23 @@ public class JPF implements Runnable {
 						 * Gulzar
 						 * */
 					}	
+					}else if(args[0].equals("-testjpf")){
+						SymbolicState symState = new SymbolicState();
+						SymbolicResult currentPaths = new SymbolicResult(symState);
+						Config conf1 = createConfig(new String[] {"/Users/malig/workspace/up_jpf/jpf-symbc/src/examples/strings/GoodbyeWorld.jpf"});
+							JPF jpf = new JPF(conf1);
+							jpf.run();
+							System.out.println("JPF Finished");
+							SymbolicResult udfResult  = jpf.pfl.convertAll(symState);
+							System.out.println(udfResult.toString());
+							
+							udfResult.setZ3Dir("/Users/malig/workspace/git/Test-Minimization-in-Big-Data/z3-master");
+							udfResult.solveWithZ3();
 					}else {
 						 JPF jpf = new JPF(conf);
 					     jpf.run();
+					     System.out.println("Done Running JPf");
+
 					}
 				
 			} catch (ExitException x) {

@@ -5,13 +5,16 @@ public class GoodbyeWorld {
 		hello("input string");
 	}
 	
-	public static void hello(String var_1) {
+	public static int hello(String var) {
 		int i = 0;
-		if (var_1.charAt(1) == 'H'){
-			i = var_1.indexOf('W');
+		if (var.substring(4,7).equals("o World")){
+			return var.length();
 		}
-		else if (var_1.equals("Goodbye, World!")) {
-			System.out.println(var_1);
+		else {
+			if(var.charAt(1) == 'o') {
+				return 1;
+			}
+				return -1;
 		}
 	}
 }
