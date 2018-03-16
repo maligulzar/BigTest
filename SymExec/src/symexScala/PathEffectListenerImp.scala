@@ -81,7 +81,7 @@ class PathEffectListenerImp extends PathEffectListener  {
             case s:SymbolicLengthInteger =>
                val symstring =  convertExpressionToExpr(s.parent)
                val opString = s.getName().replace("_1_" , "")
-               val op = new SymStringOp(NonNumeric(_String),StringOp.withName(opString))
+               val op = new SymStringOp(Numeric(_Int),StringOp.withName(opString))
                new StringExpr(symstring,op, Array())
             case s:SymbolicCharAtInteger =>
                val symstring =  convertExpressionToExpr(s.se)
@@ -154,10 +154,11 @@ class PathEffectListenerImp extends PathEffectListener  {
               val  op  = i.op
               val stringsym = convertExpressionToExpr(i.oprlist(0))
               val len_par = i.oprlist.length
-              val pars = new Array[Expr](len_par-1)
+              var pars = new Array[Expr](len_par-1)
               for(a  <- 1 to len_par-1 ){
                 pars(a-1) = convertExpressionToExpr(i.oprlist(a))
               } 
+              pars = pars.reverse
               
               var opStr = op.toString().replaceAll("\\s", "")
               var oper: SymStringOp = null;
@@ -236,7 +237,6 @@ class PathEffectListenerImp extends PathEffectListener  {
     }
        
     
-    
     def convertPathCondition(pc: PathCondition): Constraint = {
         val clauses: ArrayBuffer[Clause] = new ArrayBuffer[Clause]()
         var current = pc.header //: gov.nasa.jpf.symbc.numeric.Constraint
@@ -248,7 +248,7 @@ class PathEffectListenerImp extends PathEffectListener  {
         }
         var clses  = List[Clause]()
         for((k,v) <- this.argsMap){
-          clses = new Clause(new SymVar(Numeric(_Int),k),  
+          clses = new Clause(new SymVar(v.atype,k),  
               ComparisonOp.withName("=") ,
               v) ::clses
         }
@@ -256,7 +256,7 @@ class PathEffectListenerImp extends PathEffectListener  {
         val in_cls = s_constraints.clauses ++ clses
         new Constraint(clauses.toArray ++ in_cls)
     }
-
+    
     /*
         assuming first input argument is our record (which also has the same type as return variable) 
     */
@@ -290,7 +290,8 @@ class PathEffectListenerImp extends PathEffectListener  {
         for(i <- 0 until pathVector.size){
             val effectFromSPF: Expr = convertExpressionToExpr(pathVector.get(i)._2)
             val effectBuffer = new ArrayBuffer[Tuple2[SymVar, Expr]]()
-            effectBuffer += new Tuple2(outputVar, effectFromSPF)
+            val outputV = SymVar(effectFromSPF.actualType,outputVar.name)
+            effectBuffer += new Tuple2(outputV, effectFromSPF)
 
             allPathEffects(i) = new PathEffect(convertPathCondition(pathVector.get(i)._1), effectBuffer)
         }

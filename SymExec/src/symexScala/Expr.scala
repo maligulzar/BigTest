@@ -43,9 +43,15 @@ abstract class SymRDD extends Terminal {
     def getName: String
 }
 
-case class SymVar(atype: VType, name: String) extends SymRDD {
+case class SymVar(var atype: VType, name: String) extends SymRDD {
+    
     val actualType = atype
-
+      /**
+     * Setting types of the newly introduced return variable in the effect
+     * */
+    def setType(_type:VType) {
+      atype = _type
+    }
     def getName: String = {name}
 
     override def toString: String = { name /*+": "+actualType*/ }
@@ -61,12 +67,12 @@ case class SymVar(atype: VType, name: String) extends SymRDD {
 
     override def toZ3Query(initials: HashSet[(String , VType)]): String = {
         var temp_name = name.replaceAll("[^A-Za-z0-9]","")
-        initials.add((temp_name , actualType))
+        initials.add((temp_name , atype))
         temp_name
     }
 
     override def deepCopy: SymVar = {
-        new SymVar(actualType, name)
+        new SymVar(atype, name)
     }
 }
 
@@ -252,7 +258,7 @@ case class StringExpr(obj: Expr, op: SymStringOp , opr:Array[Expr]) extends Expr
 
     //check validity of this partial expression before proceeding
     assert(obj != null)
-    assert(op.actualType == obj.actualType )//&& op.actualType == rightExpr.actualType)
+   // assert(op.actualType == obj.actualType )//&& op.actualType == rightExpr.actualType)
     val actualType = op.actualType
 
     override def toString(): String = {
@@ -273,8 +279,12 @@ case class StringExpr(obj: Expr, op: SymStringOp , opr:Array[Expr]) extends Expr
     }
 
     override def toZ3Query(initials :HashSet[(String , VType)]): String = {
-        // left.toString + " " + op.toString + " " + right.toString
-        s"""( ${op.toString}  ${obj.toZ3Query(initials)}   ${opr.map(s => s.toZ3Query(initials)).reduce(_ +" " + _)} )"""
+        s"""( ${op.toString}  ${obj.toZ3Query(initials)} ${
+          if(opr.length>0) 
+            opr.map(s => s.toZ3Query(initials)).reduce(_ +" " + _)
+          else 
+              ""
+         } )"""
         //"FIX NON TERMINAL Z3 QUERY"
 
     }
