@@ -20,6 +20,8 @@ object StringOp extends Enumeration {
     val IndexOf = Value("IndexOf")
     val CharAt = Value("CharAt") 
     val Length = Value("Length") 
+    val ToInt = Value("VALUEOF") 
+    
 }
 
 import ArithmeticOp._
@@ -126,6 +128,8 @@ case class SymStringOp(atype: VType, op: StringOp) /*extends Terminal*/ {
               "str.len"
         case Substr =>
               "str.substr"
+          case ToInt =>
+              "str.to.int"
         case _ =>
           throw new NotSupportedRightNow("String Operator no tsupported")
       }

@@ -53,7 +53,13 @@ class PathEffect(pc: Constraint, udfEffect: ArrayBuffer[Tuple2[SymVar, Expr]]) {
 
         val list: HashSet[(String, VType)] = new HashSet[(String, VType)]();
         val pc = pathConstraint.toZ3Query(list) + "\n" + getEffectZ3Query(list)
-        var decls = ""
+        var decls = s"""
+          |(define-fun isinteger ((x!1 String)) Bool
+          |  (str.in.re x!1 (re.+ (re.range "0" "9")) )
+          |)
+          |(define-fun notinteger ((x!1 String)) Bool
+          |  (not (str.in.re x!1 (re.+ (re.range "0" "9")) ))
+          |)""".stripMargin
         val itr = list.iterator()
         while(itr.hasNext){
             val i = itr.next()

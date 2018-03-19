@@ -154,7 +154,7 @@ public class StringPathCondition {
 
 	  public String toString() {
 	    return "SPC # = " + count + ((header == null) ? "" : "\n" + header.toString()) +"\n"
-	    		+ "NPC "+npc.toString() + "\n-----Z3-----\n" + TranslateToZ3str2.solve(this) + "\n-----------------\n";
+	    		+ "NPC "+npc.toString() + "\n-----Z3-----\n"  /*+TranslateToZ3str2.solve(this) */+ "\n-----------------\n";
 	  }
 
 	public PathCondition getNpc() {

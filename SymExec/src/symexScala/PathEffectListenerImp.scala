@@ -2,7 +2,6 @@ package symexScala
 
 import java.util.Vector
 import java.util.Iterator
-import gov.nasa.jpf.symbc.PathEffectListener
 import gov.nasa.jpf.util.Pair
 import gov.nasa.jpf.symbc.numeric.Expression
 import gov.nasa.jpf.symbc.numeric.PathCondition
@@ -29,6 +28,8 @@ import gov.nasa.jpf.symbc.string.StringSymbolic
 import gov.nasa.jpf.symbc.string.StringOperator
 import gov.nasa.jpf.symbc.string.SymbolicLengthInteger
 import gov.nasa.jpf.symbc.string.SymbolicCharAtInteger
+import gov.nasa.jpf.symbc.mixednumstrg.SpecialIntegerExpression
+import gov.nasa.jpf.symbc.PathEffectListener
 
 class NotSupportedRightNow(message: String, cause: Throwable = null) 
     extends RuntimeException("This is not supported right now: "+message, cause) {}
@@ -96,7 +97,11 @@ class PathEffectListenerImp extends PathEffectListener  {
                  }
                  else intVar
                }
-     
+            case sie: SpecialIntegerExpression =>
+               val symstring =  convertExpressionToExpr(sie.opr)
+               val opString = sie.getOp().name
+               val op = new SymStringOp(Numeric(_Int),StringOp.withName(opString))
+                      new StringExpr(symstring,op, Array[Expr]())
             case _ => throw new NotSupportedRightNow(li.getClass.getName)
         }
     }
@@ -192,7 +197,8 @@ class PathEffectListenerImp extends PathEffectListener  {
             
             case se: StringExpression => convertStringExpression(se)
             
-            case _ => throw new NotSupportedRightNow(e.getClass.getName)
+            case _ => 
+              throw new NotSupportedRightNow(e.getClass.getName)
         }
     }
 
@@ -209,15 +215,22 @@ class PathEffectListenerImp extends PathEffectListener  {
 
     
      def convertConstraintToClause(cons: gov.nasa.jpf.symbc.string.StringConstraint): Clause = {
-        val left: Expr =  convertExpressionToExpr(cons.getLeft())
-        val right: Expr = convertExpressionToExpr(cons.getRight())
-
-        var compStr = cons.getComparator().toString().replaceAll("\\s", "")
-        //if(compStr == "=") compStr = "=="
-        val comp = ComparisonOp.withName(compStr) 
-
-        new Clause (left, comp, right) 
-    }
+       if(cons.getLeft != null){       
+            val left: Expr =  convertExpressionToExpr(cons.getLeft())
+            val right: Expr = convertExpressionToExpr(cons.getRight())
+    
+            var compStr = cons.getComparator().toString().replaceAll("\\s", "")
+            //if(compStr == "=") compStr = "=="
+            val comp = ComparisonOp.withName(compStr) 
+    
+            new Clause (left, comp, right) 
+        }else{
+            val right: Expr = convertExpressionToExpr(cons.getRight())
+            var compStr = cons.getComparator().toString().replaceAll("\\s", "")
+            val comp = UniaryOp.withName(compStr) 
+            new UniaryClause(right, comp) 
+        }
+     }
     
        def convertPathCondition(pc: StringPathCondition): Constraint = {
         val clauses: ArrayBuffer[Clause] = new ArrayBuffer[Clause]()

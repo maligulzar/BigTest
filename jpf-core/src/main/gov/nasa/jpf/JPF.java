@@ -199,7 +199,7 @@ public class JPF implements Runnable {
 						ArrayList<JPFDAGNode> paths = Runner.getDataFlowDAG();
 						SymbolicState symState = new SymbolicState();
 						SymbolicResult currentPaths = new SymbolicResult(symState);
-						for(int i = 1 ; i< paths.size() ; i++) {        		
+						for(int i = 0 ; i< paths.size() ; i++) {        		
 							String args_new[] = {paths.get(i).getJPFFileName()};		
 							Config conf1 = createConfig(args_new);
 							JPF jpf = new JPF(conf1);

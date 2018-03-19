@@ -37,14 +37,18 @@ public class UDFWriter {
     public void enrollFunction(String name, String code ){
         functions.put(name, code);
     }
+    
+    boolean isString = false;
+    
     public void write(Set<String> used_func , String target_func , SparkProgramVisitor visitor) {
         String wrapper_func_body = "";
         String wrapper_name = "applyReduce";
+        isString = argsToMain.startsWith("\"") && argsToMain.endsWith("\"");
         String method_call = target_func+"("+ argsToMain+");\n";
         if(filename.startsWith("reduce")){
             wrapper_func_body = "static int "+wrapper_name+"( int[] a) {\n" +
                     "   int s = a[0];\n" +
-                    "   for(int i = 1 ; i < 3 ; i++){\n" + //// This is where we set the upper bound for the loop in reduce.
+                    "   for(int i = 1 ; i < "+ Runner.loop_bound +" ; i++){\n" + //// This is where we set the upper bound for the loop in reduce.
                     "       s = " + target_func +"( s , a[i] );\n"+
                     "   }\n" +
                     "   return s;\n" +

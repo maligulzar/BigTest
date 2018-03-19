@@ -136,7 +136,7 @@ public class SparkProgramVisitor extends ASTVisitor {
         u_writer.close();
         String new_classname = u_writer.filename.replace(".java", "");
         try {
-            createJPFile(new_classname, getJPFFunction("apply"), jpf_dir + new_classname + ".jpf");
+            createJPFile(new_classname, getJPFFunction("apply"), jpf_dir + new_classname + ".jpf" , u_writer.isString);
 
             Runner.runCommand(new String[]{"javac", "-g",
                             Configuration.JPF_HOME + "jpf-symbc/src/examples/" + new_classname + ".java"},
@@ -149,12 +149,12 @@ public class SparkProgramVisitor extends ASTVisitor {
 
     }
 
-    public void createJPFile(String target, String fun_name, String jpfPath) throws Exception {
+    public void createJPFile(String target, String fun_name, String jpfPath , boolean isString) throws Exception {
         if(target_func_jpf!=null)
         {
             fun_name = target_func_jpf;
         }
-        String content = Configuration.JPF_FILE_PLACEHOLDER(target, fun_name, log.outputJava);
+        String content = Configuration.JPF_FILE_PLACEHOLDER(target, fun_name, log.outputJava , isString);
         FileWriter fw = null;
         try {
             File file = new File(jpfPath);

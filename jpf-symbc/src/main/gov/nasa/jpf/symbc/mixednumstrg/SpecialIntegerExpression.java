@@ -81,8 +81,9 @@ public class SpecialIntegerExpression extends IntegerExpression {
 
 	public void getVarsVals(Map<String, Object> varsVals) {
 	  }
-
-
+	public SpecialOperator getOp() {
+		return op;
+	}
 	  public String stringPC() {
 		    return op.toString() + "__" + opr.stringPC() + "__";
 		  }

@@ -320,7 +320,7 @@ public class SymbolicListener extends PropertyListenerAdapter implements Publish
 									int returnValue = ireturn.getReturnValue();
 									IntegerExpression returnAttr = (IntegerExpression) ireturn.getReturnAttr(ti);
 									if (returnAttr != null) {
-										returnString = "Return Value: " + String.valueOf(returnAttr.solution());
+										returnString = "Return Value: " + String.valueOf(returnAttr/*.solution()*/);
 										result = returnAttr;
 									} else { // concrete
 										returnString = "Return Value: " + String.valueOf(returnValue);

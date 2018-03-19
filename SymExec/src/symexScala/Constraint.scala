@@ -19,7 +19,15 @@ object ComparisonOp extends Enumeration {
     //def isComparisonOp(s: String): Boolean = values.exists(_.toString == s)
 }
 
+object UniaryOp extends Enumeration {
+    type UniaryOp = Value
+    val IsInteger = Value("isinteger")
+    val NotInteger = Value("notinteger")
+}
+
+
 import ComparisonOp._
+import UniaryOp._
 import gov.nasa.jpf.symbc.string.SymbolicCharAtInteger
 
 class Constraint(c: Array[Clause]) {
@@ -94,7 +102,42 @@ class Constraint(c: Array[Clause]) {
         new Constraint(newArray)
     }
 }
+class UniaryClause(left: Expr, op: UniaryOp) extends Clause(left,null,null){
 
+      override def toString: String = {
+        if (op == null || rightExpr == null) leftExpr.toString
+        else leftExpr.toString + " " + op.toString 
+    }
+    override def toZ3Query(initials: HashSet[(String , VType)]): String = {
+      var isString = false;
+      if(leftExpr.isInstanceOf[StringExpr]){
+        isString = true;
+      }
+      
+      var leftstr = leftExpr.toZ3Query(initials)
+      try{
+         if(leftExpr.isInstanceOf[ConcreteValue] && isString){
+           leftstr = leftstr.toInt.toChar.toString()
+           leftstr = s""" "${leftstr}" """
+         } 
+      }catch{
+        case e:Exception => 
+          
+      }
+            return s"""(${op.toString()}  ${leftstr} )"""
+        
+      
+    }
+    override def applyEffect(x: SymVar, effect: Expr): Clause = {
+        val newLeftExpr = leftExpr.applyEffect(x, effect)
+        new UniaryClause(newLeftExpr, op)
+    }
+
+    override def checkValidity(ss: SymbolicState): Boolean = {
+        var leftRes = leftExpr.checkValidity(ss)
+        leftRes
+    }
+}
 class Clause(left: Expr, op: ComparisonOp = null, right: Expr = null) {
     var leftExpr: Expr = left
     val compOp: ComparisonOp = op
