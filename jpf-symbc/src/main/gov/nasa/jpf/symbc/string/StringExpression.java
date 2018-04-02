@@ -332,6 +332,21 @@ public StringExpression _subString(int t, int r) {
 	    return new DerivedStringExpression(StringOperator.SUBSTRING, l );
 	  }
 
+public StringExpression _split(String t) {
+    Expression l[] = new Expression[2];
+    l[0] = this;
+    l[1] = new  StringConstant(t);
+    return new DerivedStringExpression(StringOperator.SPLIT, l );
+  }
+
+public StringExpression _split(StringExpression t) {
+    Expression l[] = new Expression[2];
+    l[0] = this;
+    l[1] = t;
+    return new DerivedStringExpression(StringOperator.SPLIT, l );
+  }
+
+
 public StringExpression _subString(int t) {
     Expression l[] = new Expression[2];
     l[0] = this;

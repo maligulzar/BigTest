@@ -39,6 +39,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 
+
 /**
  * main class of the JPF verification framework. This reads the configuration,
  * instantiates the Search and VM objects, and kicks off the Search

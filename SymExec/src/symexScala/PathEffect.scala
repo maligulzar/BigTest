@@ -59,7 +59,13 @@ class PathEffect(pc: Constraint, udfEffect: ArrayBuffer[Tuple2[SymVar, Expr]]) {
           |)
           |(define-fun notinteger ((x!1 String)) Bool
           |  (not (str.in.re x!1 (re.+ (re.range "0" "9")) ))
-          |)""".stripMargin
+          |)
+          |
+          |(define-fun split ((x!1 String) (x!2 String) (x!3 String)) Bool
+          |(str.in.re x!1 (re.++ (str.to.re x!2) (re.* (re.++ (str.to.re x!3) (str.to.re x!2) ))))
+          |) 
+          |
+          |""".stripMargin
         val itr = list.iterator()
         while(itr.hasNext){
             val i = itr.next()

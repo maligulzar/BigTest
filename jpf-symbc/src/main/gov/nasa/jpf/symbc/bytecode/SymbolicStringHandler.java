@@ -307,6 +307,13 @@ public class SymbolicStringHandler {
 			} else if (shortName.equals("booleanValue")) {
 				handlefloatValue(invInst, th);
 			} else {
+				if(shortName.equals("split")){
+					Instruction handled = handleSplit(invInst, th);
+					if (handled != null) {
+						return handled;
+					}
+					
+				}else
 				throw new RuntimeException("ERROR: symbolic method not handled: " + shortName);
 				//return null;
 			}
@@ -995,6 +1002,42 @@ public class SymbolicStringHandler {
 		return null;
 	}
 
+	
+	//Gulzar : Implementation for the Split API
+	public Instruction handleSplit(JVMInvokeInstruction invInst, ThreadInfo th) {
+		StackFrame sf = th.getModifiableTopFrame();
+		StringExpression sym_v1 = (StringExpression) sf.getOperandAttr(0);
+		StringExpression sym_v2 = (StringExpression) sf.getOperandAttr(1);
+
+		if ((sym_v1 == null) & (sym_v2 == null)) {
+			throw new RuntimeException("ERROR: symbolic string method must have one symbolic operand: HandleSubString1");
+		} else {
+			int s1 = sf.pop();
+			int s2 = sf.pop();
+
+			StringExpression result = null;
+			if (sym_v1 == null) { // operand 0 is concrete
+				String val =  String.valueOf((char)s1);
+				result = sym_v2._split(val);
+			} else {
+				if (sym_v2 == null) {
+					ElementInfo e1 = th.getElementInfo(s2);
+					String val2 = e1.asString();
+					sym_v2 = new StringConstant(val2);
+					result = sym_v2._split(sym_v1);
+				} else {
+					result = sym_v2._split(sym_v1);
+				}
+			}
+			ElementInfo objRef = th.getHeap().newArray("S",3, th); /*																											 * Object
+																																	 */
+			sf.push(objRef.getObjectRef(), true);
+			sf.setOperandAttr(result);
+		}
+		return null;
+	}
+	
+	
 	public Instruction handleSubString(JVMInvokeInstruction invInst, ThreadInfo th) {
 		int numStackSlots = invInst.getArgSize();
 		if (numStackSlots == 2) {
@@ -1004,6 +1047,9 @@ public class SymbolicStringHandler {
 		}
 	}
 
+	
+	
+	
 	public Instruction handleSubString1(JVMInvokeInstruction invInst, ThreadInfo th) {
 		StackFrame sf = th.getModifiableTopFrame();
 		IntegerExpression sym_v1 = (IntegerExpression) sf.getOperandAttr(0);
@@ -1040,6 +1086,7 @@ public class SymbolicStringHandler {
 		return null;
 	}
 
+	
 	public Instruction handleSubString2(JVMInvokeInstruction invInst, ThreadInfo th) {
 		//System.out.println("[SymbolicStringHandler] doing");
 		StackFrame sf = th.getModifiableTopFrame();

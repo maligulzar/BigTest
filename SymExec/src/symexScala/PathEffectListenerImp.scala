@@ -117,6 +117,16 @@ class PathEffectListenerImp extends PathEffectListener  {
           name
         }
       }
+      
+      if(str.endsWith("_SYMINT")){
+        val name = str.replace("_SYMINT", "")
+        val mod_name = name.replaceAll("_[0-9]+", "")
+        if(this.argsMap.contains(mod_name))
+         return  mod_name
+        else{
+          name
+        }
+      }
       if(str.startsWith("[") &&  str.endsWith("]")){
         val s = str.split("\\[")
         val name  = searchInputArrayName(s(1))
@@ -279,7 +289,7 @@ class PathEffectListenerImp extends PathEffectListener  {
 
         println("------>"+pathVector.size+" "+argsInfo.size)
 
-        val (inputVar: SymVar, outputVar: SymVar) = 
+        var (inputVar: SymVar, outputVar: SymVar) = 
             if(argsInfo.size == 1) {
                 val freshVar : SymVar = symState.getFreshSymVar(argsInfo.get(0)._2)
                 argsMap += (argsInfo.get(0)._1 -> freshVar)
@@ -300,10 +310,11 @@ class PathEffectListenerImp extends PathEffectListener  {
             }
 
         allPathEffects = new Array[PathEffect](pathVector.size())
+        var outputV:SymVar = null
         for(i <- 0 until pathVector.size){
             val effectFromSPF: Expr = convertExpressionToExpr(pathVector.get(i)._2)
             val effectBuffer = new ArrayBuffer[Tuple2[SymVar, Expr]]()
-            val outputV = SymVar(effectFromSPF.actualType,outputVar.name)
+             outputV = SymVar(effectFromSPF.actualType,outputVar.name)
             effectBuffer += new Tuple2(outputV, effectFromSPF)
 
             allPathEffects(i) = new PathEffect(convertPathCondition(pathVector.get(i)._1), effectBuffer)
@@ -312,7 +323,7 @@ class PathEffectListenerImp extends PathEffectListener  {
         //println(inputVar)
         //println(outputVar)
         //there is no terminating path in the scope of udf
-        new SymbolicResult(symState, allPathEffects, null, inputVar, outputVar)
+        new SymbolicResult(symState, allPathEffects, null, inputVar, outputV)
     }
 
 }

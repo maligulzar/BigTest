@@ -60,7 +60,9 @@ public enum StringOperator {
   REPLACEALL("replaceall"),
   TOLOWERCASE("tolowercase"),
   TOUPPERCASE("touppercase"),
-  VALUEOF("valueof");
+  VALUEOF("valueof"),
+  SPLIT("split"); //Gulzar
+	
 
   private final String str;
 

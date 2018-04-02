@@ -285,6 +285,12 @@ case class StringExpr(obj: Expr, op: SymStringOp , opr:Array[Expr]) extends Expr
     override def toZ3Query(initials :HashSet[(String , VType)]): String = {
         s"""( ${op.toString}  ${obj.toZ3Query(initials)} ${
           if(opr.length>0) 
+            
+            if(opr.length == 2 && op.op == Substr){
+              val a1 = opr(0).toZ3Query(initials)
+              val a2 = opr(1).toZ3Query(initials)
+              s""" $a1 (- ${a2} ${a1})"""
+            }else
             opr.map(s => s.toZ3Query(initials)).reduce(_ +" " + _)
           else 
               ""

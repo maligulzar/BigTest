@@ -67,6 +67,9 @@ public class Configuration {
                 "\n" +
                 "symbolic.method=" + target + "." + fun_name + "(sym)\n" +
                 "\n" +
+                 "\n"
+                + "symbolic.arrays=true"
+                + "\n"+
                 "symbolic.debug=true\n" +
                 "\n" +str+
                 "listener = gov.nasa.jpf.symbc.SymbolicListener\n" +
