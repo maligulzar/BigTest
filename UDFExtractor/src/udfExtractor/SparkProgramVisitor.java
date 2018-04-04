@@ -25,15 +25,23 @@ public class SparkProgramVisitor extends ASTVisitor {
 
     public boolean visit(ClassInstanceCreation cls) {
         if (current_method_inc != null)
-            if (Configuration.isSparkDataflowOperator(current_method_inc)) {
+            if (Configuration.isSparkDataflowOperator(current_method_inc) && cls.getType().toString().equals("Serializable")) {
                 startUDFClass();
                 cls.getAnonymousClassDeclaration().accept(this);
                 closeUDFClass();
             }
         return true;
     }
-
+    HashMap<String, String> typeMapping = new HashMap<>();
+    public boolean visit(CastExpression ce){
+        //log.logdebug(ce.getType().toString());
+        //log.logdebug(ce.getExpression().toString());
+        typeMapping.put(ce.getExpression().toString(),ce.getType().toString() );
+       // ce.setType(ce.getAST().newSimpleType(ce.getAST().newName("")));
+        return true;
+    }
     public boolean visit(MethodDeclaration node) {
+        typeMapping = new HashMap<>();
         if (current_method_inc == null) return true;
         SimpleName name = node.getName();
         this.names.add(name.getIdentifier());
@@ -54,8 +62,12 @@ public class SparkProgramVisitor extends ASTVisitor {
        // log.loginfo(Logging.LogType.DEBUG, node.toString());
         Modifier mod = ((Modifier) node.modifiers().get(0));
         mod.setKeyword(Modifier.ModifierKeyword.STATIC_KEYWORD);
-        u_writer.enrollFunction(name.toString(), node.toString() + "\n  ");
-        return true;
+        FunctionStructure fs  = new FunctionStructure(node.modifiers() , node.getReturnType2() , node.parameters() , node.getBody());
+        node.getBody().accept(this);
+        fs.map = typeMapping;
+        u_writer.enrollFunction(name.toString(),fs );//node.toString() + "\n  " );
+        typeMapping = new HashMap<>();
+        return false;
     }
 
     public boolean visit(MethodInvocation inv) {
@@ -68,12 +80,22 @@ public class SparkProgramVisitor extends ASTVisitor {
             if (!current_fun.equals(inv.getName().toString()))
                 call_graph.put(current_fun, temp);
         }
+
+
         if (Configuration.isSparkDataflowOperator(inv.getName().toString())) {
             for (Expression e : (List<Expression>) inv.arguments()) {
                 current_method_inc = inv.getName().toString();
                 e.accept(this);
                 current_method_inc = null;
             }
+        }
+        if(inv.getName().getIdentifier().startsWith("_2")){
+           // log.logdebug(inv.getName().getIdentifier());
+            inv.getName().setIdentifier("_2");
+        }
+        if(inv.getName().getIdentifier().startsWith("_1")){
+            //log.logdebug(inv.getName().getIdentifier());
+            inv.getName().setIdentifier("_1");
         }
         return true;
     }

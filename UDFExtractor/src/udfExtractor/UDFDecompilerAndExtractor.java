@@ -29,7 +29,6 @@ public class UDFDecompilerAndExtractor extends Logging {
         AST ast = cu.getAST();
         cu.accept(new SparkProgramVisitor(this , jpfdir));
     }
-
     //read file content into a string
     public String readFileToString(String filePath) throws IOException {
         StringBuilder fileData = new StringBuilder(1000);
@@ -43,9 +42,15 @@ public class UDFDecompilerAndExtractor extends Logging {
             buf = new char[1024];
         }
         reader.close();
-        return fileData.toString();
+        return cleanJavaCode(fileData.toString());
     }
 
+    public String cleanJavaCode(String s) {
+
+        return s
+                .replaceAll("String\\.\\.MODULE" ,"String\\.MODULE" )
+                .replaceAll("BoxesRunTime\\.boxToInteger" , "");
+    }
 
     //loop directory to get file list
     public void ParseFilesInDir( String jpfdir) throws Exception {

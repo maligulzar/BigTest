@@ -17,9 +17,9 @@ object SalaryAverage {
         if (s.substring(0, 1).equals("$")) {
           var i = s.substring(1, s.length - 1)
           i = i.replace(",", "")
-          Integer.parseInt(i)
+           Integer.parseInt(i)
         } else {
-          Integer.parseInt(s.replace(",", ""))
+           Integer.parseInt(s.replace(",", ""))
         }
       }
       .filter(s => s < 30000)

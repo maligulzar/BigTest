@@ -56,13 +56,14 @@ public class Runner extends Logging {
         // Compiling the newly extracted UDF
         udf_ex = new UDFDecompilerAndExtractor(classfile, classFile_jad, outputJava);
         udf_ex.ParseFilesInDir(jpfModel);
+        System.out.println("Done Parsing");
       //  for(JPFDAGNode j: udf_ex.jpf_dag){
             // Run JPF on the UDF
         //    System.out.println(j.operator_name+" "+j.jpf_file);
           //   runCommand(new String[]{"java", "-jar", jpfJar, j.jpf_file}, Configuration.JAVA_RUN_DIR);
        // }
         }catch(Exception e) {
-       
+        	e.printStackTrace();
         }
 
     }

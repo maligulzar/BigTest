@@ -19,6 +19,7 @@
 package abstractClasses;
 
 abstract class A  {
+	int a;
 	void m () {
 		System.out.println(" m in A");
 	}
@@ -27,7 +28,12 @@ abstract class A  {
 	}
 	void f() {
 		System.out.println("f in A");
-		m ();
-		n ();
+		if(a>10) {
+			System.out.println("f in A10");
+		}else {
+			System.out.println("f in A-10");		
+		}
+		//	m ();
+	//	n ();
 	}
 }

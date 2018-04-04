@@ -12,3 +12,6 @@ type_classpath = ${jpf-symbc}/build/examples/abstractClasses
 symbolic.method = abstractClasses.Test.foo(sym)
 symbolic.debug=true
 vm.storage.class=nil
+
+#listener = gov.nasa.jpf.symbc.SymbolicListener
+listener = gov.nasa.jpf.symbc.heap.HeapSymbolicListener

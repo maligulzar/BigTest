@@ -3,7 +3,7 @@
   */
 object Split {
 
-  val sample = "24:4"
+  val sample = "23,4,,5,5,6,24:4"
 
   def main(args: Array[String]): Unit = {
     println(split(sample, 5, ","))

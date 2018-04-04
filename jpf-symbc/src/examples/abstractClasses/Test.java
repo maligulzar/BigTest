@@ -29,7 +29,7 @@ public class Test {
 	}
 	
 	public static void main (String[] args) {
-		A a = null;
-		foo(a);
+		//A a = new A(3);
+		foo(null);
 	}
 }

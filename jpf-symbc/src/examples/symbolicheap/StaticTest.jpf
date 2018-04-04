@@ -8,6 +8,8 @@ target=symbolicheap.StaticTest
 symbolic.method = symbolicheap.StaticTest.test(sym);
 
 
+listener = gov.nasa.jpf.symbc.SymbolicListener
+
 #listener = gov.nasa.jpf.listener.ExecTracker
 
 symbolic.green = false
