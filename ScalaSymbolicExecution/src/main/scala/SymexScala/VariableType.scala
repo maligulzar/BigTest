@@ -1,4 +1,4 @@
-package SymexScala
+package symexScala
 
 import scala.collection.mutable.ArrayBuffer
 import scala.reflect.runtime.universe._
@@ -17,6 +17,8 @@ object NonNumericUnderlyingType extends Enumeration {
     type NonNumericUnderlyingType = Value
     val _Boolean = Value("Boolean")
     val _Unit = Value("Unit")
+    val _String = Value("String")
+
 }
 
 import NumericUnderlyingType._
@@ -28,6 +30,13 @@ abstract class VType {
     def toZ3Query(): String
 }
 
+//case class SString(ut: NonNumericUnderlyingType) extends VType {
+//    val underlyingType: NonNumericUnderlyingType = ut
+//    def toZ3Query(): String = {
+//        ut.toString
+//    }
+//}
+
 case class Numeric(ut: NumericUnderlyingType) extends VType {
     val underlyingType: NumericUnderlyingType = ut
     def toZ3Query(): String = {
@@ -37,6 +46,20 @@ case class Numeric(ut: NumericUnderlyingType) extends VType {
 
 case class NonNumeric(ut: NonNumericUnderlyingType) extends VType {
     val underlyingType: NonNumericUnderlyingType = ut
+    def toZ3Query(): String = {
+        ut.toString
+    }
+}
+
+case class CollectionNonNumeric(ut: NonNumericUnderlyingType) extends VType {
+    val underlyingType: NonNumericUnderlyingType = ut
+    def toZ3Query(): String = {
+        ut.toString
+    }
+}
+
+case class CollectionNumeric(ut: NumericUnderlyingType) extends VType {
+    val underlyingType: NumericUnderlyingType = ut
     def toZ3Query(): String = {
         ut.toString
     }

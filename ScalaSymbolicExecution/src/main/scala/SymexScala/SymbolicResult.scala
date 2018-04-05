@@ -1,31 +1,30 @@
-package SymexScala
+package symexScala
 
 import java.io.{BufferedWriter, FileWriter, File}
 import java.util
 import java.util.HashSet
-import scala.collection.mutable.ArrayBuffer
 
-import udfExtractor.Logging.LogType
-import udfExtractor.SystemCommandExecutor
+import scala.collection.mutable.ArrayBuffer
 
 import NumericUnderlyingType._
 import ComparisonOp._
 import ArithmeticOp._
+import udfExtractor.SystemCommandExecutor
 
-class NotFoundPathCondition(message: String, cause: Throwable = null) 
+class NotFoundPathCondition(message: String, cause: Throwable = null)
     extends RuntimeException("Not found Pa in C(A) for record "+message, cause) {}
 
 
-/* 
+/*
     paths = different paths each being satisfied by an equivalent class of tuples in dataset V
 */
-class SymbolicResult(ss: SymbolicState, 
+class SymbolicResult(ss: SymbolicState,
                     nonT: Array[PathEffect],
                     t: ArrayBuffer[TerminatingPath] = null,
                     iVar: Expr = null,
                     oVar: Expr = null,
                     j: Boolean = false) {
-    var Z3DIR: String = "/Users/amytis/Projects/z3-master"   
+    var Z3DIR: String = "/Users/amytis/Projects/z3-master"
     val state: SymbolicState = ss
     val paths: Array[PathEffect] = nonT
     val terminating: ArrayBuffer[TerminatingPath] = t
@@ -37,6 +36,10 @@ class SymbolicResult(ss: SymbolicState,
     def this(ss: SymbolicState) {
         this(ss, new Array[PathEffect](1))
         paths(0) = new PathEffect(new Constraint()) //true
+    }
+
+    def setZ3Dir(path: String) {
+        Z3DIR =  path
     }
 
     override def toString: String = {
@@ -103,7 +106,7 @@ class SymbolicResult(ss: SymbolicState,
                 println("------------------------")
 
             }
-        } 
+        }
         /*else {
             val path = paths(0)
             println(path)
@@ -169,11 +172,30 @@ class SymbolicResult(ss: SymbolicState,
     def map(udfSymbolicResult: SymbolicResult): SymbolicResult = {
         //returns Cartesian product of already existing paths *  set of paths from given udf
         val product = new Array[PathEffect](paths.size * udfSymbolicResult.numOfPaths)
-        var i = 0  
+        var i = 0
         for(pa <- this.paths) {
             for(udfPath <- udfSymbolicResult.paths) {
                 //udf -> (x2, x3) / rdd -> (x0, x1) => link -> (x2 = x1)
-                val link: Tuple2[SymVar, SymVar] = 
+                val link: Tuple2[SymVar, SymVar] =
+                    if(this.symOutput != null) new Tuple2(udfSymbolicResult.symInput.asInstanceOf[SymVar], this.symOutput.asInstanceOf[SymVar])
+                    else null
+
+                product(i) = udfPath.conjunctPathEffect(pa, link)
+                i += 1
+            }
+        }
+        val input = if(this.symInput == null) udfSymbolicResult.symInput.asInstanceOf[SymVar] else this.symInput.asInstanceOf[SymVar]
+        new SymbolicResult(this.state, product, this.terminating, input, udfSymbolicResult.symOutput.asInstanceOf[SymVar])
+    }
+
+    def reduce(udfSymbolicResult: SymbolicResult): SymbolicResult = {
+        //returns Cartesian product of already existing paths *  set of paths from given udf
+        val product = new Array[PathEffect](paths.size * udfSymbolicResult.numOfPaths)
+        var i = 0
+        for(pa <- this.paths) {
+            for(udfPath <- udfSymbolicResult.paths) {
+                //udf -> (x2, x3) / rdd -> (x0, x1) => link -> (x2 = x1)
+                val link: Tuple2[SymVar, SymVar] =
                     if(this.symOutput != null) new Tuple2(udfSymbolicResult.symInput.asInstanceOf[SymVar], this.symOutput.asInstanceOf[SymVar])
                     else null
 
@@ -200,7 +222,7 @@ class SymbolicResult(ss: SymbolicState,
                 for(pa <- this.paths) {
                     // print(pa.toString+" && "+udfTerminating.toString+" = ")
                     //udf -> (x2, x3) / rdd -> (x0, x1) => link -> (x2 = x1)
-                    val link: Tuple2[SymVar, SymVar] = 
+                    val link: Tuple2[SymVar, SymVar] =
                         if(this.symOutput != null) new Tuple2(udfSymbolicResult.symInput.asInstanceOf[SymVar], this.symOutput.asInstanceOf[SymVar])
                         else null
 
@@ -212,7 +234,7 @@ class SymbolicResult(ss: SymbolicState,
                 val removedEffect = new PathEffect(udfPath.pathConstraint.deepCopy)
                 for(pa <- this.paths) {
                     //udf -> (x2, x3) / rdd -> (x0, x1) => link -> (x2 = x1)
-                    val link: Tuple2[SymVar, SymVar] = 
+                    val link: Tuple2[SymVar, SymVar] =
                         if(this.symOutput != null) new Tuple2(udfSymbolicResult.symInput.asInstanceOf[SymVar], this.symOutput.asInstanceOf[SymVar])
                         else null
                     product += removedEffect.conjunctPathEffect(pa, link)
@@ -239,7 +261,7 @@ class SymbolicResult(ss: SymbolicState,
             terminatingPaths ++= secondRDD.terminating
         }
 
-        var i = 0  
+        var i = 0
         for(pa <- this.paths) {
             for(secondPath <- secondRDD.paths) {
                 //TODO: rdd -> (x0, x1) and second -> (x2, x3) => link -> ???
@@ -248,7 +270,7 @@ class SymbolicResult(ss: SymbolicState,
                 i += 1
             }
         }
-          
+
         for(i <- 0 until product.length) {
             val c1 :Array[Clause] = Array(new Clause(this.symOutput.asInstanceOf[SymTuple]._1,Equality,
                                                     secondRDD.symOutput.asInstanceOf[SymTuple]._1))
@@ -257,7 +279,7 @@ class SymbolicResult(ss: SymbolicState,
 
             val c2 :Array[Clause] = Array(new Clause(this.symOutput.asInstanceOf[SymTuple]._1,Inequality,
                                                     secondRDD.symOutput.asInstanceOf[SymTuple]._1))
-            
+
             // terminatingPaths += product(i).conjunctPathEffect(new TerminatingPath(new Constraint(c2)))
             terminatingPaths += new TerminatingPath(new Constraint(c2)).conjunctPathEffect(product(i))
         }

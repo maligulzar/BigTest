@@ -1,4 +1,4 @@
-package SymexScala
+package symexScala
 
 import gov.nasa.jpf.JPF
 import gov.nasa.jpf.Config
@@ -16,7 +16,7 @@ object Main {
     def convertList(dag: ArrayList[JPFDAGNode]): Array[Tuple2[String, String]] = {
         //println("removing first map function: assuming its a textFile op -------------------------")
         val result: Array[Tuple2[String, String]] = new Array[Tuple2[String, String]](dag.size-1)
-        var i = 0 
+        var i = 0
         for(i <- 1 to dag.size-1) {
             val node = dag.get(i)
 
@@ -40,11 +40,12 @@ object Main {
         val dagOpList: Array[Tuple2[String, String]] = new Array[Tuple2[String, String]](4)
         dagOpList(1) = ("map", "/Users/amytis/Projects/jpf/jpf-symbc/src/examples/spf/map3.jpf")
         dagOpList(2) = ("filter", "/Users/amytis/Projects/jpf/jpf-symbc/src/examples/spf/filter2.jpf")
-        dagOpList(3) = ("reduce", "/Users/amytis/Projects/jpf/jpf-symbc/src/examples/spf/reduce1.jpf")
+        dagOpList(3) = ("map", "/Users/amytis/Projects/jpf/jpf-symbc/src/examples/spf/map3.jpf")
+        // dagOpList(3) = ("reduce", "/Users/amytis/Projects/jpf/jpf-symbc/src/examples/spf/reduce1.jpf")
 
         val result = SymbolicEngine.executeSymbolicDF(dagOpList)
         // println(result)
     }
-    
+
 
 }

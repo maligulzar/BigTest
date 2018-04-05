@@ -1,26 +1,26 @@
-package SymexScala
+package symexScala
 
 import scala.collection.mutable.ArrayBuffer
 import java.util.HashSet
 import ComparisonOp._
 
-class UnexpectedInputType(message: String, cause: Throwable = null) 
+class UnexpectedInputType(message: String, cause: Throwable = null)
     extends RuntimeException(message, cause) {}
 
 
-class JoinSymbolicResult(ss: SymbolicState, 
+class JoinSymbolicResult(ss: SymbolicState,
                     nonTerminatingPaths: Array[PathEffect],
                     terminatingPaths: ArrayBuffer[TerminatingPath] = null,
                     iVar: Tuple2[SymTuple, SymTuple],
-                    oVar: Tuple2[SymVar, Tuple2[SymVar, SymVar]]) 
-                    extends SymbolicResult(ss, 
+                    oVar: Tuple2[SymVar, Tuple2[SymVar, SymVar]])
+                    extends SymbolicResult(ss,
                                         nonTerminatingPaths) {
 
     override val terminating: ArrayBuffer[TerminatingPath] = terminatingPaths
     //TODO: override symInput and symOutput
 
 
-    //first thing TODO: 
+    //first thing TODO:
     //2) write toZ3Query for SymTuple and for existential quantifiers -> similar to examples.z3
     //3) add isMemberOF and isNotMemeberOf similar to comparison operator so that we can have c1 member of A.keys -> then generate assert((S1 c1)) for
 
@@ -44,7 +44,7 @@ class JoinSymbolicResult(ss: SymbolicState,
 
         for (path <- paths) {
             pc += (path.pathConstraint.toZ3Query(list)+"\n")
-            
+
             //we use the first seen hashCode to save the whole query!
             if(hashCode == 0)
                 hashCode = path.hashCode

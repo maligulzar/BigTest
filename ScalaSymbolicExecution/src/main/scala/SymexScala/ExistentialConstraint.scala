@@ -1,4 +1,4 @@
-package SymexScala
+package symexScala
 
 import ComparisonOp._
 import NumericUnderlyingType._
@@ -8,7 +8,7 @@ import NumericUnderlyingType._
 class ExistentialConstraint(nextIndex: Int, isNonExis: Boolean = false, c: Array[Clause] = new Array[Clause](0)) extends Constraint(c) {
     //TODO: assumes type int for the existentialVar
     val existentialVar: SymVar = new SymVar(Numeric(_Int), "c"+nextIndex)
-    
+
 
     def addCluase(other: Expr, op: ComparisonOp) = {
         clauses = new Clause(other, op, existentialVar) +: clauses
