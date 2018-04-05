@@ -288,17 +288,17 @@ class PathEffectListenerImp extends PathEffectListener  {
 
         println("------>"+pathVector.size+" "+argsInfo.size)
 
-        var (inputVar: SymVar, outputVar: SymVar) = 
+        var inputVar: SymVar = 
             if(argsInfo.size == 1) {
                 val freshVar : SymVar = symState.getFreshSymVar(argsInfo.get(0)._2)
                 argsMap += (argsInfo.get(0)._1 -> freshVar)
-                (freshVar, symState.getFreshSymVar(argsInfo.get(0)._2))
+                freshVar
             }
             else if(argsInfo.size == 2) {
                 val freshTuple: SymTuple = symState.getFreshSymTuple(argsInfo.get(0)._2, argsInfo.get(1)._2)
                 argsMap += (argsInfo.get(0)._1 -> freshTuple._1)
                 argsMap += (argsInfo.get(1)._1 -> freshTuple._2)
-                (freshTuple, symState.getFreshSymTuple(argsInfo.get(0)._2, argsInfo.get(1)._2))
+                freshTuple
             }
             else {
                 for(i <- 0 until argsInfo.size) {
@@ -309,13 +309,14 @@ class PathEffectListenerImp extends PathEffectListener  {
             }
 
         allPathEffects = new Array[PathEffect](pathVector.size())
-//         var outputV:SymVar = null
+        var outputVar:SymVar = null
         for(i <- 0 until pathVector.size){
             val effectFromSPF: Expr = convertExpressionToExpr(pathVector.get(i)._2)
             val effectBuffer = new ArrayBuffer[Tuple2[SymVar, Expr]]()
-//             outputV = SymVar(effectFromSPF.actualType,outputVar.name)
-            effectBuffer += new Tuple2(outputV, effectFromSPF)
-
+            
+            outputVar = symState.getFreshSymVar(effectFromSPF.actualType)
+            effectBuffer += new Tuple2(outputVar, effectFromSPF)
+            
             allPathEffects(i) = new PathEffect(convertPathCondition(pathVector.get(i)._1, udfFileName), effectBuffer)
         }
 
