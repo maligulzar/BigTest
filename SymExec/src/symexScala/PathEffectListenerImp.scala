@@ -260,7 +260,7 @@ class PathEffectListenerImp extends PathEffectListener  {
     }
        
     
-    def convertPathCondition(pc: PathCondition): Constraint = {
+    def convertPathCondition(pc: PathCondition, udfFileName: String): Constraint = {
         val clauses: ArrayBuffer[Clause] = new ArrayBuffer[Clause]()
         var current = pc.header //: gov.nasa.jpf.symbc.numeric.Constraint
         val s_constraints =  convertPathCondition(pc.spc)
@@ -271,19 +271,18 @@ class PathEffectListenerImp extends PathEffectListener  {
         }
         var clses  = List[Clause]()
         for((k,v) <- this.argsMap){
-          clses = new Clause(new SymVar(v.atype,k),  
+          clses = new Clause(new SymVar(v.atype, k+"_"+udfFileName),  
               ComparisonOp.withName("=") ,
               v) ::clses
         }
         
-        val in_cls = s_constraints.clauses ++ clses
-        new Constraint(clauses.toArray ++ in_cls)
+        new Constraint(clauses.toArray ++ s_constraints.clauses ++ clses)
     }
     
     /*
         assuming first input argument is our record (which also has the same type as return variable) 
     */
-    def convertAll(symState: SymbolicState): SymbolicResult = {
+    def convertAll(symState: SymbolicState, udfFileName: String): SymbolicResult = {
         val pathVector: Vector[Pair[PathCondition, Expression]] = super.getListOfPairs()
         val argsInfo: Vector[Pair[String, String]] = super.getArgsInfo()
 
@@ -310,20 +309,20 @@ class PathEffectListenerImp extends PathEffectListener  {
             }
 
         allPathEffects = new Array[PathEffect](pathVector.size())
-        var outputV:SymVar = null
+//         var outputV:SymVar = null
         for(i <- 0 until pathVector.size){
             val effectFromSPF: Expr = convertExpressionToExpr(pathVector.get(i)._2)
             val effectBuffer = new ArrayBuffer[Tuple2[SymVar, Expr]]()
-             outputV = SymVar(effectFromSPF.actualType,outputVar.name)
+//             outputV = SymVar(effectFromSPF.actualType,outputVar.name)
             effectBuffer += new Tuple2(outputV, effectFromSPF)
 
-            allPathEffects(i) = new PathEffect(convertPathCondition(pathVector.get(i)._1), effectBuffer)
+            allPathEffects(i) = new PathEffect(convertPathCondition(pathVector.get(i)._1, udfFileName), effectBuffer)
         }
 
         //println(inputVar)
         //println(outputVar)
         //there is no terminating path in the scope of udf
-        new SymbolicResult(symState, allPathEffects, null, inputVar, outputV)
+        new SymbolicResult(symState, allPathEffects, null, inputVar, outputVar)
     }
 
 }
