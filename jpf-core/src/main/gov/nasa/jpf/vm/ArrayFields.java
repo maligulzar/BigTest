@@ -108,6 +108,12 @@ public abstract class ArrayFields extends Fields {
     // overridden by subclass
     throw new JPFException( "not a double[]");
   }
+  //Gulzar
+  @Override
+  public String getStringValue (int pos) {
+    // overridden by subclass
+    throw new JPFException( "not a double[]");
+  }
   @Override
   public int getReferenceValue (int pos) {
     // overridden by subclass
@@ -154,6 +160,13 @@ public abstract class ArrayFields extends Fields {
     // overridden by subclass
     throw new JPFException( "not a double[]");
   }
+  
+  @Override
+  public void setStringValue (int pos, String newValue){
+    // overridden by subclass
+    throw new JPFException( "not a double[]");
+  }
+  
   @Override
   public void setReferenceValue (int pos, int newValue){
     // overridden by subclass
@@ -201,6 +214,11 @@ public abstract class ArrayFields extends Fields {
     // overridden by subclass
     throw new JPFException("not a double[]");
   }
+  ///Gulzar
+  public String[] asStringArray () {
+	    // overridden by subclass
+	    throw new JPFException("not a double[]");
+	  }
 
   @Override
   public int[] asFieldSlots() {

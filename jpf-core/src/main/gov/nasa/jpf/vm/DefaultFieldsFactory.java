@@ -48,6 +48,9 @@ public class DefaultFieldsFactory implements FieldsFactory {
       case 'D': return new DoubleArrayFields(nElements);
       case 'L':
       case '[':
+//    	  	if(type.equals("[[C")) {
+  //  	  		return new StringArrayFields(nElements);
+    //	  	}
         return new ReferenceArrayFields(nElements);
       default:
         throw new JPFException("unknown array type: " + type);

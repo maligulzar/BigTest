@@ -243,6 +243,8 @@ public abstract class Fields implements Cloneable {
   public abstract float getFloatValue (int index);
 
   public abstract double getDoubleValue (int index);
+  //Gulzar
+  public abstract String getStringValue (int index);
 
   //--- the field modifier methods (both instance and static)
 
@@ -264,6 +266,8 @@ public abstract class Fields implements Cloneable {
 
   public abstract void setDoubleValue (int index, double newValue);
 
+  // Gulzar
+  public abstract void setStringValue (int index, String newValue);
   @Override
   public abstract Fields clone ();
 

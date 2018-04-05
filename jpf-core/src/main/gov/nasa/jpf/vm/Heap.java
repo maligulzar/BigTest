@@ -45,6 +45,7 @@ public interface Heap extends Iterable<ElementInfo> {
   // (those are mostly used for their reference values since they already have initialized fields,
   // but to keep it consistent we use ElementInfo return types)
   ElementInfo newString (String str, ThreadInfo ti);
+  ElementInfo newStringArray(String elementType, int nElements, ThreadInfo ti);
   ElementInfo newSystemString (String str, ThreadInfo ti, int anchor);
   
   ElementInfo newInternString (String str, ThreadInfo ti);

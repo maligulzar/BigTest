@@ -57,6 +57,7 @@ import gov.nasa.jpf.vm.ClassInfo;
 import gov.nasa.jpf.vm.ClassLoaderInfo;
 import gov.nasa.jpf.vm.ElementInfo;
 import gov.nasa.jpf.vm.FieldInfo;
+import gov.nasa.jpf.vm.Fields;
 import gov.nasa.jpf.vm.Instruction;
 import gov.nasa.jpf.vm.MethodInfo;
 import gov.nasa.jpf.vm.SystemState;
@@ -1010,14 +1011,15 @@ public class SymbolicStringHandler {
 		StringExpression sym_v2 = (StringExpression) sf.getOperandAttr(1);
 
 		if ((sym_v1 == null) & (sym_v2 == null)) {
-			throw new RuntimeException("ERROR: symbolic string method must have one symbolic operand: HandleSubString1");
+			throw new RuntimeException("ERROR: symbolic string method must have one symbolic operand: HandleSplit");
 		} else {
 			int s1 = sf.pop();
 			int s2 = sf.pop();
 
 			StringExpression result = null;
 			if (sym_v1 == null) { // operand 0 is concrete
-				String val =  String.valueOf((char)s1);
+				ElementInfo e1 = th.getElementInfo(s1);
+				String val =  e1.asString();
 				result = sym_v2._split(val);
 			} else {
 				if (sym_v2 == null) {
@@ -1029,15 +1031,24 @@ public class SymbolicStringHandler {
 					result = sym_v2._split(sym_v1);
 				}
 			}
-			ElementInfo objRef = th.getHeap().newArray("S",3, th); /*																											 * Object
-																																	 */
+			String elementClsName = "Ljava/lang/String;";
+			ElementInfo objRef = th.getHeap().newStringArray(elementClsName, 10, th);
+			setAttr(objRef,10, sym_v2.toString());
 			sf.push(objRef.getObjectRef(), true);
 			sf.setOperandAttr(result);
 		}
 		return null;
 	}
 	
+	public void setAttr(ElementInfo ei , int k, String name){
+		Fields f = ei.getFields();
+		for(int i=0; i < k ; i++) {
+			f.setFieldAttr(k,i , new  StringSymbolic(name+"-"+i));
+		}
+}
 	
+/**ends Gulzar*/
+	 
 	public Instruction handleSubString(JVMInvokeInstruction invInst, ThreadInfo th) {
 		int numStackSlots = invInst.getArgSize();
 		if (numStackSlots == 2) {
@@ -1075,11 +1086,12 @@ public class SymbolicStringHandler {
 					result = sym_v2._subString(sym_v1);
 				}
 			}
-			ElementInfo objRef = th.getHeap().newString("", th); /*
-																																	 * dummy
-																																	 * String
-																																	 * Object
-																																	 */
+			ElementInfo objRef = th.getHeap().newString("", th); 
+			/*
+			 * dummy
+			 * String
+			 * Object
+			 */
 			sf.push(objRef.getObjectRef(), true);
 			sf.setOperandAttr(result);
 		}

@@ -18,7 +18,10 @@
 package gov.nasa.jpf.jvm.bytecode;
 
 import gov.nasa.jpf.vm.ArrayIndexOutOfBoundsExecutiveException;
+import gov.nasa.jpf.vm.BooleanArrayFields;
+import gov.nasa.jpf.vm.ByteArrayFields;
 import gov.nasa.jpf.vm.ElementInfo;
+import gov.nasa.jpf.vm.Fields;
 import gov.nasa.jpf.vm.StackFrame;
 
 /**
@@ -34,6 +37,7 @@ public class AALOAD extends ArrayLoadInstruction {
   
   @Override
   protected void push (StackFrame frame, ElementInfo ei, int index) throws ArrayIndexOutOfBoundsExecutiveException {
+	    
     ei.checkArrayBounds(index);
     int value = ei.getReferenceElement(index);
     frame.pushRef( value);
