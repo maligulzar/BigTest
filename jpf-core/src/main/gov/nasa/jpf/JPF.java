@@ -206,7 +206,11 @@ public class JPF implements Runnable {
 							JPF jpf = new JPF(conf1);
 							jpf.run();
 							System.out.println(paths.get(i).getOperatorName());
-							SymbolicResult udfResult  = jpf.pfl.convertAll(symState);
+							
+							val lastPart = args_new[0].split("/")(args_new[0].count(_ == '/'))
+        						val udfFileName = lastPart.substring(0, lastPart.length-4)
+							SymbolicResult udfResult  = jpf.pfl.convertAll(symState, udfFileName);
+							
 							System.out.println(udfResult.toString());
 							switch(paths.get(i).getOperatorName().replaceAll("[0-9]","")) {
 							case "map": 
@@ -238,7 +242,7 @@ public class JPF implements Runnable {
 							JPF jpf = new JPF(conf1);
 							jpf.run();
 							System.out.println("JPF Finished");
-							SymbolicResult udfResult  = jpf.pfl.convertAll(symState);
+							SymbolicResult udfResult  = jpf.pfl.convertAll(symState, "GoodbyeWorld");
 							System.out.println(udfResult.toString());
 							
 							udfResult.setZ3Dir("/Users/malig/workspace/git/Test-Minimization-in-Big-Data/z3-master");

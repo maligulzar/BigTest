@@ -271,7 +271,7 @@ class PathEffectListenerImp extends PathEffectListener  {
     }
        
     
-    def convertPathCondition(pc: PathCondition): Constraint = {
+    def convertPathCondition(pc: PathCondition, udfFileName: String): Constraint = {
         val clauses: ArrayBuffer[Clause] = new ArrayBuffer[Clause]()
         var current = pc.header //: gov.nasa.jpf.symbc.numeric.Constraint
         val s_constraints =  convertPathCondition(pc.spc)
@@ -282,55 +282,51 @@ class PathEffectListenerImp extends PathEffectListener  {
         }
         var clses  = List[Clause]()
         for((k,v) <- this.argsMap){
-          clses = new Clause(new SymVar(v.atype,k),  
+          clses = new Clause(new SymVar(v.atype, k+"_"+udfFileName),  
               ComparisonOp.withName("=") ,
               v) ::clses
         }
         
-        val in_cls = s_constraints.clauses ++ clses
-        new Constraint(clauses.toArray ++ in_cls)
+        new Constraint(clauses.toArray ++ s_constraints.clauses ++ clses)
     }
     
     /*
         assuming first input argument is our record (which also has the same type as return variable) 
     */
-    def convertAll(symState: SymbolicState): SymbolicResult = {
+    def convertAll(symState: SymbolicState, udfFileName: String): SymbolicResult = {
         val pathVector: Vector[Pair[PathCondition, Expression]] = super.getListOfPairs()
         val argsInfo: Vector[Pair[String, String]] = super.getArgsInfo()
 
         println("------>"+pathVector.size+" "+argsInfo.size)
 
-        var (inputVar: SymVar, outputVar: SymVar) = 
-            if(argsInfo.size == 1) {
-                val freshVar : SymVar = symState.getFreshSymVar(argsInfo.get(0)._2)
+        var (inputVar: SymVar, outputVar: SymVar) =
+            if (argsInfo.size == 1) {
+                val freshVar: SymVar = symState.getFreshSymVar(argsInfo.get(0)._2)
                 argsMap += (argsInfo.get(0)._1 -> freshVar)
                 (freshVar, symState.getFreshSymVar(argsInfo.get(0)._2))
-            }
-            else if(argsInfo.size == 2) {
+            } else if (argsInfo.size == 2) {
                 val freshTuple: SymTuple = symState.getFreshSymTuple(argsInfo.get(0)._2, argsInfo.get(1)._2)
                 argsMap += (argsInfo.get(0)._1 -> freshTuple._1)
                 argsMap += (argsInfo.get(1)._1 -> freshTuple._2)
                 (freshTuple, symState.getFreshSymTuple(argsInfo.get(0)._2, argsInfo.get(1)._2))
-            }
-            else {
-                for(i <- 0 until argsInfo.size) {
-                    println(argsInfo.get(i)._1+" "+argsInfo.get(i)._2)
+            } else {
+                for (i <- 0 until argsInfo.size) {
+                    println(argsInfo.get(i)._1 + " " + argsInfo.get(i)._2)
                 }
-                println("------------"+argsInfo.size+"-------------")
+                println("------------" + argsInfo.size + "-------------")
                 throw new NotSupportedRightNow("more than 2 input arguments!")
             }
 
         allPathEffects = new Array[PathEffect](pathVector.size())
-        var outputV:SymVar = null
-        for(i <- 0 until pathVector.size){
+        var outputV: SymVar = null
+        for (i <- 0 until pathVector.size) {
             val effectFromSPF: Expr = convertExpressionToExpr(pathVector.get(i)._2)
             val effectBuffer = new ArrayBuffer[Tuple2[SymVar, Expr]]()
-             outputV = SymVar(effectFromSPF.actualType,outputVar.name)
+            outputV = SymVar(effectFromSPF.actualType, outputVar.name)
             effectBuffer += new Tuple2(outputV, effectFromSPF)
 
-            allPathEffects(i) = new PathEffect(convertPathCondition(pathVector.get(i)._1), effectBuffer)
+            allPathEffects(i) = new PathEffect(convertPathCondition(pathVector.get(i)._1, udfFileName), effectBuffer)
         }
-
         //println(inputVar)
         //println(outputVar)
         //there is no terminating path in the scope of udf
