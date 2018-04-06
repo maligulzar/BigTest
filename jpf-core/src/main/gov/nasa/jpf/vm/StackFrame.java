@@ -482,7 +482,6 @@ public abstract class StackFrame implements Cloneable {
    *  - you constructed callerSlots multi value list with ObjectList.createList()
    */
   public void setOperandAttr (Object a){
-    assert (top >= stackBase);
     if (attrs == null) {
       if (a == null) return;
       attrs = new Object[slots.length];

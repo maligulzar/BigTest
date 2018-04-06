@@ -194,7 +194,7 @@ public class JPF implements Runnable {
 
 			try {
 				if(args.length > 1) {
-					if(args[0].equals("-enableBigSample")) {
+					if(args[0].equals("-enableBT")) {
 						args[0]=args[1];
 						Runner.main(args);
 						ArrayList<JPFDAGNode> paths = Runner.getDataFlowDAG();

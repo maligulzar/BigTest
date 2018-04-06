@@ -14,6 +14,7 @@ import gov.nasa.jpf.symbc.numeric.SymbolicInteger
 import gov.nasa.jpf.symbc.numeric.BinaryRealExpression
 import gov.nasa.jpf.symbc.numeric.RealConstant
 import gov.nasa.jpf.symbc.numeric.SymbolicReal
+import gov.nasa.jpf.symbc.numeric.BinaryNonLinearIntegerExpression
 
 import scala.collection.mutable.ArrayBuffer
 import scala.collection.mutable.Map
@@ -102,6 +103,16 @@ class PathEffectListenerImp extends PathEffectListener  {
                val opString = sie.getOp().name
                val op = new SymStringOp(Numeric(_Int),StringOp.withName(opString))
                       new StringExpr(symstring,op, Array[Expr]())
+               
+            case i : BinaryNonLinearIntegerExpression =>
+             {
+                val left: Expr = convertExpressionToExpr(i.left)     //IntegerExpression -> Expr
+                val right: Expr = convertExpressionToExpr(i.right)   //IntegerExpression -> Expr  
+                var opStr = i.op.toString().replaceAll("\\s", "")
+                if(opStr != "+" && opStr != "-" && opStr != "*" && opStr != "/") throw new NotSupportedRightNow(opStr)
+                val op = new SymOp(Numeric(_Int), ArithmeticOp.withName(opStr))
+                new NonTerminal(left, op, right)
+            }
             case _ => throw new NotSupportedRightNow(li.getClass.getName)
         }
     }

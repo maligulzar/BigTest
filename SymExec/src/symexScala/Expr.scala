@@ -21,6 +21,7 @@ object StringOp extends Enumeration {
     val CharAt = Value("CharAt") 
     val Length = Value("Length") 
     val ToInt = Value("VALUEOF") 
+    val Splitn = Value("splitn")
     
 }
 
@@ -34,7 +35,7 @@ abstract class Expr {
     def toString: String
     def applyEffect(x: SymVar, effect: Expr): Expr
     def checkValidity(ss: SymbolicState): Boolean
-    def toZ3Query(initials :HashSet[(String , VType)] ): String
+    def toZ3Query(initials : Z3QueryState ): String
     def deepCopy: Expr
 
 }
@@ -67,9 +68,9 @@ case class SymVar(var atype: VType, name: String) extends SymRDD {
         ss.isDefined(this)
     }
 
-    override def toZ3Query(initials: HashSet[(String , VType)]): String = {
+    override def toZ3Query(initials:Z3QueryState): String = {
         var temp_name = name.replaceAll("[^A-Za-z0-9]","")
-        initials.add((temp_name , atype))
+        initials.init.add((temp_name , atype))
         temp_name
     }
 
@@ -102,7 +103,7 @@ case class SymTuple(ttype: Tuple, name: String) extends SymRDD {
         ss.isDefined(_2)
     }
 
-    def toZ3Query(initials :HashSet[(String , VType)] ): String = {""}
+    def toZ3Query(initials :Z3QueryState): String = {""}
 
     override def deepCopy: SymTuple = {
         new SymTuple(actualType, name)
@@ -128,10 +129,13 @@ case class SymStringOp(atype: VType, op: StringOp) /*extends Terminal*/ {
               "str.len"
         case Substr =>
               "str.substr"
-          case ToInt =>
+        case ToInt =>
               "str.to.int"
+        case Splitn =>
+              "splitn"
         case _ =>
-          throw new NotSupportedRightNow("String Operator no tsupported")
+          
+          throw new NotSupportedRightNow("String Operator not supported")
       }
    }
     
@@ -202,7 +206,7 @@ case class ConcreteValue(atype: VType, var value: String) extends Expr {
 
     override def checkValidity(ss: SymbolicState): Boolean = {true}
 
-    override def toZ3Query(initials :HashSet[(String , VType)]): String = {
+    override def toZ3Query(initials :Z3QueryState): String = {
      atype match {
         case t: NonNumeric =>
            if(t.underlyingType == _String){
@@ -244,7 +248,7 @@ case class NonTerminal(left: Expr, middle: SymOp, right: Expr) extends Expr {
         leftExpr.checkValidity(ss) && rightExpr.checkValidity(ss)
     }
 
-    override def toZ3Query(initials :HashSet[(String , VType)]): String = {
+    override def toZ3Query(initials :Z3QueryState): String = {
         // left.toString + " " + op.toString + " " + right.toString
         s"""(${op.toString}  ${leftExpr.toZ3Query(initials)} ${rightExpr.toZ3Query(initials)} )"""
         //"FIX NON TERMINAL Z3 QUERY"
@@ -281,8 +285,32 @@ case class StringExpr(obj: Expr, op: SymStringOp , opr:Array[Expr]) extends Expr
     override def checkValidity(ss: SymbolicState): Boolean = {
         obj.checkValidity(ss) //&& rightExpr.checkValidity(ss)
     }
-
-    override def toZ3Query(initials :HashSet[(String , VType)]): String = {
+    def addStringToStringArray(initials :Z3QueryState, name:String, idx :Int, del: String  , new_name:String){
+         val arr_str = initials.split.getOrElse(name, SplitHandler(Array(),del))
+         if(arr_str.str_arr.length <= idx){
+           val temp_arr = new Array[String](idx+1)
+           for(i <- 0  to arr_str.str_arr.length-1){
+             temp_arr(i) = arr_str.str_arr(i)
+           }
+           temp_arr(idx) = new_name
+           initials.split(name) = SplitHandler(temp_arr, del)
+         }else{
+           arr_str.str_arr(idx) = new_name
+           initials.split(name) = SplitHandler(arr_str.str_arr, del)
+         }
+     } 
+    
+    override def toZ3Query(initials :Z3QueryState): String = {
+      if(op.op  == Splitn){
+            val name  =  obj.toZ3Query(initials)
+            val idx = opr(0).toZ3Query(initials)
+            val del = opr(1).toZ3Query(initials)
+          val new_name  =  name +idx 
+       /// var temp_name = name.replaceAll("[^A-Za-z0-9]","")
+        initials.init.add((new_name ,  NonNumeric(_String) ))
+        addStringToStringArray(initials, name, idx.toInt, del , new_name)
+        new_name
+      }else{
         s"""( ${op.toString}  ${obj.toZ3Query(initials)} ${
           if(opr.length>0) 
             
@@ -295,6 +323,7 @@ case class StringExpr(obj: Expr, op: SymStringOp , opr:Array[Expr]) extends Expr
           else 
               ""
          } )"""
+      }
         //"FIX NON TERMINAL Z3 QUERY"
 
     }

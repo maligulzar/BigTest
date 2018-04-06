@@ -1032,20 +1032,23 @@ public class SymbolicStringHandler {
 				}
 			}
 			String elementClsName = "Ljava/lang/String;";
-			ElementInfo objRef = th.getHeap().newStringArray(elementClsName, 10, th);
-			setAttr(objRef,10, sym_v2.toString());
+			ElementInfo objRef = th.getHeap().newStringArray(elementClsName, 100, th);
+			setAttr(objRef,100, sym_v2.toString(),result);
 			sf.push(objRef.getObjectRef(), true);
 			sf.setOperandAttr(result);
 		}
 		return null;
 	}
 	
-	public void setAttr(ElementInfo ei , int k, String name){
+	public void setAttr(ElementInfo ei , int k, String name , StringExpression s){
 		Fields f = ei.getFields();
+		DerivedStringExpression dse = ((DerivedStringExpression) s);
 		for(int i=0; i < k ; i++) {
-			f.setFieldAttr(k,i , new  StringSymbolic(name+"-"+i));
+			f.setFieldAttr(k,i , s._splitn(i,dse));
 		}
-}
+	}
+	
+
 	
 /**ends Gulzar*/
 	 
@@ -1590,8 +1593,10 @@ public class SymbolicStringHandler {
 					th.getVM().getSystemState().setIgnored(true);
 				} else {
 					//GUlzar : throw new RuntimeException("ERROR: Integer Format Type Exception");
-							//th.getVM().getSystemState().setIgnored(true);TODO: needs revision
-								//sf.push(0, true);
+					th.getVM().getSystemState().setIgnored(true);//TODO: needs revision
+				
+					sf.push(0, false);
+					
 				}
 			}
 		}

@@ -1,6 +1,7 @@
 package symexScala
 
 import scala.collection.mutable.ArrayBuffer
+import scala.collection.mutable.HashMap
 import java.util.HashSet
 import ComparisonOp._
 
@@ -40,21 +41,24 @@ class JoinSymbolicResult(ss: SymbolicState,
         var first = ""
         var second = ""
         var pc = ""
-        val list: HashSet[(String, VType)] = new HashSet[(String, VType)]();
+         val list: HashSet[(String, VType)] = new HashSet[(String, VType)]();
+        val split = new HashMap[String,SplitHandler]();
 
+        val state : Z3QueryState = Z3QueryState(list, split)
+        
         for (path <- paths) {
-            pc += (path.pathConstraint.toZ3Query(list)+"\n")
+            pc += (path.pathConstraint.toZ3Query(state)+"\n")
             
             //we use the first seen hashCode to save the whole query!
             if(hashCode == 0)
                 hashCode = path.hashCode
         }
         for(ters <- terminating) {
-            pc += (ters.pathConstraint.toZ3Query(list)+"\n")
+            pc += (ters.pathConstraint.toZ3Query(state)+"\n")
         }
 
         var decls = ""
-        val itr = list.iterator()
+        val itr = state.init.iterator()
         while(itr.hasNext){
             val i = itr.next()
             if(i._1.indexOf(".") != -1) {

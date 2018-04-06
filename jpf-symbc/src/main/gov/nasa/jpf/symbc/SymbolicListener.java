@@ -426,6 +426,9 @@ public class SymbolicListener extends PropertyListenerAdapter implements Publish
 							}
 						}
 					}
+				}else {
+					
+					//System.out.println(insn);
 				}
 			}
 		}catch(Exception e) {

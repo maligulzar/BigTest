@@ -46,17 +46,17 @@ class Constraint(c: Array[Clause]) {
         }
         result
     }
-    def toZ3Query(initials: HashSet[(String , VType)]): String = {
+    def toZ3Query(initials: Z3QueryState): String = {
         if (clauses.length == 0)
             return ""
          if(clauses.length == 1){
-            return s""" (assert ${andClauses(0 , initials)} )"""
+            return s"""(assert ${andClauses(0 , initials)} )"""
          }
         val idx = 0
-        s""" (assert (${andClauses(idx , initials)}) )"""
+        s"""(assert (${andClauses(idx , initials)}) )"""
     }
 
-    def andClauses(idx :Int , initials: HashSet[(String , VType)]): String ={
+    def andClauses(idx :Int , initials: Z3QueryState): String ={
         if(idx == clauses.length -1){
             clauses(idx).toZ3Query(initials)
         }else{
@@ -108,7 +108,7 @@ class UniaryClause(left: Expr, op: UniaryOp) extends Clause(left,null,null){
         if (op == null || rightExpr == null) leftExpr.toString
         else leftExpr.toString + " " + op.toString 
     }
-    override def toZ3Query(initials: HashSet[(String , VType)]): String = {
+    override def toZ3Query(initials: Z3QueryState): String = {
       var isString = false;
       if(leftExpr.isInstanceOf[StringExpr]){
         isString = true;
@@ -149,7 +149,7 @@ class Clause(left: Expr, op: ComparisonOp = null, right: Expr = null) {
         else leftExpr.toString + " " + compOp.toString + " " + rightExpr.toString
     }
 
-    def toZ3Query(initials: HashSet[(String , VType)]): String = {
+    def toZ3Query(initials: Z3QueryState): String = {
       var isString = false;
       if(leftExpr.isInstanceOf[StringExpr] || leftExpr.isInstanceOf[StringExpr]){
         isString = true;

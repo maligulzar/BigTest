@@ -14,7 +14,7 @@ public class Runner extends Logging {
         String test_name = "Test2";
         if(args.length >= 1) {
             test_name = args[0];
-            System.out.println("--Using ..." + test_name);
+            System.out.println("--Using > ..." + test_name);
         //    System.exit(1);
         }
         else{

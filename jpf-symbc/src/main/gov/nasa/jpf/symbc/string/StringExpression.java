@@ -331,7 +331,8 @@ public StringExpression _subString(int t, int r) {
 	    l[2] = new IntegerConstant(r);
 	    return new DerivedStringExpression(StringOperator.SUBSTRING, l );
 	  }
-
+/****************************************************************/
+//Gulzar : Support for Split and Splitn
 public StringExpression _split(String t) {
     Expression l[] = new Expression[2];
     l[0] = this;
@@ -345,7 +346,14 @@ public StringExpression _split(StringExpression t) {
     l[1] = t;
     return new DerivedStringExpression(StringOperator.SPLIT, l );
   }
-
+public StringExpression _splitn(int index , DerivedStringExpression dse) {
+    Expression l[] = new Expression[3];
+    l[0] = dse.oprlist[0];
+    l[1] = dse.oprlist[1];
+    l[2] = new IntegerConstant(index);
+    return new DerivedStringExpression(StringOperator.SPLITN, l );
+  }
+/*****************************************************************/
 
 public StringExpression _subString(int t) {
     Expression l[] = new Expression[2];

@@ -61,7 +61,9 @@ public enum StringOperator {
   TOLOWERCASE("tolowercase"),
   TOUPPERCASE("touppercase"),
   VALUEOF("valueof"),
-  SPLIT("split"); //Gulzar
+  SPLIT("split"), //Gulzar
+  SPLITN("splitn"); //Gulzar
+			
 	
 
   private final String str;

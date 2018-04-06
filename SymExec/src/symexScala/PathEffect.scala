@@ -2,6 +2,7 @@ package symexScala
 
 import scala.collection.mutable.ArrayBuffer
 import java.util.HashSet
+import scala.collection.mutable.HashMap
 
 class PathEffect(pc: Constraint, udfEffect: ArrayBuffer[Tuple2[SymVar, Expr]]) {
     var pathConstraint: Constraint = pc
@@ -32,7 +33,7 @@ class PathEffect(pc: Constraint, udfEffect: ArrayBuffer[Tuple2[SymVar, Expr]]) {
     }
 
 
-    def getEffectZ3Query(initial: HashSet[(String , VType)]): String = {
+    def getEffectZ3Query(initial: Z3QueryState): String = {
         var eString: String = ""
         var rName: String = ""
         // val clauses: util.ArrayList[Clause] = new util.ArrayList[Clause]()
@@ -48,32 +49,47 @@ class PathEffect(pc: Constraint, udfEffect: ArrayBuffer[Tuple2[SymVar, Expr]]) {
             return pathCond.toZ3Query(initial)
     }
 
+    
+    def generateSplitConstraints(state: Z3QueryState): String = {
+      var s = ""
+      for( (k,v) <- state.split ){
+          val del = v.del
+          val arr = v.str_arr
+          val query  = arr.reverse.map(s=> if(s==null) "\"\"" else s).reduce((a,b) => "(str.++ " + "(str.++ " + b +del+" )  " + a +")")
+         s = s  +"\n"+ s"""(assert (= ${k} ${query})) """
+      }
+      s
+    }
 
     def toZ3Query(): String = {
 
         val list: HashSet[(String, VType)] = new HashSet[(String, VType)]();
-        val pc = pathConstraint.toZ3Query(list) + "\n" + getEffectZ3Query(list)
+        
+        val split = new HashMap[String, SplitHandler]();
+        val state : Z3QueryState = Z3QueryState(list, split)
+        
+        val pc = pathConstraint.toZ3Query(state) + "\n" + getEffectZ3Query(state)
+        
+        
         var decls = s"""
           |(define-fun isinteger ((x!1 String)) Bool
           |  (str.in.re x!1 (re.+ (re.range "0" "9")) )
           |)
+          |
           |(define-fun notinteger ((x!1 String)) Bool
           |  (not (str.in.re x!1 (re.+ (re.range "0" "9")) ))
           |)
           |
-          |(define-fun split ((x!1 String) (x!2 String) (x!3 String)) Bool
-          |(str.in.re x!1 (re.++ (str.to.re x!2) (re.* (re.++ (str.to.re x!3) (str.to.re x!2) ))))
-          |) 
-          |
           |""".stripMargin
-        val itr = list.iterator()
+        val itr = state.init.iterator()
         while(itr.hasNext){
             val i = itr.next()
             decls +=
-              s""" (declare-fun ${i._1} () ${i._2.toZ3Query()})
+              s"""(declare-fun ${i._1} () ${i._2.toZ3Query()})
                   |""".stripMargin
         }
         s"""$decls
+           |${generateSplitConstraints(state)}
            |$pc
            |(check-sat)
            |(get-model)
@@ -164,4 +180,9 @@ case class TerminatingPath(c: Constraint, u: ArrayBuffer[Tuple2[SymVar, Expr]]) 
     }
 
 } 
+
+case class Z3QueryState(init: HashSet[(String, VType)] , split:HashMap[String, SplitHandler])
+case class SplitHandler(str_arr:  Array[String] , del:String)
+
+
 
