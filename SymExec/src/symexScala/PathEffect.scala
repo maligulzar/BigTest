@@ -66,18 +66,23 @@ class PathEffect(pc: Constraint, udfEffect: ArrayBuffer[Tuple2[SymVar, Expr]]) {
         val list: HashSet[(String, VType)] = new HashSet[(String, VType)]();
         
         val split = new HashMap[String, SplitHandler]();
-        val state : Z3QueryState = Z3QueryState(list, split)
+        val replace = new HashMap[String, String]();
         
-        val pc = pathConstraint.toZ3Query(state) + "\n" + getEffectZ3Query(state)
+        val state : Z3QueryState = Z3QueryState(list, split ,replace)
         
+        var pc = pathConstraint.toZ3Query(state) + "\n" + getEffectZ3Query(state)
+        //fix the references
+        for((k,v) <- state.replacements){
+          pc =  pc.replaceAll(v, k)
+        }
         
         var decls = s"""
           |(define-fun isinteger ((x!1 String)) Bool
-          |  (str.in.re x!1 (re.+ (re.range "0" "9")) )
-          |)
+          |(str.in.re x!1 (  re.++ (re.* (str.to.re "-")) (re.+ (re.range "0" "9"))))
+          |)        
           |
           |(define-fun notinteger ((x!1 String)) Bool
-          |  (not (str.in.re x!1 (re.+ (re.range "0" "9")) ))
+          |(not (isinteger x!1))
           |)
           |
           |""".stripMargin
@@ -181,7 +186,7 @@ case class TerminatingPath(c: Constraint, u: ArrayBuffer[Tuple2[SymVar, Expr]]) 
 
 } 
 
-case class Z3QueryState(init: HashSet[(String, VType)] , split:HashMap[String, SplitHandler])
+case class Z3QueryState(init: HashSet[(String, VType)] , split:HashMap[String, SplitHandler], replacements: HashMap[String, String])
 case class SplitHandler(str_arr:  Array[String] , del:String)
 
 

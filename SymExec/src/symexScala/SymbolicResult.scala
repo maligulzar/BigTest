@@ -95,7 +95,8 @@ class SymbolicResult(ss: SymbolicState,
         var first = ""
         var second = ""
         if(joined == false) {
-            for (path <- paths) {
+          println("Non - Terminating")  
+          for (path <- paths) {
                 var str = path.toZ3Query();
                 var filename = "/tmp/"+path.hashCode();
                 writeTempSMTFile(filename , str);
@@ -106,6 +107,21 @@ class SymbolicResult(ss: SymbolicState,
                 println("------------------------")
 
             }
+            println("Terminating")
+            for (path <- terminating) {
+                var str = path.toZ3Query();
+                var filename = "/tmp/"+path.hashCode();
+                writeTempSMTFile(filename , str);
+                println(path.toString)
+                println("Z3Query:\n"+str)
+                println("------------------------")
+                runZ3Command(filename , Z3DIR);
+                println("------------------------")
+
+            }
+            
+            
+            
         } 
         /*else {
             val path = paths(0)

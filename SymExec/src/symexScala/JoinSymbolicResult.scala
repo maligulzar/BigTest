@@ -43,8 +43,8 @@ class JoinSymbolicResult(ss: SymbolicState,
         var pc = ""
          val list: HashSet[(String, VType)] = new HashSet[(String, VType)]();
         val split = new HashMap[String,SplitHandler]();
-
-        val state : Z3QueryState = Z3QueryState(list, split)
+        val replace = new HashMap[String, String]();
+        val state : Z3QueryState = Z3QueryState(list, split, replace)
         
         for (path <- paths) {
             pc += (path.pathConstraint.toZ3Query(state)+"\n")

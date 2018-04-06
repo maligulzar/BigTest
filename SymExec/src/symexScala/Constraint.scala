@@ -124,6 +124,13 @@ class UniaryClause(left: Expr, op: UniaryOp) extends Clause(left,null,null){
         case e:Exception => 
           
       }
+      
+      if(op == UniaryOp.IsInteger){
+          val gen_name = leftstr.replaceAll("[^A-Za-z0-9]","") + "i";
+          initials.init.add((gen_name , Numeric(NumericUnderlyingType._Int)))
+          initials.replacements(gen_name) = "\\Q( str.to.int  "+leftstr+"  )\\E" //( str.to.int  line5  )
+         return s"""(= (int.to.str ${gen_name}) ${leftstr} )"""
+      }
             return s"""(${op.toString()}  ${leftstr} )"""
         
       

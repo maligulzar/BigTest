@@ -206,10 +206,9 @@ public class JPF implements Runnable {
 							JPF jpf = new JPF(conf1);
 							jpf.run();
 							System.out.println(paths.get(i).getOperatorName());
-							
-							val lastPart = args_new[0].split("/")(args_new[0].count(_ == '/'))
-        						val udfFileName = lastPart.substring(0, lastPart.length-4)
-							SymbolicResult udfResult  = jpf.pfl.convertAll(symState, udfFileName);
+							String file_name = args_new[0].split("/")[args_new[0].split("/").length-1];
+							String op_name = file_name.substring(0,file_name.length()-5);
+							SymbolicResult udfResult  = jpf.pfl.convertAll(symState,"");
 							
 							System.out.println(udfResult.toString());
 							switch(paths.get(i).getOperatorName().replaceAll("[0-9]","")) {
