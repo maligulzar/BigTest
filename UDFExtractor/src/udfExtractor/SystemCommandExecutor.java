@@ -79,6 +79,10 @@ public class SystemCommandExecutor
             Map<String, String> env = pb.environment();
             env.put("JUNIT_HOME", Configuration.JUNIT_HOME);
             env.put("JPF",  Configuration.JPF_HOME + "jpf-core");
+            env.put("Z3_LIBRARY_PATH" , Configuration.Z3_LIB);
+            env.put("PYTHONPATH" , Configuration.PYTHON_PATH);
+            
+            
             if(directory!= null){
                 pb.directory(new File(directory));
             }

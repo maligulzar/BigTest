@@ -31,6 +31,7 @@ import gov.nasa.jpf.symbc.string.SymbolicLengthInteger
 import gov.nasa.jpf.symbc.string.SymbolicCharAtInteger
 import gov.nasa.jpf.symbc.mixednumstrg.SpecialIntegerExpression
 import gov.nasa.jpf.symbc.PathEffectListener
+import scala.collection.mutable.HashSet
 
 class NotSupportedRightNow(message: String, cause: Throwable = null) 
     extends RuntimeException("This is not supported right now: "+message, cause) {}
@@ -70,6 +71,11 @@ class PathEffectListenerImp extends PathEffectListener  {
                 
                 var opStr = i.getOp().toString().replaceAll("\\s", "")
                 if(opStr != "+" && opStr != "-" && opStr != "*" && opStr != "/") throw new NotSupportedRightNow(opStr)
+                
+                if(opStr == "/" ){
+                   val t =  new Clause(right,  ComparisonOp.Equality , new ConcreteValue(Numeric(_Int), "0" ))
+                   terminating.add(new TerminatingPath(new Constraint(Array(t))))
+                }
                 val op = new SymOp(Numeric(_Int), ArithmeticOp.withName(opStr))
                 new NonTerminal(left, op, right)
             }
@@ -111,6 +117,10 @@ class PathEffectListenerImp extends PathEffectListener  {
                 var opStr = i.op.toString().replaceAll("\\s", "")
                 if(opStr != "+" && opStr != "-" && opStr != "*" && opStr != "/") throw new NotSupportedRightNow(opStr)
                 val op = new SymOp(Numeric(_Int), ArithmeticOp.withName(opStr))
+                if(opStr == "/" ){
+                   val t =  new Clause(right,  ComparisonOp.Equality , new ConcreteValue(Numeric(_Int), "0" ))
+                   terminating.add(new TerminatingPath(new Constraint(Array(t))))
+                }
                 new NonTerminal(left, op, right)
             }
             case _ => throw new NotSupportedRightNow(li.getClass.getName)
@@ -189,7 +199,15 @@ class PathEffectListenerImp extends PathEffectListener  {
               var opStr = op.toString().replaceAll("\\s", "")
               var oper: SymStringOp = null;
               try{
-               oper = new SymStringOp(NonNumeric(_String), StringOp.withName(opStr))              
+               oper = new SymStringOp(NonNumeric(_String), StringOp.withName(opStr))   
+               if(oper.op == StringOp.Splitn && !split_symstr.contains(stringsym.toString())){
+                 var index = pars(0)
+                  val t1 =  new Clause(index,  ComparisonOp.GreaterThan , new ConcreteValue(Numeric(_Int), "0" ))
+                  val t2= new Clause(stringsym , ComparisonOp.Equals ,  new ConcreteValue(NonNumeric(_String), "" ))
+                   split_symstr.add(stringsym.toString())
+                  terminating.add(new TerminatingPath(new Constraint(Array(t1,t2))))
+               }
+               
               }catch{
                 case e: Exception=>
                   throw new NotSupportedRightNow(opStr)
@@ -249,9 +267,15 @@ class PathEffectListenerImp extends PathEffectListener  {
             val right: Expr = convertExpressionToExpr(cons.getRight())
             var compStr = cons.getComparator().toString().replaceAll("\\s", "")
             val comp = UniaryOp.withName(compStr) 
+            if(comp == UniaryOp.IsInteger){ // Teminating Paths for Intgerss 
+              val t =  new UniaryClause(right, UniaryOp.NotInteger)
+              terminating.add(new TerminatingPath(new Constraint(Array(t))))
+            }            
             new UniaryClause(right, comp) 
         }
      }
+     val terminating: HashSet[TerminatingPath] = new HashSet[TerminatingPath]();
+     val split_symstr: HashSet[String] = new HashSet[String]();
     
        def convertPathCondition(pc: StringPathCondition): Constraint = {
         val clauses: ArrayBuffer[Clause] = new ArrayBuffer[Clause]()
@@ -330,7 +354,10 @@ class PathEffectListenerImp extends PathEffectListener  {
         //println(inputVar)
         //println(outputVar)
         //there is no terminating path in the scope of udf
-        new SymbolicResult(symState, allPathEffects, null, inputVar, outputV)
+        val ab = new ArrayBuffer[TerminatingPath]()
+        terminating.map(s => ab.append(s))
+        println("getting terminating path constraints")
+        new SymbolicResult(symState, allPathEffects, ab, inputVar, outputV)
     }
 
 }

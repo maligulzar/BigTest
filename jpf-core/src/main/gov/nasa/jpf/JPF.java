@@ -226,8 +226,9 @@ public class JPF implements Runnable {
 							}
 						
 						}
-
-						currentPaths.setZ3Dir("/Users/malig/workspace/git/Test-Minimization-in-Big-Data/z3-master");
+						System.out.println("Final Constraints");
+						System.out.println(currentPaths.toString());
+						currentPaths.setZ3Dir("/Users/malig/workspace/up_jpf/");
 						currentPaths.solveWithZ3();
 
 						/**

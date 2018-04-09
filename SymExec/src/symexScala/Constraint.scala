@@ -105,8 +105,8 @@ class Constraint(c: Array[Clause]) {
 class UniaryClause(left: Expr, op: UniaryOp) extends Clause(left,null,null){
 
       override def toString: String = {
-        if (op == null || rightExpr == null) leftExpr.toString
-        else leftExpr.toString + " " + op.toString 
+        if (op == null) leftExpr.toString
+        else leftExpr.toString + " " + op 
     }
     override def toZ3Query(initials: Z3QueryState): String = {
       var isString = false;
@@ -125,12 +125,12 @@ class UniaryClause(left: Expr, op: UniaryOp) extends Clause(left,null,null){
           
       }
       
-      if(op == UniaryOp.IsInteger){
-          val gen_name = leftstr.replaceAll("[^A-Za-z0-9]","") + "i";
-          initials.init.add((gen_name , Numeric(NumericUnderlyingType._Int)))
-          initials.replacements(gen_name) = "\\Q( str.to.int  "+leftstr+"  )\\E" //( str.to.int  line5  )
-         return s"""(= (int.to.str ${gen_name}) ${leftstr} )"""
-      }
+    //  if(op == UniaryOp.IsInteger){
+     //     val gen_name = leftstr.replaceAll("[^A-Za-z0-9]","") + "i";
+     //     initials.init.add((gen_name , Numeric(NumericUnderlyingType._Int)))
+     //     initials.replacements(gen_name) = "\\Q( str.to.int  "+leftstr+"  )\\E" //( str.to.int  line5  )
+    //     return s"""(= (int.to.str ${gen_name}) ${leftstr} )"""
+    //  }
             return s"""(${op.toString()}  ${leftstr} )"""
         
       
@@ -158,7 +158,7 @@ class Clause(left: Expr, op: ComparisonOp = null, right: Expr = null) {
 
     def toZ3Query(initials: Z3QueryState): String = {
       var isString = false;
-      if(leftExpr.isInstanceOf[StringExpr] || leftExpr.isInstanceOf[StringExpr]){
+      if(leftExpr.actualType == NonNumeric(NonNumericUnderlyingType._String) ||  right.actualType == NonNumericUnderlyingType._String){       
         isString = true;
       }
       

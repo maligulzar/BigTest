@@ -18,7 +18,8 @@ public class Configuration {
     static String JUNIT_HOME = "/Users/malig/workspace/jpf/"; // Junit Home folder
     static String JAD_EXE = "/Users/malig/workspace/up_jpf/jadmx158/jad";
     static String JAVA_RUN_DIR = "/Users/malig/workspace/up_jpf/jpf-symbc/src/examples";
-
+    static String Z3_LIB = "/Users/malig/workspace/up_jpf/z3/build/";
+    static String PYTHON_PATH = "/Users/malig/workspace/up_jpf/z3/build/python";
 
     static String arr[] = "map,flatmap,filter,reduceByKey,reduce".split(",");
     static ArrayList<String> spark_ops = new ArrayList<>(Arrays.asList(arr));

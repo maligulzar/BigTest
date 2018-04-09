@@ -114,7 +114,20 @@ case class SymTuple(ttype: Tuple, name: String) extends SymRDD {
 
 case class SymOp(atype: VType, op: ArithmeticOp) /*extends Terminal*/ {
     val actualType = atype
-    override def toString: String = { op.toString }
+    override def toString: String = { 
+      op match {
+        case Division =>
+              "/"
+        case Multiplication =>
+              "*"
+        case Addition =>
+              "+"
+        case Subtraction =>
+              "-"
+        case _ =>
+          
+          throw new NotSupportedRightNow("String Operator not supported")
+      } }
 }
 
 case class SymStringOp(atype: VType, op: StringOp) /*extends Terminal*/ {

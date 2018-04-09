@@ -49,8 +49,7 @@ class PathEffect(pc: Constraint, udfEffect: ArrayBuffer[Tuple2[SymVar, Expr]]) {
             return pathCond.toZ3Query(initial)
     }
 
-    
-    def generateSplitConstraints(state: Z3QueryState): String = {
+     def generateSplitConstraints(state: Z3QueryState): String = {
       var s = ""
       for( (k,v) <- state.split ){
           val del = v.del
@@ -60,8 +59,22 @@ class PathEffect(pc: Constraint, udfEffect: ArrayBuffer[Tuple2[SymVar, Expr]]) {
       }
       s
     }
+     
+//    def generateSplitConstraints(state: Z3QueryState ): String = {
+//      var s = ""
+//      //var buff = new ArrayBuffer[String]()
+//      for( (k,v) <- state.split ){
+//          val del = v.del
+//          val arr = v.str_arr
+//          val query  = arr.reverse.map(s=> if(s==null) "\" \"" else s).reduce((a,b) => "(str.++ " + "(str.++ " + b +del+" )  " + a +")")
+//        //     arr.filter(s => s!=null).map( a => buff.append(a))
+//      }
+//  
+//      
+//      //    return buff.filter(s=>s!=null).reduce(_+"\n"+_)
+//    }
 
-    def toZ3Query(): String = {
+    def toZ3Query(): String  = {
 
         val list: HashSet[(String, VType)] = new HashSet[(String, VType)]();
         
@@ -72,14 +85,16 @@ class PathEffect(pc: Constraint, udfEffect: ArrayBuffer[Tuple2[SymVar, Expr]]) {
         
         var pc = pathConstraint.toZ3Query(state) + "\n" + getEffectZ3Query(state)
         //fix the references
-        for((k,v) <- state.replacements){
-          pc =  pc.replaceAll(v, k)
-        }
+       
+        // for((k,v) <- state.replacements){
+        //  pc =  pc.replaceAll(v, k)
+       // }
+        
         
         var decls = s"""
           |(define-fun isinteger ((x!1 String)) Bool
-          |(str.in.re x!1 (  re.++ (re.* (str.to.re "-")) (re.+ (re.range "0" "9"))))
-          |)        
+          |(or (str.in.re x!1 (  re.++ (str.to.re "-") (re.+ (re.range "0" "9")))) (str.in.re x!1 (re.+ (re.range "0" "9"))) )
+          |)      
           |
           |(define-fun notinteger ((x!1 String)) Bool
           |(not (isinteger x!1))
@@ -96,12 +111,31 @@ class PathEffect(pc: Constraint, udfEffect: ArrayBuffer[Tuple2[SymVar, Expr]]) {
         s"""$decls
            |${generateSplitConstraints(state)}
            |$pc
-           |(check-sat)
-           |(get-model)
-     """.stripMargin
+     """.stripMargin //,generateSplitConstraints(state)) 
     }
 
 
+    def processOutput(str:String){
+      val arr = str.split("\n")
+      val var_map = HashMap[String, String]()
+//      arr.map(s => s.split(":")).filter(s => s.length>0).map{
+//        s => 
+//          var_map(s(0)) = s(1)  
+//      ""}
+    }
+     
+//    def generateFinalData(map: HashMap ): String = {
+//      var s = ""
+//      var buff = new ArrayBuffer[String]()
+//      for( (k,v) <- state.split ){
+//          val del = v.del
+//          val arr = v.str_arr
+//         // val query  = arr.reverse.map(s=> if(s==null) "\" \"" else s).reduce((a,b) => "(str.++ " + "(str.++ " + b +del+" )  " + a +")")
+//             arr.filter(s => s!=null).map( a => buff.append(a))
+//      }
+//      return buff.filter(s=>s!=null).reduce(_+"\n"+_)
+//    }
+//    
     override def equals(other: Any): Boolean = {
         if(other != null && other.isInstanceOf[PathEffect]) {
             val casted = other.asInstanceOf[PathEffect]
@@ -190,4 +224,12 @@ case class Z3QueryState(init: HashSet[(String, VType)] , split:HashMap[String, S
 case class SplitHandler(str_arr:  Array[String] , del:String)
 
 
-
+/***
+ * 
+ * (define-fun isinteger ((x!1 String)) Bool
+(or (str.in.re x!1 (  re.++ (str.to.re "-") (re.+ (re.range "0" "9")))) (str.in.re x!1 (re.+ (re.range "0" "9"))) )
+)  
+ * 
+ * 
+ * /
+ */

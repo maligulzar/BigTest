@@ -68,10 +68,15 @@ class SymbolicResult(ss: SymbolicState,
         }
     }
 
-   def runZ3Command(filename: String , Z3dir:String): Unit = {
+   def runZ3Command(filename: String , Z3dir:String , args: Array[String] = Array()): String = {
         // build the system command we want to run
-        println("run z3 for filename "+filename)
-        val s: String = Z3dir+"/build/z3 -smt2 " + filename
+   
+        var s: String = "python "+Z3dir+"runZ3.py " + filename
+     
+        for(a <- args){
+          s = s +"  " + a 
+        }
+             println("run z3 for file "+ s)
         try {
             val commands: util.List[String] = new util.ArrayList[String]
             commands.add("/bin/sh")
@@ -81,13 +86,16 @@ class SymbolicResult(ss: SymbolicState,
             val result: Int = commandExecutor.executeCommand();
             val stdout: java.lang.StringBuilder = commandExecutor.getStandardOutputFromCommand
             val stderr: java.lang.StringBuilder = commandExecutor.getStandardErrorFromCommand
-            println("Model --> \n" + stdout.toString)
+            println("Model --> " + stdout.toString)
+            println("\n" + stderr.toString)
+            return stdout.toString()
         }
         catch {
             case e: Exception => {
                 e.printStackTrace
             }
         }
+        return "";
     }
 
 
@@ -99,7 +107,7 @@ class SymbolicResult(ss: SymbolicState,
           for (path <- paths) {
                 var str = path.toZ3Query();
                 var filename = "/tmp/"+path.hashCode();
-                writeTempSMTFile(filename , str);
+                writeTempSMTFile(filename , str);   
                 println(path.toString)
                 println("Z3Query:\n"+str)
                 println("------------------------")
@@ -115,7 +123,7 @@ class SymbolicResult(ss: SymbolicState,
                 println(path.toString)
                 println("Z3Query:\n"+str)
                 println("------------------------")
-                runZ3Command(filename , Z3DIR);
+                      runZ3Command(filename , Z3DIR);
                 println("------------------------")
 
             }
@@ -187,8 +195,21 @@ class SymbolicResult(ss: SymbolicState,
 
     def map(udfSymbolicResult: SymbolicResult): SymbolicResult = {
         //returns Cartesian product of already existing paths *  set of paths from given udf
+      
+       
         val product = new Array[PathEffect](paths.size * udfSymbolicResult.numOfPaths)
-        var i = 0  
+        val product_terminating = ArrayBuffer.fill((paths.size * udfSymbolicResult.numOfTerminating) + numOfTerminating)(new TerminatingPath(new Constraint()))
+        var i = 0 
+        var j = 0;
+        var terminatingPaths = new ArrayBuffer[TerminatingPath]()
+        if(this.terminating != null) {
+            for(tp <- this.terminating){
+              product_terminating(j) = tp
+              j+=1
+            }
+
+        }
+        
         for(pa <- this.paths) {
             for(udfPath <- udfSymbolicResult.paths) {
                 //udf -> (x2, x3) / rdd -> (x0, x1) => link -> (x2 = x1)
@@ -200,8 +221,23 @@ class SymbolicResult(ss: SymbolicState,
                 i += 1
             }
         }
+        
+        
+        for(pa <- this.paths) {
+            for(udfPath <- udfSymbolicResult.terminating) {
+                //udf -> (x2, x3) / rdd -> (x0, x1) => link -> (x2 = x1)
+                val link: Tuple2[SymVar, SymVar] = 
+                    if(this.symOutput != null) new Tuple2(udfSymbolicResult.symInput.asInstanceOf[SymVar], this.symOutput.asInstanceOf[SymVar])
+                    else null
+
+                product_terminating(j) = udfPath.conjunctPathEffect(pa, link)
+                j += 1
+            }
+        }
+        
+        
         val input = if(this.symInput == null) udfSymbolicResult.symInput.asInstanceOf[SymVar] else this.symInput.asInstanceOf[SymVar]
-        new SymbolicResult(this.state, product, this.terminating, input, udfSymbolicResult.symOutput.asInstanceOf[SymVar])
+        new SymbolicResult(this.state, product, product_terminating, input, udfSymbolicResult.symOutput.asInstanceOf[SymVar])
     }
         def reduce(udfSymbolicResult: SymbolicResult): SymbolicResult = {
         //returns Cartesian product of already existing paths *  set of paths from given udf

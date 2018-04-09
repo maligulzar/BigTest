@@ -56,6 +56,7 @@ import gov.nasa.jpf.symbc.numeric.RealConstant;
 import gov.nasa.jpf.symbc.numeric.RealExpression;
 import gov.nasa.jpf.symbc.numeric.SymbolicInteger;
 import gov.nasa.jpf.symbc.numeric.SymbolicReal;
+import gov.nasa.jpf.symbc.string.StringExpression;
 import gov.nasa.jpf.symbc.string.StringSymbolic;
 import gov.nasa.jpf.symbc.numeric.SymbolicConstraintsGeneral;
 //import gov.nasa.jpf.symbc.numeric.SymbolicInteger;
@@ -369,7 +370,12 @@ public class SymbolicListener extends PropertyListenerAdapter implements Publish
 										StringSymbolic returnAttr  = (StringSymbolic) o;
 										returnString = "Return Value: " + String.valueOf(returnAttr.solution());
 										result = returnAttr;
-									}else {
+									}else if(o instanceof StringExpression){
+										StringExpression returnAttr  = (StringExpression) o;
+										returnString = "Return Value: " + String.valueOf(returnAttr);//.solution());
+										result = returnAttr;
+									} else {
+										
 										IntegerExpression returnAttr = (IntegerExpression) o;
 										if (returnAttr != null) {
 											returnString = "Return Value: " + String.valueOf(returnAttr.solution());

@@ -1583,7 +1583,7 @@ public class SymbolicStringHandler {
 				} else {
 					((PCChoiceGenerator) cg).setCurrentPC(pc);
 					result = ((StringExpression) sym_v3)._IvalueOf();
-					sf.push(0, false); /* Result is don't care and an int */
+					sf.push(1, false); /* Result is don't care and an int */
 					sf = th.getModifiableTopFrame();
 					sf.setOperandAttr(result);
 				}
