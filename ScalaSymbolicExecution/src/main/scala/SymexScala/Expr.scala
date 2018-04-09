@@ -39,20 +39,18 @@ abstract class Expr {
 
 abstract class Terminal extends Expr {}
 
-abstract class SymRDD extends Terminal {
-    def getName: String
-}
-
-case class SymVar(var atype: VType, name: String) extends SymRDD {
+class SymVar(var atype: VType, name: String) extends Terminal {
 
     val actualType = atype
+    //Shaghayegh: Why is method is not setting actualType? There is going to be inconsistencies!
     /**
      * Setting types of the newly introduced return variable in the effect
      */
     def setType(_type: VType) {
         atype = _type
     }
-    def getName: String = { name }
+
+    def getName: String = name
 
     override def toString: String = { name /*+": "+actualType*/ }
 
@@ -76,16 +74,18 @@ case class SymVar(var atype: VType, name: String) extends SymRDD {
     }
 }
 
-case class SymTuple(ttype: Tuple, name: String) extends SymRDD {
-    val actualType = ttype
+//TODO extend SymTuple from SymVar
+case class SymTuple(ttype: Tuple, name: String) extends SymVar(ttype, name) {
 
-    def getName: String = { name }
+    def this(elemTypes: Tuple2[VType, VType], name: String) {
+        this(new Tuple(elemTypes), name)
+    }
 
-    val _1: SymVar = new SymVar(ttype._1Type, name + ".key")
-    val _2: SymVar = new SymVar(ttype._2Type, name + ".val")
+    var _1: SymVar = new SymVar(ttype._1Type, name + ".key")
+    var _2: SymVar = new SymVar(ttype._2Type, name + ".val")
 
-    def getFirst: SymVar = { _1 }
-    def getSecond: SymVar = { _2 }
+    def getFirst: SymVar = _1
+    def getSecond: SymVar = _2
 
     override def toString: String = name + "=(" + _1.getName + ", " + _2.getName + ")"
 
@@ -100,10 +100,11 @@ case class SymTuple(ttype: Tuple, name: String) extends SymRDD {
         ss.isDefined(_2)
     }
 
-    def toZ3Query(initials: HashSet[(String, VType)]): String = { "" }
+    //TODO:
+    override def toZ3Query(initials: HashSet[(String, VType)]): String = { "" }
 
     override def deepCopy: SymTuple = {
-        new SymTuple(actualType, name)
+        new SymTuple(ttype, name)
     }
 }
 

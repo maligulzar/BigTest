@@ -28,19 +28,18 @@ object Main {
     }
 
     def main(args: Array[String]): Unit = {
-
         // if(args.size < 2) {
         //     println("Please provide operator name and JPF file pathname as arguments.")
         //     exit(1)
         // }
+        Runner.main(args)
+        println(Runner.getDataFlowDAG)
+        val dagOpList = convertList(Runner.getDataFlowDAG)
 
-        // Runner.main(args)
-        // println(Runner.getDataFlowDAG)
-           // convertList(Runner.getDataFlowDAG)
-        val dagOpList: Array[Tuple2[String, String]] = new Array[Tuple2[String, String]](4)
-        dagOpList(1) = ("map", "/Users/amytis/Projects/jpf/jpf-symbc/src/examples/spf/map3.jpf")
-        dagOpList(2) = ("filter", "/Users/amytis/Projects/jpf/jpf-symbc/src/examples/spf/filter2.jpf")
-        dagOpList(3) = ("map", "/Users/amytis/Projects/jpf/jpf-symbc/src/examples/spf/map3.jpf")
+        // val dagOpList: Array[Tuple2[String, String]] = new Array[Tuple2[String, String]](4)
+        // dagOpList(1) = ("map", "/Users/amytis/Projects/jpf/jpf-symbc/src/examples/spf/map3.jpf")
+        // dagOpList(2) = ("filter", "/Users/amytis/Projects/jpf/jpf-symbc/src/examples/spf/filter2.jpf")
+        // dagOpList(3) = ("map", "/Users/amytis/Projects/jpf/jpf-symbc/src/examples/spf/map3.jpf")
         // dagOpList(3) = ("reduce", "/Users/amytis/Projects/jpf/jpf-symbc/src/examples/spf/reduce1.jpf")
 
         val result = SymbolicEngine.executeSymbolicDF(dagOpList)

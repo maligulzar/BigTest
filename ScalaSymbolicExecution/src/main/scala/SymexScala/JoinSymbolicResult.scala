@@ -8,17 +8,23 @@ class UnexpectedInputType(message: String, cause: Throwable = null)
     extends RuntimeException(message, cause) {}
 
 
+// class SymbolicResult(ss: SymbolicState,
+//                     nonT: Array[PathEffect],
+//                     t: ArrayBuffer[TerminatingPath] = null,
+//                     iVar: Expr = null,
+//                     oVar: Expr = null,
+//                     j: Boolean = false) {
+
 class JoinSymbolicResult(ss: SymbolicState,
-                    nonTerminatingPaths: Array[PathEffect],
-                    terminatingPaths: ArrayBuffer[TerminatingPath] = null,
-                    iVar: Tuple2[SymTuple, SymTuple],
-                    oVar: Tuple2[SymVar, Tuple2[SymVar, SymVar]])
-                    extends SymbolicResult(ss,
-                                        nonTerminatingPaths) {
+                        nonTerminatingPaths: Array[PathEffect],
+                        terminatingPaths: ArrayBuffer[TerminatingPath] = null,
+                        iVar: Tuple2[SymTuple, SymTuple],
+                        oVar: Tuple2[SymVar, Tuple2[SymVar, SymVar]]
+                        ) extends SymbolicResult(ss, nonTerminatingPaths, terminatingPaths) {
 
-    override val terminating: ArrayBuffer[TerminatingPath] = terminatingPaths
     //TODO: override symInput and symOutput
-
+    // override val symInput: Expr = iVar
+    // override val symOutput: Expr = oVar
 
     //first thing TODO:
     //2) write toZ3Query for SymTuple and for existential quantifiers -> similar to examples.z3
@@ -120,7 +126,6 @@ class JoinSymbolicResult(ss: SymbolicState,
         println("------------------------")
         runZ3Command(filename , Z3DIR);
         println("------------------------")
-
     }
 }
 

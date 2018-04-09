@@ -28,8 +28,8 @@ class SymbolicResult(ss: SymbolicState,
     val state: SymbolicState = ss
     val paths: Array[PathEffect] = nonT
     val terminating: ArrayBuffer[TerminatingPath] = t
-    var symInput: Expr = iVar
-    var symOutput: Expr = oVar
+    val symInput: Expr = iVar
+    val symOutput: Expr = oVar
 
     var joined: Boolean = j
 

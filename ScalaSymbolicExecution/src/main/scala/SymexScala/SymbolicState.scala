@@ -41,7 +41,7 @@ class SymbolicState() {
     }
 
     //returns null if no variable is defined under such a name!
-    def getSymVar(name: String): SymRDD = {
+    def getSymVar(name: String): SymVar = {
         val found = symbolicEnv.getOrElse(name, null)
         if (found != null) found.variable
         else null
@@ -89,8 +89,8 @@ class SymbolicState() {
 
 }
 
-class SymbolicVarDef(v: SymRDD) {
-    val variable: SymRDD = v
+class SymbolicVarDef(v: SymVar) {
+    val variable: SymVar = v
     var symbolicValue: Expr = v //initially it is same as symbolicVariable
 
     override def toString: String = {

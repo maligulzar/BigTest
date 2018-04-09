@@ -310,19 +310,19 @@ class PathEffectListenerImp extends PathEffectListener {
             }
 
         allPathEffects = new Array[PathEffect](pathVector.size())
-        // var outputV: SymVar = null
+        var outputV: SymVar = null
         for (i <- 0 until pathVector.size) {
             val effectFromSPF: Expr = convertExpressionToExpr(pathVector.get(i)._2)
             val effectBuffer = new ArrayBuffer[Tuple2[SymVar, Expr]]()
-            // outputV = SymVar(effectFromSPF.actualType, outputVar.name)
-            effectBuffer += new Tuple2(outputVar, effectFromSPF)
+            outputV = new SymVar(effectFromSPF.actualType, outputVar.getName)
+            effectBuffer += new Tuple2(outputV, effectFromSPF)
 
             allPathEffects(i) = new PathEffect(convertPathCondition(pathVector.get(i)._1, udfFileName), effectBuffer)
             println(allPathEffects(i)+"!!!!!!!!")
         }
 
         //there is no terminating path in the scope of udf
-        new SymbolicResult(symState, allPathEffects, null, inputVar, outputVar)
+        new SymbolicResult(symState, allPathEffects, null, inputVar, outputV)
     }
 
 }
