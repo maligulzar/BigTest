@@ -27,12 +27,15 @@ public class StaticTest {
     
    
 	
-    static public void test(StaticTest n) {
+    static public StaticTest test(StaticTest n) {
    // 	sfield = n;
-    	if(n!=null && n.elem>0)
+    	if(n!=null && n.elem>0) {
     		System.out.println("test static >0");
-    	else
+    		return new StaticTest();
+    	}	else {
     		System.out.println("test static <=0");
+    		return null;
+    		}
     }
 	public static void main(String[] args) {	
 		test(null);

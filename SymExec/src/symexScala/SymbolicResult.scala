@@ -20,15 +20,16 @@ class NotFoundPathCondition(message: String, cause: Throwable = null)
 class SymbolicResult(ss: SymbolicState, 
                     nonT: Array[PathEffect],
                     t: ArrayBuffer[TerminatingPath] = null,
-                    iVar: Expr = null,
-                    oVar: Expr = null,
+                    iVar: Array[SymVar] = Array(),
+                    oVar: Array[SymVar] = Array(),
                     j: Boolean = false) {
     var Z3DIR: String = "/Users/amytis/Projects/z3-master"   
+    var SOLVER: String = "Z3"   
     val state: SymbolicState = ss
     val paths: Array[PathEffect] = nonT
     val terminating: ArrayBuffer[TerminatingPath] = t
-    var symInput: Expr = iVar
-    var symOutput: Expr = oVar
+    var symInput: Array[SymVar]  = iVar
+    var symOutput: Array[SymVar] = oVar
 
     var joined: Boolean = j
 
@@ -39,6 +40,9 @@ class SymbolicResult(ss: SymbolicState,
 
     def setZ3Dir(path:String){
       Z3DIR =  path
+    }
+    def setSolver(path:String){
+      SOLVER =  path
     }
     override def toString: String = {
         var result = "Set of Constraints for this dataset V:\nNon-terminating:\n"
@@ -70,8 +74,13 @@ class SymbolicResult(ss: SymbolicState,
 
    def runZ3Command(filename: String , Z3dir:String , args: Array[String] = Array()): String = {
         // build the system command we want to run
-   
-        var s: String = "python "+Z3dir+"runZ3.py " + filename
+          var s = ""
+          if(SOLVER.equals("CVC4")){   
+                  s = "/Users/malig/Downloads/cvc4-1.5/builds/x86_64-apple-darwin16.7.0/production/bin/cvc4 --strings-exp --lang smt2 < " + filename
+            
+          }else {
+                s = "python "+Z3dir+"runZ3.py " + filename
+          }
      
         for(a <- args){
           s = s +"  " + a 
@@ -106,6 +115,9 @@ class SymbolicResult(ss: SymbolicState,
           println("Non - Terminating")  
           for (path <- paths) {
                 var str = path.toZ3Query();
+                if(SOLVER.equals("CVC4")){
+                  str = str + "\n(check-sat)\n(get-model)"
+                }
                 var filename = "/tmp/"+path.hashCode();
                 writeTempSMTFile(filename , str);   
                 println(path.toString)
@@ -119,6 +131,9 @@ class SymbolicResult(ss: SymbolicState,
             for (path <- terminating) {
                 var str = path.toZ3Query();
                 var filename = "/tmp/"+path.hashCode();
+                if(SOLVER.equals("CVC4")){
+                  str = str + "\n(check-sat)\n(get-model)"
+                }
                 writeTempSMTFile(filename , str);
                 println(path.toString)
                 println("Z3Query:\n"+str)
@@ -213,9 +228,10 @@ class SymbolicResult(ss: SymbolicState,
         for(pa <- this.paths) {
             for(udfPath <- udfSymbolicResult.paths) {
                 //udf -> (x2, x3) / rdd -> (x0, x1) => link -> (x2 = x1)
-                val link: Tuple2[SymVar, SymVar] = 
-                    if(this.symOutput != null) new Tuple2(udfSymbolicResult.symInput.asInstanceOf[SymVar], this.symOutput.asInstanceOf[SymVar])
+                 val link: Tuple2[Array[SymVar], Array[SymVar]] = 
+                    if(this.symOutput != null) new Tuple2(udfSymbolicResult.symInput.asInstanceOf[Array[SymVar]], this.symOutput.asInstanceOf[Array[SymVar]])
                     else null
+
 
                 product(i) = udfPath.conjunctPathEffect(pa, link)
                 i += 1
@@ -226,9 +242,10 @@ class SymbolicResult(ss: SymbolicState,
         for(pa <- this.paths) {
             for(udfPath <- udfSymbolicResult.terminating) {
                 //udf -> (x2, x3) / rdd -> (x0, x1) => link -> (x2 = x1)
-                val link: Tuple2[SymVar, SymVar] = 
-                    if(this.symOutput != null) new Tuple2(udfSymbolicResult.symInput.asInstanceOf[SymVar], this.symOutput.asInstanceOf[SymVar])
+                val link: Tuple2[Array[SymVar], Array[SymVar]] = 
+                    if(this.symOutput != null) new Tuple2(udfSymbolicResult.symInput.asInstanceOf[Array[SymVar]], this.symOutput.asInstanceOf[Array[SymVar]])
                     else null
+
 
                 product_terminating(j) = udfPath.conjunctPathEffect(pa, link)
                 j += 1
@@ -236,8 +253,8 @@ class SymbolicResult(ss: SymbolicState,
         }
         
         
-        val input = if(this.symInput == null) udfSymbolicResult.symInput.asInstanceOf[SymVar] else this.symInput.asInstanceOf[SymVar]
-        new SymbolicResult(this.state, product, product_terminating, input, udfSymbolicResult.symOutput.asInstanceOf[SymVar])
+        val input = if(this.symInput.length == 0) udfSymbolicResult.symInput else this.symInput
+        new SymbolicResult(this.state, product, product_terminating, input, udfSymbolicResult.symOutput)
     }
         def reduce(udfSymbolicResult: SymbolicResult): SymbolicResult = {
         //returns Cartesian product of already existing paths *  set of paths from given udf
@@ -246,16 +263,16 @@ class SymbolicResult(ss: SymbolicState,
         for(pa <- this.paths) {
             for(udfPath <- udfSymbolicResult.paths) {
                 //udf -> (x2, x3) / rdd -> (x0, x1) => link -> (x2 = x1)
-                val link: Tuple2[SymVar, SymVar] = 
-                    if(this.symOutput != null) new Tuple2(udfSymbolicResult.symInput.asInstanceOf[SymVar], this.symOutput.asInstanceOf[SymVar])
+                val link: Tuple2[Array[SymVar], Array[SymVar]] = 
+                    if(this.symOutput != null) new Tuple2(udfSymbolicResult.symInput.asInstanceOf[Array[SymVar]], this.symOutput.asInstanceOf[Array[SymVar]])
                     else null
 
                 product(i) = udfPath.conjunctPathEffect(pa, link)
                 i += 1
             }
         }
-        val input = if(this.symInput == null) udfSymbolicResult.symInput.asInstanceOf[SymVar] else this.symInput.asInstanceOf[SymVar]
-        new SymbolicResult(this.state, product, this.terminating, input, udfSymbolicResult.symOutput.asInstanceOf[SymVar])
+        val input = if(this.symInput.length == 0) udfSymbolicResult.symInput else this.symInput
+        new SymbolicResult(this.state, product, this.terminating, input, udfSymbolicResult.symOutput)
     }
 
     def filter(udfSymbolicResult: SymbolicResult): SymbolicResult = {
@@ -273,30 +290,30 @@ class SymbolicResult(ss: SymbolicState,
                 for(pa <- this.paths) {
                     // print(pa.toString+" && "+udfTerminating.toString+" = ")
                     //udf -> (x2, x3) / rdd -> (x0, x1) => link -> (x2 = x1)
-                    val link: Tuple2[SymVar, SymVar] = 
-                        if(this.symOutput != null) new Tuple2(udfSymbolicResult.symInput.asInstanceOf[SymVar], this.symOutput.asInstanceOf[SymVar])
-                        else null
+                    val link: Tuple2[Array[SymVar], Array[SymVar]] = 
+                    if(this.symOutput != null) new Tuple2(udfSymbolicResult.symInput.asInstanceOf[Array[SymVar]], this.symOutput.asInstanceOf[Array[SymVar]])
+                    else null
 
                     val conjuncted = udfTerminating.conjunctPathEffect(pa, link)
-                    terminatingPaths += conjuncted
+                    terminatingPaths.append(conjuncted)
                 }
 
             } else {
                 val removedEffect = new PathEffect(udfPath.pathConstraint.deepCopy)
                 for(pa <- this.paths) {
                     //udf -> (x2, x3) / rdd -> (x0, x1) => link -> (x2 = x1)
-                    val link: Tuple2[SymVar, SymVar] = 
-                        if(this.symOutput != null) new Tuple2(udfSymbolicResult.symInput.asInstanceOf[SymVar], this.symOutput.asInstanceOf[SymVar])
+                    val link: Tuple2[Array[SymVar], Array[SymVar]] = 
+                        if(this.symOutput != null) new Tuple2(udfSymbolicResult.symInput.asInstanceOf[Array[SymVar]], this.symOutput.asInstanceOf[Array[SymVar]])
                         else null
                     product += removedEffect.conjunctPathEffect(pa, link)
                 }
             }
         }
 
-        val input = if(this.symInput == null) udfSymbolicResult.symInput.asInstanceOf[SymVar] else this.symInput.asInstanceOf[SymVar]
+        val input = if(this.symInput.length == 0) udfSymbolicResult.symInput else this.symInput
         //udf symOutput is dis-regarded as it is either false or true
         //and since filter is side-effect free symInput is considered as output of whole
-        new SymbolicResult(this.state, product.toArray, terminatingPaths, input, input)
+        new SymbolicResult(this.state, product.toArray, terminatingPaths, input, udfSymbolicResult.symInput)
     }
 
     def join(secondRDD: SymbolicResult): SymbolicResult = {
@@ -317,7 +334,7 @@ class SymbolicResult(ss: SymbolicState,
             for(secondPath <- secondRDD.paths) {
                 //TODO: rdd -> (x0, x1) and second -> (x2, x3) => link -> ???
                 val link: Tuple2[SymVar, SymVar] = null
-                product(i) = secondPath.conjunctPathEffect(pa, link)
+    // product(i) = secondPath.conjunctPathEffect(pa, link)
                 i += 1
             }
         }
@@ -336,10 +353,11 @@ class SymbolicResult(ss: SymbolicState,
         }
 
 
-        val input = new SymTuple(Tuple(this.symInput.actualType, secondRDD.symInput.actualType), "x0-x1")
-        val output = new SymTuple(Tuple(Numeric(_Int), Tuple(Numeric(_Int), Numeric(_Int))), "x0.x1")
-        // val input = if(this.symInput == null) udfSymbolicResult.symInput else this.symInput
-        return new SymbolicResult(this.state, joinedPaths, terminatingPaths, input, output, true)
+       // val input = new SymTuple(Tuple(this.symInput.actualType, secondRDD.symInput.actualType), "x0-x1")
+        //val output = new SymTuple(Tuple(Numeric(_Int), Tuple(Numeric(_Int), Numeric(_Int))), "x0.x1")
+                              // val input = if(this.symInput == null) udfSymbolicResult.symInput else this.symInput
+      //  return new SymbolicResult(this.state, joinedPaths, terminatingPaths, input, output, true)
+          return new SymbolicResult(this.state, joinedPaths, terminatingPaths)
     }
 
     // override def equals(other: Any): Boolean = {

@@ -83,6 +83,9 @@ import gov.nasa.jpf.symbc.numeric.RealConstant;
 import gov.nasa.jpf.symbc.numeric.RealExpression;
 import gov.nasa.jpf.symbc.numeric.SymbolicInteger;
 import gov.nasa.jpf.symbc.numeric.SymbolicReal;
+import gov.nasa.jpf.symbc.string.StringComparator;
+import gov.nasa.jpf.symbc.string.StringExpression;
+import gov.nasa.jpf.symbc.string.StringSymbolic;
 import gov.nasa.jpf.util.Pair;
 
 import java.io.BufferedWriter;
@@ -244,11 +247,14 @@ public class HeapSymbolicListener extends PropertyListenerAdapter implements Pub
 											expandReferenceObject(pc,ti,ci,objIndex);
 									}
 								}else{
-									//pc._addDet(Comparator.EQ, symField, new IntegerConstant(objIndex));
+									if(val instanceof StringExpression) {
+										pc.spc._addDet(StringComparator.EQ, new StringSymbolic(name), (StringExpression) val);
+									}else{//pc._addDet(Comparator.EQ, symField, new IntegerConstant(objIndex));
 									pc._addDet(Comparator.EQ, symField, (SymbolicInteger)val);
 									if (objIndex != objNum && !seenSet.contains(objIndex) && objIndex != MJIEnv.NULL)
 										expandReferenceObject(pc,ti,ci,objIndex);
-								}
+									}
+									}
 							}
 						}
 					}

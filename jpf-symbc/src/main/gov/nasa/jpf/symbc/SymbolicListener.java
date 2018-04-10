@@ -23,9 +23,18 @@ import gov.nasa.jpf.JPF;
 import gov.nasa.jpf.PropertyListenerAdapter;
 import gov.nasa.jpf.vm.ChoiceGenerator;
 import gov.nasa.jpf.vm.ClassInfo;
+import gov.nasa.jpf.vm.DoubleFieldInfo;
+import gov.nasa.jpf.vm.ElementInfo;
+import gov.nasa.jpf.vm.FieldInfo;
+import gov.nasa.jpf.vm.Fields;
+import gov.nasa.jpf.vm.FloatFieldInfo;
 import gov.nasa.jpf.vm.Instruction;
+import gov.nasa.jpf.vm.IntegerFieldInfo;
 import gov.nasa.jpf.vm.LocalVarInfo;
+import gov.nasa.jpf.vm.LongFieldInfo;
+import gov.nasa.jpf.vm.MJIEnv;
 import gov.nasa.jpf.vm.MethodInfo;
+import gov.nasa.jpf.vm.ReferenceFieldInfo;
 import gov.nasa.jpf.vm.StackFrame;
 import gov.nasa.jpf.vm.ThreadInfo;
 import gov.nasa.jpf.vm.Types;
@@ -56,6 +65,7 @@ import gov.nasa.jpf.symbc.numeric.RealConstant;
 import gov.nasa.jpf.symbc.numeric.RealExpression;
 import gov.nasa.jpf.symbc.numeric.SymbolicInteger;
 import gov.nasa.jpf.symbc.numeric.SymbolicReal;
+import gov.nasa.jpf.symbc.string.StringComparator;
 import gov.nasa.jpf.symbc.string.StringExpression;
 import gov.nasa.jpf.symbc.string.StringSymbolic;
 import gov.nasa.jpf.symbc.numeric.SymbolicConstraintsGeneral;
@@ -63,9 +73,12 @@ import gov.nasa.jpf.symbc.numeric.SymbolicConstraintsGeneral;
 import gov.nasa.jpf.util.Pair;
 
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.Vector;
 public class SymbolicListener extends PropertyListenerAdapter implements PublisherExtension {
@@ -75,6 +88,18 @@ public class SymbolicListener extends PropertyListenerAdapter implements Publish
 	 */
 	private Map<String, MethodSummary> allSummaries;
 	private String currentMethodName = "";
+	
+	private int refDepth = -1;
+
+
+	// probably we do not need this!
+	private Map<Integer, SymbolicInteger> nameMap =
+											new HashMap<Integer,SymbolicInteger>();
+
+	// what are these fields?
+	private Set<String> definedFields = new HashSet<String>();
+
+	
 	private PathEffectListener pathAndEffectL = null;
 	public SymbolicListener(Config conf, JPF jpf) {
 		jpf.addPublisherExtension(ConsolePublisher.class, this);
@@ -311,7 +336,10 @@ public class SymbolicListener extends PropertyListenerAdapter implements Publish
 								// after the following statement is executed, the pc loses its solution
 
 								Pair<String, String> pcPair = null;
-
+								//PathCondition resultp = new PathCondition();
+								ArrayList<Expression> resultp = new ArrayList<Expression> ();
+								
+								//getFieldValues(resultp,ti,mi, insn);
 								String returnString = "";
 
 								Expression result = null;
@@ -366,7 +394,9 @@ public class SymbolicListener extends PropertyListenerAdapter implements Publish
 								} else if (insn instanceof ARETURN) {
 									ARETURN areturn = (ARETURN) insn;
 									Object o = areturn.getReturnAttr(ti);
-									if(o instanceof StringSymbolic ) {
+									if (o == null){
+										getFieldValues(resultp,ti,mi, insn);
+									}else if(o instanceof StringSymbolic ) {
 										StringSymbolic returnAttr  = (StringSymbolic) o;
 										returnString = "Return Value: " + String.valueOf(returnAttr.solution());
 										result = returnAttr;
@@ -407,14 +437,28 @@ public class SymbolicListener extends PropertyListenerAdapter implements Publish
 								if(argsInfo.length >= numberOfArgs && !pathAndEffectL.isArgsInfoAdded()) {
 									for(int i=argsInfo.length-numberOfArgs; i < argsInfo.length; ++i){
 										System.out.println(argsInfo[i].getType());
-										pathAndEffectL.addArgsInfo(argsInfo[i].getName(), argsInfo[i].getType());
+										String type = argsInfo[i].getType();
+										if(type.startsWith("Tuple")) {
+											String t1 = type.charAt(5) == 'S' ? "java.lang.String" : "int";
+											String t2 = type.charAt(6) == 'S' ? "java.lang.String" : "int";
+											pathAndEffectL.addArgsInfo(argsInfo[i].getName()+"_1", t1);
+											pathAndEffectL.addArgsInfo(argsInfo[i].getName()+"_2", t2);
+										}else {
+											pathAndEffectL.addArgsInfo(argsInfo[i].getName(), argsInfo[i].getType());
+														
+										}
 									}
 									pathAndEffectL.argsInfoIsAdded();
 								}
 
 
-								System.out.println(pc.toString()+" --B- "+result.toString()); 
-								pathAndEffectL.addPCPair(pc, result); 
+								if(result != null && resultp.size() == 0) {
+									resultp.add(result);
+									System.out.println(pc.toString()+" --B- "+result.toString()); 
+								}
+								//ArrayList<Expression> a = new ArrayList<>();
+								//a.add(result);
+								pathAndEffectL.addPCPair(pc, resultp); 
 								/*
 								 * pcString = pc.toString(); pcPair = new Pair<String,String>(pcString,returnString);
 								 * MethodSummary methodSummary = allSummaries.get(longName); Vector<Pair> pcs =
@@ -657,7 +701,157 @@ public class SymbolicListener extends PropertyListenerAdapter implements Publish
 			printMethodSummaryHTML(pw, methodSummary);
 		}
 	}
+		/*
+		 * Recursive method to "dereference" an object and collect their values
+		 * for use in the effects/result constraint
+		 */
 
+	Set<Integer> seenSet;
+	int currentDepth=0;
+
+
+	 void expandReferenceObject(ArrayList<Expression> e_list,ThreadInfo ti,
+										ClassInfo ci,  int objNum){
+
+		if ((currentDepth<=refDepth || refDepth == -1) &&
+					!seenSet.contains(new Integer(objNum))){
+			seenSet.add(new Integer(objNum));
+			currentDepth++;
+			String name = "";
+			FieldInfo[] fields = ci.getDeclaredInstanceFields();
+			ElementInfo ei = ti.getElementInfo(objNum);
+			Integer ref = new Integer(objNum);
+			if (null != ei && fields.length >0){
+				for (int i = 0; i < fields.length; i++) {
+					if (!fields[i].getName().contains("this")){
+						SymbolicInteger temp = nameMap.get(ref);
+						String fullType = fields[i].getType();
+						String type = "";
+						// C: why is this done???
+					    if (fullType.contains("$"))
+						  type = fullType.substring(fullType.indexOf('$')+1);
+					    else
+						  type = fullType.substring(fullType.lastIndexOf('.')+1);
+						if (null != temp)
+							name = nameMap.get(ref) + "." + type + ":" + fields[i].getName();
+						else{ //this case is still not quite right
+							name = ci.getName();
+						    name = name.substring(name.lastIndexOf('.')+1) + ":#" + objNum + "." + fields[i].getName();
+						}
+						if (!definedFields.contains(name)){
+							definedFields.add(name);
+							Object attr = ei.getFieldAttr(fields[i]);
+							if (fields[i] instanceof IntegerFieldInfo ||
+														fields[i] instanceof LongFieldInfo) {
+								IntegerExpression symField = new SymbolicInteger(name);
+								if (null != attr)
+									//pc._addDet(Comparator.EQ, symField, (IntegerExpression)attr);
+									e_list.add((IntegerExpression)attr);
+								else{
+									int val;
+									if (fields[i] instanceof IntegerFieldInfo)
+										val = ei.getFields().getIntValue(i);
+									else  //WARNING: downcasting to an int
+										val = (int)ei.getFields().getLongValue(i);
+								//	pc._addDet(Comparator.EQ, symField, new IntegerConstant(val));
+									if(val!=0)
+									e_list.add(new IntegerConstant(val));
+									
+								}
+							} else if (fields[i] instanceof FloatFieldInfo ||
+										fields[i] instanceof DoubleFieldInfo) {
+								RealExpression symField = new SymbolicReal(name);
+								if (null != attr)
+								//	pc._addDet(Comparator.EQ, symField, (RealExpression)attr);
+								e_list.add( (RealExpression)attr);
+								else{
+									double val;
+									if (fields[i] instanceof FloatFieldInfo)
+										val = ei.getFields().getFloatValue(i);
+									else
+										val = ei.getFields().getDoubleValue(i);
+									//pc._addDet(Comparator.EQ, symField, new RealConstant(val));
+									e_list.add( new RealConstant( val));
+								}
+							}else if (fields[i] instanceof ReferenceFieldInfo){
+								IntegerExpression symField= new SymbolicInteger(name);
+								Fields f = ei.getFields();
+								Object val = f.getFieldAttr(i);
+								int objIndex = f.getReferenceValue(i);
+								if (null == val){
+									IntegerExpression exp = null;
+									if (objIndex == MJIEnv.NULL){
+										exp = new IntegerConstant(objIndex);
+									//	pc._addDet(Comparator.EQ, symField, exp);
+										e_list.add( exp);
+									}else{
+										exp = nameMap.get(new Integer(objIndex));
+										if (null == exp)
+											exp = new IntegerConstant(objIndex);
+									//	pc._addDet(Comparator.EQ, symField, exp);
+										e_list.add(exp);
+										if (objIndex != objNum && !seenSet.contains(objIndex) && objIndex != MJIEnv.NULL)
+											expandReferenceObject(e_list,ti,ci,objIndex);
+									}
+								}else{
+									//pc._addDet(Comparator.EQ, symField, new IntegerConstant(objIndex));
+									if(val instanceof StringExpression) {
+										//pc.spc._addDet(StringComparator.EQ, new StringSymbolic(name), (StringExpression) val);
+										e_list.add((StringExpression) val);
+									}else {
+										//pc._addDet(Comparator.EQ, symField, (IntegerExpression) val);
+										e_list.add((IntegerExpression) val);
+										if (objIndex != objNum && !seenSet.contains(objIndex) && objIndex != MJIEnv.NULL)
+											expandReferenceObject(e_list,ti,ci,objIndex);
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+
+		}
+	}
+
+	/*
+	 * Add the values (symbolic or concrete) of instance and static fields to the
+	 * effects/result
+	 * use refDepth configuration value to determine how far to "unwind" -- why is this necessary?
+	 * object references
+	 */
+	private void getFieldValues(ArrayList<Expression> e_list, ThreadInfo ti,
+										MethodInfo mi, Instruction insn){
+		ClassInfo ci = mi.getClassInfo();
+		JVMReturnInstruction ret = (JVMReturnInstruction)insn;
+		StackFrame sf = ret.getReturnFrame();
+		int thisRef = sf.getThis();
+
+		// C: why is this string manipulation necessary?
+		String name = sf.getClassName() + ":#" + thisRef;
+		  if (name.contains("$"))
+			  name = name.substring(name.indexOf('$')+1);
+		  else
+			  name = name.substring(name.lastIndexOf('.')+1);
+		  String tmpName = name.substring(0,name.lastIndexOf('#')-1) + ":this";
+		//  returnPC._addDet(Comparator.EQ, new SymbolicInteger(tmpName),
+			//	  new SymbolicInteger(name));
+		seenSet = new HashSet<Integer>();
+		definedFields = new HashSet<String>();
+
+		nameMap.put(new Integer(thisRef), new SymbolicInteger(name)); // why is this necessary
+
+		// adds constraints representing this
+
+		expandReferenceObject(e_list, ti, ci, thisRef);
+		if (insn instanceof ARETURN){
+			ARETURN areturn = (ARETURN)insn;
+			int returnValue = areturn.getReturnValue();
+			if (returnValue != thisRef)
+				// adds constraints representing the return values
+				expandReferenceObject(e_list, ti, ci, returnValue);
+		}
+	}
 	protected class MethodSummary {
 		private String methodName = "";
 		private String argTypes = "";

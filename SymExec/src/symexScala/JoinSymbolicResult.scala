@@ -130,15 +130,15 @@ class JoinSymbolicResult(ss: SymbolicState,
 
 
 object JoinSymbolicResult {
-    def apply(ss: SymbolicState, _A: SymbolicResult, _B: SymbolicResult): JoinSymbolicResult = {
+/*   def apply(ss: SymbolicState, _A: SymbolicResult, _B: SymbolicResult): JoinSymbolicResult = {
         //Makes sure that A and B both have a SymbolicTuple for their symOutput
         val _ATuple = _A.symOutput match {
-            case o: SymTuple => o
+            case o: Array[SymVar] => o
             case _ => throw new UnexpectedInputType("First RDD for Join operation")
         }
 
         val _BTuple = _B.symOutput match {
-            case o: SymTuple => o
+            case o: Array[SymVar] => o
             case _ => throw new UnexpectedInputType("Second RDD for Join operation")
         }
 
@@ -193,5 +193,5 @@ object JoinSymbolicResult {
         // val output = new SymTuple(Tuple(Numeric(_Int), Tuple(Numeric(_Int), Numeric(_Int))), "x0.x1")
         return new JoinSymbolicResult(ss, joinedPaths, terminatingPaths, input, output)
 
-    }
+    }*/
 }

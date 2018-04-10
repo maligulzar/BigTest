@@ -6,7 +6,18 @@ import scala.collection.mutable.Map
 import NumericUnderlyingType._
 import NonNumericUnderlyingType._
 
-class SymbolicState() {
+object SymbolicState {
+ def getVType(primitive: String): VType = {
+        primitive match {
+            case "int" => Numeric(_Int)
+            case "double" => Numeric(_Double)
+            case "int[]" => CollectionNumeric(_Int)
+            case "java.lang.String" => NonNumeric(_String)
+            case _ => NonNumeric(_Unit)
+        }
+    }
+ }
+ class SymbolicState() {
 
     val symbolicEnv: Map[String, SymbolicVarDef] = Map[String, SymbolicVarDef]()
     var index: Int = -1

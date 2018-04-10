@@ -96,6 +96,7 @@ public class SymbolicInteger extends LinearIntegerExpression
 		name = s;
 		//PathCondition.flagSolved=false;
 		//trackedSymVars.add(fixName(name));
+		
 		if (SymbolicInstructionFactory.debugMode)
 			System.out.println("New sym int " + name + " min=" + _min + ", max=" + _max);
 	}

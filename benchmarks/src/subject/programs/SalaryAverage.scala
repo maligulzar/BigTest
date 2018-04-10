@@ -12,19 +12,18 @@ object SalaryAverage {
     val sc = new SparkContext(conf)
     val lines = sc.textFile(
       "/Users/malig/workspace/up_jpf/benchmarks/src/datasets/salary.csv")
-    val out = lines
-      .map { s =>
-        if (s.substring(0, 1).equals("$")) {
-          var i = s.substring(1, s.length - 1)
-          i = i.replace(",", "")
-           Integer.parseInt(i)
+    val sum = lines.map{
+      line =>
+        if (line.substring(0, 1).equals("$")) {
+          var i = line.substring(1, 6)
+          i
         } else {
-           Integer.parseInt(s.replace(",", ""))
+          line
         }
-      }
-      .filter(s => s < 30000)
-      .reduce(_ + _)
-    println(out)
+    }
+      .map(p => Integer.parseInt(p))
+      .filter( r => r < 300)
+      .reduce(_+_)
   }
 }
 

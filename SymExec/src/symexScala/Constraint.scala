@@ -53,14 +53,15 @@ class Constraint(c: Array[Clause]) {
             return s"""(assert ${andClauses(0 , initials)} )"""
          }
         val idx = 0
-        s"""(assert (${andClauses(idx , initials)}) )"""
+        //s"""(assert (${andClauses(idx , initials)}) )"""
+        s"""(assert ${andClauses(idx , initials)} )"""
     }
 
     def andClauses(idx :Int , initials: Z3QueryState): String ={
         if(idx == clauses.length -1){
             clauses(idx).toZ3Query(initials)
         }else{
-            s""" and ${clauses(idx).toZ3Query(initials)} ${andClauses(idx+1 , initials)} """
+            s""" (and ${clauses(idx).toZ3Query(initials)} ${andClauses(idx+1 , initials)} )"""
         }
     }
 

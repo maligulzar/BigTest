@@ -1,5 +1,6 @@
 package gov.nasa.jpf.symbc;
 
+import java.util.List;
 import java.util.Vector;
 
 import gov.nasa.jpf.util.Pair;
@@ -9,22 +10,22 @@ import gov.nasa.jpf.symbc.numeric.PathCondition;
 
 public class PathEffectListener {
 
-    private Vector<Pair<PathCondition, Expression>> listOfPairs;
+    private Vector<Pair<PathCondition, List<Expression>>> listOfPairs;
     private Vector<Pair<String, String>> argsInfo;
     private boolean argsInfoAdded;
 
     public PathEffectListener() {
-        listOfPairs = new Vector<Pair<PathCondition, Expression>>();
+        listOfPairs = new Vector<Pair<PathCondition, List<Expression>>>();
         argsInfo = new Vector<Pair<String, String>>();
         argsInfoAdded = false;
     }
 
-    public void addPCPair(PathCondition pc, Expression result) {
-        Pair<PathCondition, Expression> pePair = new Pair<PathCondition, Expression>(pc, result);
+    public void addPCPair(PathCondition pc, List<Expression> result) {
+        Pair<PathCondition, List<Expression>> pePair = new Pair<PathCondition, List<Expression>>(pc, result);
         listOfPairs.add(pePair);
     }
 
-    public Vector<Pair<PathCondition, Expression>> getListOfPairs() {
+    public Vector<Pair<PathCondition, List<Expression>>> getListOfPairs() {
         return listOfPairs;
     }
 

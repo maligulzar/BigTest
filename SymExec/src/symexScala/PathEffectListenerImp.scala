@@ -139,6 +139,13 @@ class PathEffectListenerImp extends PathEffectListener  {
         }
       }
       
+      if(str.contains("SYMREF")){
+        val arr = str.split("_")
+        val varname=  arr(0)
+        val field = arr(arr.length-1)
+        return varname + "_"+field+"_"
+      }
+      
       if(str.endsWith("_SYMINT")){
         val name = str.replace("_SYMINT", "")
         val mod_name = name.replaceAll("_[0-9]+", "")
@@ -184,6 +191,28 @@ class PathEffectListenerImp extends PathEffectListener  {
       * **/
     }
     
+    /*def compute(JPFDagNode j) : SymbolicResult = {
+      val arr = new Array[SymbloicResult](j.parents)     
+      var i =o
+      for(a <- j.parents){
+        arr(i) = a.compute();
+      }  
+      
+      j.name match {
+							case "map" => 
+						  	   return arr(0).map(j.udfResult)
+							case "filter" => 
+						     return arr(0).fitler(j.udfResult)
+							case "reduce" =>
+					       return arr(0).reduce(j.udfResult)
+							case "join" =>
+							   return arr(0).join(arr(1))
+							case _ => 
+								throw new RuntimeException("This data flow operation is yet not supported!");
+							}      
+    }
+    * */
+   
       def convertStringExpression(se: StringExpression): Expr = {
         se match {
             case i: DerivedStringExpression => {
@@ -318,21 +347,24 @@ class PathEffectListenerImp extends PathEffectListener  {
         assuming first input argument is our record (which also has the same type as return variable) 
     */
     def convertAll(symState: SymbolicState, udfFileName: String): SymbolicResult = {
-        val pathVector: Vector[Pair[PathCondition, Expression]] = super.getListOfPairs()
+        val pathVector: Vector[Pair[PathCondition, java.util.List[Expression]]] = super.getListOfPairs()     
         val argsInfo: Vector[Pair[String, String]] = super.getArgsInfo()
 
         println("------>"+pathVector.size+" "+argsInfo.size)
 
-        var (inputVar: SymVar, outputVar: SymVar) =
+        var (inputVar: Array[SymVar], outputVar: SymVar) =
             if (argsInfo.size == 1) {
                 val freshVar: SymVar = symState.getFreshSymVar(argsInfo.get(0)._2)
                 argsMap += (argsInfo.get(0)._1 -> freshVar)
-                (freshVar, symState.getFreshSymVar(argsInfo.get(0)._2))
+                (Array(freshVar), symState.getFreshSymVar(argsInfo.get(0)._2))
             } else if (argsInfo.size == 2) {
-                val freshTuple: SymTuple = symState.getFreshSymTuple(argsInfo.get(0)._2, argsInfo.get(1)._2)
-                argsMap += (argsInfo.get(0)._1 -> freshTuple._1)
-                argsMap += (argsInfo.get(1)._1 -> freshTuple._2)
-                (freshTuple, symState.getFreshSymTuple(argsInfo.get(0)._2, argsInfo.get(1)._2))
+                val freshVar: SymVar = symState.getFreshSymVar(argsInfo.get(0)._2)
+                var f1 = new SymVar(SymbolicState.getVType(argsInfo.get(0)._2) , freshVar.getName +"_1")
+                var f2 = new SymVar(SymbolicState.getVType(argsInfo.get(1)._2) , freshVar.getName +"_2")
+                argsMap += (argsInfo.get(0)._1 -> f1)
+                argsMap += (argsInfo.get(1)._1 -> f2)
+                
+                (Array(f1,f2),symState.getFreshSymVar(argsInfo.get(0)._2))
             } else {
                 for (i <- 0 until argsInfo.size) {
                     println(argsInfo.get(i)._1 + " " + argsInfo.get(i)._2)
@@ -342,14 +374,25 @@ class PathEffectListenerImp extends PathEffectListener  {
             }
 
         allPathEffects = new Array[PathEffect](pathVector.size())
-        var outputV: SymVar = null
+        var outputV: Array[SymVar] = new Array[SymVar](pathVector.get(0)._2.size())
         for (i <- 0 until pathVector.size) {
-            val effectFromSPF: Expr = convertExpressionToExpr(pathVector.get(i)._2)
-            val effectBuffer = new ArrayBuffer[Tuple2[SymVar, Expr]]()
-            outputV = SymVar(effectFromSPF.actualType, outputVar.name)
-            effectBuffer += new Tuple2(outputV, effectFromSPF)
-
-            allPathEffects(i) = new PathEffect(convertPathCondition(pathVector.get(i)._1, udfFileName), effectBuffer)
+            if(pathVector.get(i)._2.size() == 2){ // for tuple
+              val effectFromSPF1: Expr = convertExpressionToExpr(pathVector.get(i)._2.get(0))
+              val effectFromSPF2: Expr = convertExpressionToExpr(pathVector.get(i)._2.get(1))
+              val effectBuffer = new ArrayBuffer[Tuple2[SymVar, Expr]]()
+              outputV(0) = new SymVar(effectFromSPF1.actualType, outputVar.getName+"_1")
+              outputV(1) = new SymVar(effectFromSPF2.actualType, outputVar.getName+"_2" )
+              effectBuffer += new Tuple2(outputV(0), effectFromSPF1)
+              effectBuffer += new Tuple2(outputV(1), effectFromSPF2)              
+              allPathEffects(i) = new PathEffect(convertPathCondition(pathVector.get(i)._1, udfFileName), effectBuffer)
+             }else{
+              val effectFromSPF: Expr = convertExpressionToExpr(pathVector.get(i)._2.get(0))  
+              val effectBuffer = new ArrayBuffer[Tuple2[SymVar, Expr]]()
+              outputV(0) = new SymVar(effectFromSPF.actualType, outputVar.getName)
+              effectBuffer += new Tuple2(outputV(0) , effectFromSPF)
+              allPathEffects(i) = new PathEffect(convertPathCondition(pathVector.get(i)._1, udfFileName), effectBuffer)            
+            }           
+            
         }
         //println(inputVar)
         //println(outputVar)

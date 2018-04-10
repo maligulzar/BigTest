@@ -92,6 +92,10 @@ class PathEffect(pc: Constraint, udfEffect: ArrayBuffer[Tuple2[SymVar, Expr]]) {
         
         
         var decls = s"""
+          |(set-logic QF_SLIA)
+          |(set-option :produce-models true)
+          |
+          |
           |(define-fun isinteger ((x!1 String)) Bool
           |(or (str.in.re x!1 (  re.++ (str.to.re "-") (re.+ (re.range "0" "9")))) (str.in.re x!1 (re.+ (re.range "0" "9"))) )
           |)      
@@ -111,6 +115,8 @@ class PathEffect(pc: Constraint, udfEffect: ArrayBuffer[Tuple2[SymVar, Expr]]) {
         s"""$decls
            |${generateSplitConstraints(state)}
            |$pc
+           |
+           
      """.stripMargin //,generateSplitConstraints(state)) 
     }
 
@@ -147,11 +153,19 @@ class PathEffect(pc: Constraint, udfEffect: ArrayBuffer[Tuple2[SymVar, Expr]]) {
     /*
         conjuncts this(udf) PathEffect with already-existing rdd PathEffect
     */
-    def conjunctPathEffect(rddPE: PathEffect, link: Tuple2[SymVar, SymVar] = null): PathEffect = {
+    def conjunctPathEffect(rddPE: PathEffect, link: Tuple2[Array[SymVar], Array[SymVar]]= null): PathEffect = {
         val newEffects = new ArrayBuffer[Tuple2[SymVar, Expr]]() 
         rddPE.effects.copyToBuffer(newEffects)
+        
         //adds the link between previous symOutput to the incoming symInput
-        if(link != null) newEffects += link
+        if(link != null){ 
+            for(i  <- 0  to link._2.length-1){
+              var ar1 = link._1
+              var ar2 = link._2
+              newEffects += new Tuple2( ar1(i) , ar2(i) )
+            }
+          
+        }
         newEffects.appendAll(this.effects)
 
         val newPathEffect = new PathEffect(rddPE.pathConstraint.deepCopy, newEffects)
@@ -203,10 +217,17 @@ case class TerminatingPath(c: Constraint, u: ArrayBuffer[Tuple2[SymVar, Expr]]) 
     /*
         conjuncts this(udf) PathEffect with already-existing rdd PathEffect
     */
-    override def conjunctPathEffect(rddPE: PathEffect, link: Tuple2[SymVar, SymVar] = null): TerminatingPath = {
+    override def conjunctPathEffect(rddPE: PathEffect, link: Tuple2[Array[SymVar], Array[SymVar]] = null): TerminatingPath = {
         val newEffects = new ArrayBuffer[Tuple2[SymVar, Expr]]() 
         rddPE.effects.copyToBuffer(newEffects)
-        if(link != null) newEffects += link
+      if(link != null){ 
+            for(i  <- 0  to link._2.length-1){
+              var ar1 = link._1
+              var ar2 = link._2
+              newEffects += new Tuple2( ar1(i) , ar2(i) )
+            }
+          
+        }
         newEffects.appendAll(this.effects)
 
         val newPathEffect = new TerminatingPath(this.pathConstraint.deepCopy, newEffects)
@@ -220,7 +241,20 @@ case class TerminatingPath(c: Constraint, u: ArrayBuffer[Tuple2[SymVar, Expr]]) 
 
 } 
 
-case class Z3QueryState(init: HashSet[(String, VType)] , split:HashMap[String, SplitHandler], replacements: HashMap[String, String])
+case class Z3QueryState(init: HashSet[(String, VType)] , split:HashMap[String, SplitHandler], replacements: HashMap[String, String]){
+  
+  def addtoInit(a: (String , VType)){
+    val itr = init.iterator()
+        while(itr.hasNext){
+            val de = itr.next()
+            if(a._1.equals(de._1)){
+              return 
+          }
+        }
+        init.add(a);
+    
+  }
+}
 case class SplitHandler(str_arr:  Array[String] , del:String)
 
 

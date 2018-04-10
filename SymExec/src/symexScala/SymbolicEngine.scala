@@ -1,7 +1,6 @@
 package symexScala
 
-//import sys.process._
-import gov.nasa.jpf.JPF
+//import sys.process.
 import gov.nasa.jpf.Config
 
 class parseEffectException(message: String, cause: Throwable = null) extends RuntimeException("Effect: "+message, cause) {}
