@@ -250,6 +250,8 @@ class SymbolicResult(ss: SymbolicState,
     }
 
     def join(secondRDD: SymbolicResult): SymbolicResult = {
+        new JoinSymbolicResult(ss, this, secondRDD)
+        /*
         val product = new Array[PathEffect](paths.size * secondRDD.numOfPaths)
 
         val joinedPaths = new Array[PathEffect](paths.size * secondRDD.numOfPaths)
@@ -290,6 +292,7 @@ class SymbolicResult(ss: SymbolicState,
         val output = new SymTuple(Tuple(Numeric(_Int), Tuple(Numeric(_Int), Numeric(_Int))), "x0.x1")
         // val input = if(this.symInput == null) udfSymbolicResult.symInput else this.symInput
         return new SymbolicResult(this.state, joinedPaths, terminatingPaths, input, output, true)
+        */
     }
 
     // override def equals(other: Any): Boolean = {
