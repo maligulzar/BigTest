@@ -21,15 +21,16 @@ class NotFoundPathCondition(message: String, cause: Throwable = null)
 class SymbolicResult(ss: SymbolicState,
                     nonT: Array[PathEffect],
                     t: ArrayBuffer[TerminatingPath] = null,
-                    iVar: Expr = null,
-                    oVar: Expr = null,
+                    iVar: Array[SymVar] = null,
+                    oVar: Array[SymVar] = null,
                     j: Boolean = false) {
+
     var Z3DIR: String = "/Users/amytis/Projects/z3-master"
     val state: SymbolicState = ss
     val paths: Array[PathEffect] = nonT
     val terminating: ArrayBuffer[TerminatingPath] = t
-    val symInput: Expr = iVar
-    val symOutput: Expr = oVar
+    val symInput: Array[SymVar] = iVar
+    val symOutput: Array[SymVar] = oVar
 
     var joined: Boolean = j
 
@@ -91,6 +92,7 @@ class SymbolicResult(ss: SymbolicState,
             }
         }
     }
+
     def solveWithZ3(): Unit = {
         var first = ""
         var second = ""
@@ -159,7 +161,6 @@ class SymbolicResult(ss: SymbolicState,
             runZ3Command(filename , Z3DIR);
             println("------------------------")
         }*/
-
     }
 
     def numOfPaths: Int = {paths.size}

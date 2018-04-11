@@ -277,8 +277,6 @@ class PathEffectListenerImp extends PathEffectListener {
                 v) :: clses
         }
 
-        println("--->"+clses+"!!!")
-
         new Constraint(clauses.toArray ++ s_constraints.clauses ++ clses)
     }
 
@@ -318,7 +316,6 @@ class PathEffectListenerImp extends PathEffectListener {
             effectBuffer += new Tuple2(outputV, effectFromSPF)
 
             allPathEffects(i) = new PathEffect(convertPathCondition(pathVector.get(i)._1, udfFileName), effectBuffer)
-            println(allPathEffects(i)+"!!!!!!!!")
         }
 
         //there is no terminating path in the scope of udf

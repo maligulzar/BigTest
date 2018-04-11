@@ -1,4 +1,4 @@
-package SymexScala
+package symexScala
 
 import org.scalatest._
 import org.apache.spark.{ SparkContext, SparkConf }
@@ -54,7 +54,7 @@ class ConstraintTest extends FlatSpec with BeforeAndAfterAll with Matchers {
         val effect1: Expr = new NonTerminal(x0,
                                             new SymOp(Numeric(_Int), Addition),
                                             ConcreteValue(Numeric(_Int),"1"))
-        
+
         val x1 = new SymVar(Numeric(_Int), "x1")
 
         val effect = new ArrayBuffer[Tuple2[SymVar, Expr]]()

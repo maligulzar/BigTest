@@ -34,6 +34,7 @@ abstract class Expr {
     def checkValidity(ss: SymbolicState): Boolean
     def toZ3Query(initials: HashSet[(String, VType)]): String
     def deepCopy: Expr
+    def replace(thisVar: SymVar, other: SymVar): Expr
 
 }
 
@@ -72,9 +73,11 @@ class SymVar(var atype: VType, name: String) extends Terminal {
     override def deepCopy: SymVar = {
         new SymVar(atype, name)
     }
+
+    override def replace(thisVar: SymVar, other: SymVar): SymVar = other
 }
 
-//TODO extend SymTuple from SymVar
+/*
 case class SymTuple(ttype: Tuple, name: String) extends SymVar(ttype, name) {
 
     def this(elemTypes: Tuple2[VType, VType], name: String) {
@@ -107,6 +110,7 @@ case class SymTuple(ttype: Tuple, name: String) extends SymVar(ttype, name) {
         new SymTuple(ttype, name)
     }
 }
+*/
 
 case class SymOp(atype: VType, op: ArithmeticOp) /*extends Terminal*/ {
     val actualType = atype
@@ -131,7 +135,6 @@ case class SymStringOp(atype: VType, op: StringOp) /*extends Terminal*/ {
                 throw new NotSupportedRightNow("String Operator no tsupported")
         }
     }
-
 }
 
 case class ConcreteValue(atype: VType, var value: String) extends Expr {
@@ -179,12 +182,10 @@ case class ConcreteValue(atype: VType, var value: String) extends Expr {
         return value.toString
     }
 
-    override def deepCopy: ConcreteValue = {
-        new ConcreteValue(actualType, value)
-    }
-}
+    override def deepCopy: ConcreteValue = new ConcreteValue(actualType, value)
 
-// case class UnaryExpr(op: SymOp, right: Expr) extends Expr{}
+    override def replace(thisVar: SymVar, other: SymVar): ConcreteValue = {this}
+}
 
 case class NonTerminal(left: Expr, middle: SymOp, right: Expr) extends Expr {
     val op: SymOp = middle
@@ -216,8 +217,10 @@ case class NonTerminal(left: Expr, middle: SymOp, right: Expr) extends Expr {
 
     }
 
-    override def deepCopy(): NonTerminal = {
-        new NonTerminal(left.deepCopy, middle, right.deepCopy)
+    override def deepCopy: NonTerminal = new NonTerminal(left.deepCopy, middle, right.deepCopy)
+
+    override def replace(thisVar: SymVar, other: SymVar): NonTerminal = {
+        new NonTerminal(left.replace(thisVar, other), middle, right.replace(thisVar, other))
     }
 }
 
@@ -262,7 +265,9 @@ case class StringExpr(obj: Expr, op: SymStringOp, opr: Array[Expr]) extends Expr
 
     }
 
-    override def deepCopy(): StringExpr = {
-        new StringExpr(obj.deepCopy, op, opr.clone())
+    override def deepCopy: StringExpr = new StringExpr(obj.deepCopy, op, opr.clone())
+
+    override def replace(thisVar: SymVar, other: SymVar): StringExpr = {
+        new StringExpr(obj.replace(thisVar, other), op, opr.map(_.replace(thisVar, other)))
     }
 }

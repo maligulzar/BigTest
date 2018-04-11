@@ -1,5 +1,5 @@
-//Join 1: x is in both S1 and S2 
-//------------------- 
+//Join 1: x is in both S1 and S2
+//-------------------
 //returns c = 16
 (declare-fun S1 (Int) Bool)
 (declare-fun S2 (Int) Bool)
@@ -27,6 +27,8 @@
 //S2 = {16, 17, 19, 31, 40, 7735}
 //--------------------
 
+(set-option :interactive-mode true)
+
 (declare-fun S1 (Int) Bool)
 (declare-fun S2 (Int) Bool)
 
@@ -35,13 +37,13 @@
 //and p1.key = p2.key
 //E p1, p2: p1.key is in S1 and p2.key is in S2 and p1.key = p2.key and pA(p1) and pB(p2)
 
-(declare-datatypes (T1 T2) ((Pair (mkPair (first T1) (second T2)))))
-(declare-const p1 (Pair Int Int))
-(declare-const p2 (Pair Int Int))
+//(declare-datatypes (T1 T2) ((Pair (mkPair (first T1) (second T2)))))
+//(declare-const p1 (Pair Int Int))
+//(declare-const p2 (Pair Int Int))
 
-(assert (S1 (first p1)) )
-(assert (= (first p1) (first p2)))
-
+//(assert (S1 (first p1)))
+//(assert (> (first p1) 0))
+//(assert (= (first p1) (first p2)))
 
 
 //E c1: c1 is in S1 and c1 is in S2 and pA(c1) and pB(c1)
@@ -66,16 +68,15 @@
 (check-sat)
 (get-model)
 
-
 //---------------------------- S1 = {1, 2, 16, 17}, S2 = {2, 4, 17, 18}
 (declare-fun S1 (Int) Bool)
 (declare-fun S2 (Int) Bool)
-(assert (forall ((x Int)) 
+(assert (forall ((x Int))
   (not (xor
-    (and (and (and (not (= x 1)) (not (= x 2))) (not (= x 16))) (not (= x 17))) 
+    (and (and (and (not (= x 1)) (not (= x 2))) (not (= x 16))) (not (= x 17)))
     (not (S1 x))))
 ))
-(assert (forall ((x Int)) 
+(assert (forall ((x Int))
   (not (xor
     (and (and (and (not (= x 2)) (not (= x 4))) (not (= x 17))) (not (= x 18)))
     (not (S2 x))))

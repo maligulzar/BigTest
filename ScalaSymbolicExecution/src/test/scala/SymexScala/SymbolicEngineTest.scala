@@ -1,4 +1,4 @@
-package SymexScala
+package symexScala
 
 import org.scalatest._
 import org.apache.spark.{ SparkContext, SparkConf }
@@ -28,7 +28,7 @@ class SymbolicEngineTest extends FlatSpec with BeforeAndAfterAll with Matchers {
         assert(engineResult.paths(0).pathConstraint.toString == "x0 <= 100")
         assert(engineResult.paths(0).effects(0)._1.equals(new SymVar(Numeric(_Int), "x1")))
         assert(engineResult.paths(0).effects(0)._2.equals(new ConcreteValue(Numeric(_Int), "0")))
-        
+
         assert(engineResult.paths(1).toString == "path constraint: {x0 > 100}\t effect: {x1 = x0} ---------")
         assert(engineResult.paths(1).pathConstraint.toString == "x0 > 100")
         val x1 = new SymVar(Numeric(_Int), "x1")
@@ -49,7 +49,7 @@ class SymbolicEngineTest extends FlatSpec with BeforeAndAfterAll with Matchers {
         assert(engineResult.paths(0).pathConstraint.toString == "0 > 0 && x <= 100")
         assert(engineResult.paths(0).effect._1.equals(new SymVar(Numeric(_Int), "x")))
         assert(engineResult.paths(0).effect._2(0).equals(new ConcreteValue(Numeric(_Int), "0")))
-        
+
         assert(engineResult.paths(1).toString == "path constraint: {x + 1 > 0 && x > 100}\t effect: {x = x + 1} ---------")
         assert(engineResult.paths(1).pathConstraint.toString == "x + 1 > 0 && x > 100")
         val x = new SymVar(Numeric(_Int), "x")
@@ -60,7 +60,7 @@ class SymbolicEngineTest extends FlatSpec with BeforeAndAfterAll with Matchers {
         assert(engineResult.terminating(0).pathConstraint.toString == "0 <= 0 && x <= 100")
         assert(engineResult.terminating(0).effect._1.equals(new SymVar(Numeric(_Int), "x")))
         assert(engineResult.terminating(0).effect._2(0).equals(new ConcreteValue(Numeric(_Int), "0")))
-        
+
         assert(engineResult.terminating(1).toString == "path constraint: {x + 1 <= 0 && x > 100}\t effect: {x = x + 1} ---------")
         assert(engineResult.terminating(1).pathConstraint.toString == "x + 1 <= 0 && x > 100")
         assert(engineResult.terminating(1).effect._1.equals(x))
@@ -82,7 +82,7 @@ class SymbolicEngineTest extends FlatSpec with BeforeAndAfterAll with Matchers {
         assert(engineResult.paths(0).pathConstraint.toString == "0 >= 200 && 0 > 0 && x <= 100")
         assert(engineResult.paths(0).effect._1.equals(x))
         assert(engineResult.paths(0).effect._2.size == 2)
-        
+
         assert(engineResult.paths(1).toString == "path constraint: {0 < 200 && 0 > 0 && x <= 100}\t effect: {x = 0, x = -200} ---------")
         assert(engineResult.paths(1).pathConstraint.toString == "0 < 200 && 0 > 0 && x <= 100")
         assert(engineResult.paths(1).effect._1.equals(x))
@@ -92,7 +92,7 @@ class SymbolicEngineTest extends FlatSpec with BeforeAndAfterAll with Matchers {
         assert(engineResult.paths(2).pathConstraint.toString == "x + 1 >= 200 && x + 1 > 0 && x > 100")
         assert(engineResult.paths(2).effect._1.equals(x))
         assert(engineResult.paths(2).effect._2.size == 2)
-        
+
         assert(engineResult.paths(3).toString == "path constraint: {x + 1 < 200 && x + 1 > 0 && x > 100}\t effect: {x = x + 1, x = -200} ---------")
         assert(engineResult.paths(3).pathConstraint.toString == "x + 1 < 200 && x + 1 > 0 && x > 100")
         assert(engineResult.paths(3).effect._1.equals(x))
@@ -103,7 +103,7 @@ class SymbolicEngineTest extends FlatSpec with BeforeAndAfterAll with Matchers {
         assert(engineResult.terminating(0).pathConstraint.toString == "0 <= 0 && x <= 100")
         assert(engineResult.terminating(0).effect._1.equals(new SymVar(Numeric(_Int), "x")))
         assert(engineResult.terminating(0).effect._2(0).equals(new ConcreteValue(Numeric(_Int), "0")))
-        
+
         assert(engineResult.terminating(1).toString == "path constraint: {x + 1 <= 0 && x > 100}\t effect: {x = x + 1} ---------")
         assert(engineResult.terminating(1).pathConstraint.toString == "x + 1 <= 0 && x > 100")
         assert(engineResult.terminating(1).effect._1.equals(x))
@@ -143,26 +143,26 @@ class SymbolicEngineTest extends FlatSpec with BeforeAndAfterAll with Matchers {
         assert(engineResult.terminating(0).pathConstraint.toString == "0 <= 10 && x <= 100")
         assert(engineResult.terminating(0).effect._1.equals(x))
         assert(engineResult.terminating(0).effect._2(0).equals(new ConcreteValue(Numeric(_Int), "0")))
-        
+
         assert(engineResult.terminating(1).pathConstraint.toString == "x <= 10 && x > 100")
         assert(engineResult.terminating(1).effect._1.equals(x))
         assert(engineResult.terminating(1).effect._2(0).equals(x))
-        
+
         assert(engineResult.terminating(2).pathConstraint.toString == "0 <= 0 && 0 >= 200 && 0 > 10 && x <= 100")
         assert(engineResult.terminating(2).effect._1.equals(x))
         assert(engineResult.terminating(2).effect._2(0).equals(new ConcreteValue(Numeric(_Int), "0")))
         assert(engineResult.terminating(2).effect._2(1).equals(new ConcreteValue(Numeric(_Int), "0")))
-        
+
         assert(engineResult.terminating(3).pathConstraint.toString == "-200 <= 0 && 0 < 200 && 0 > 10 && x <= 100")
         assert(engineResult.terminating(3).effect._1.equals(x))
         assert(engineResult.terminating(3).effect._2(0).equals(new ConcreteValue(Numeric(_Int), "0")))
         assert(engineResult.terminating(3).effect._2(1).equals(new ConcreteValue(Numeric(_Int), "-200")))
-        
+
         assert(engineResult.terminating(4).pathConstraint.toString == "x <= 0 && x >= 200 && x > 10 && x > 100")
         assert(engineResult.terminating(4).effect._1.equals(x))
         assert(engineResult.terminating(4).effect._2(0).equals(x))
         assert(engineResult.terminating(4).effect._2(1).equals(x))
-        
+
         assert(engineResult.terminating(5).pathConstraint.toString == "-200 <= 0 && x < 200 && x > 10 && x > 100")
         assert(engineResult.terminating(5).effect._1.equals(x))
         assert(engineResult.terminating(5).effect._2(0).equals(x))
@@ -172,7 +172,7 @@ class SymbolicEngineTest extends FlatSpec with BeforeAndAfterAll with Matchers {
 
 */
     // "testMapFilter(Effect)" should "return path constraint correctly for proceeding non-terminating paths including the effect of previous udf" in {
-    //     val sourceCode = """map((x: Int, y: Int) => 
+    //     val sourceCode = """map((x: Int, y: Int) =>
     //                             if(x > 100) {
     //                                 x = x * 4;
     //                                 y = y - 20;

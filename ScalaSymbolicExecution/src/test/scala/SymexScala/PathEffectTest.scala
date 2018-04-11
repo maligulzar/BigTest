@@ -1,4 +1,4 @@
-package SymexScala
+package symexScala
 
 import org.scalatest._
 import org.apache.spark.{ SparkContext, SparkConf }

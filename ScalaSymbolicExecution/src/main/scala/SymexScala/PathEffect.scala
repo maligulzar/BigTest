@@ -10,7 +10,7 @@ class PathEffect(pc: Constraint, udfEffect: ArrayBuffer[Tuple2[SymVar, Expr]]) {
     var effects: ArrayBuffer[Tuple2[SymVar, Expr]] = udfEffect
 
     def this(c: Constraint) {
-        this(c, new ArrayBuffer[Tuple2[SymVar, Expr]]()) //no effects on variables
+        this(c, new ArrayBuffer[Tuple2[SymVar, Expr]](0)) //no effects on variables
     }
 
     override def toString: String = {
@@ -20,11 +20,7 @@ class PathEffect(pc: Constraint, udfEffect: ArrayBuffer[Tuple2[SymVar, Expr]]) {
         }
         if (effects.size > 0) eString = eString.substring(0, eString.length - 2)
 
-        // if(pathConstraint.clauses.size > 1) {
-        //     eString += " && x2 = x1"
-        // }
-
-        "path constraint: {" + pathConstraint.toString + "}\t effect: {" + eString + "} ---------"
+        "path constraint: {" + pathConstraint.toString + "}\t effect: {" + eString + "}"
     }
 
     def addEffect(_var: SymVar, updatedExpr: Expr) = {
@@ -106,6 +102,20 @@ class PathEffect(pc: Constraint, udfEffect: ArrayBuffer[Tuple2[SymVar, Expr]]) {
             this.effects.copyToBuffer(effectsCopy)
         }
         new PathEffect(this.pathConstraint.deepCopy, effectsCopy)
+    }
+
+    //Shagha: Should return a new instance of PathEffect
+    def replace(thisVar: SymVar, other: SymVar): PathEffect = {
+        val effectsCopy = new ArrayBuffer[Tuple2[SymVar, Expr]]()
+        for(e <- this.effects) {
+            val newRHS: Expr = e._2.replace(thisVar, other)
+            if(e._1.equals(thisVar)) {
+                effectsCopy += new Tuple2(thisVar, newRHS)
+            }
+            else effectsCopy += new Tuple2(e._1, newRHS)
+        }
+        val replacedPath = this.pathConstraint.replace(thisVar, other)
+        new PathEffect(replacedPath, effectsCopy)
     }
 
     /*

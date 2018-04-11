@@ -1,4 +1,4 @@
-package SymexScala
+package symexScala
 
 import org.scalatest._
 import org.apache.spark.{ SparkContext, SparkConf }
@@ -18,7 +18,7 @@ import ArithmeticOp._
 class SymbolicResultTest extends FlatSpec with BeforeAndAfterAll with Matchers {
 
     private var pe: PathEffect = null
-    
+
     override def beforeAll() {
         val x0 = new SymVar(Numeric(_Int), "x0")
         val c :Array[Clause] = Array(new Clause(x0,
