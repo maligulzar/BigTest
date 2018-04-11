@@ -14,7 +14,8 @@ object ComparisonOp extends Enumeration {
     val GreaterThanOrEq = Value(">=")
     val Equals = Value("equals")
     val Notequals = Value("notequals")
-    
+    val isIn = Value("isIn")
+    val isNotIn = Value("isNotIn")
 
     //def isComparisonOp(s: String): Boolean = values.exists(_.toString == s)
 }
@@ -37,6 +38,11 @@ class Constraint(c: Array[Clause]) {
         this(new Array[Clause](0))
     }
 
+      def replace(thisVar: SymVar, other: SymVar): Constraint = {
+        val replacedArray = clauses.map(_.replace(thisVar, other))
+        new Constraint(replacedArray)
+    }
+    
     override def toString: String = {
         if (clauses.length == 0)
             return ""
@@ -222,5 +228,9 @@ class Clause(left: Expr, op: ComparisonOp = null, right: Expr = null) {
 
         if (rightExpr != null) leftRes && rightExpr.checkValidity(ss)
         else leftRes
+    }
+      def replace(thisVar: SymVar, other: SymVar): Clause = {
+        if(rightExpr != null) new Clause(leftExpr.replace(thisVar, other), compOp, rightExpr.replace(thisVar, other))
+        else new Clause(leftExpr.replace(thisVar, other))
     }
 }

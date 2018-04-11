@@ -22,6 +22,7 @@ object StringOp extends Enumeration {
     val Length = Value("Length") 
     val ToInt = Value("VALUEOF") 
     val Splitn = Value("splitn")
+    val Concat = Value("concat")
     
 }
 
@@ -30,21 +31,18 @@ import StringOp._
 
 
 abstract class Expr {
-    val actualType: VType
+    var actualType: VType
 
     def toString: String
     def applyEffect(x: SymVar, effect: Expr): Expr
     def checkValidity(ss: SymbolicState): Boolean
     def toZ3Query(initials : Z3QueryState ): String
     def deepCopy: Expr
+     def replace(thisVar: SymVar, other: SymVar): Expr
 
 }
 
 abstract class Terminal extends Expr {}
-
-abstract class SymRDD extends Terminal {
-    def getName: String
-}
 
 
 
@@ -82,6 +80,8 @@ case class SymStringOp(atype: VType, op: StringOp) /*extends Terminal*/ {
               "str.to.int"
         case Splitn =>
               "splitn"
+        case Concat =>
+               "str.++"
         case _ =>
           
           throw new NotSupportedRightNow("String Operator not supported")
@@ -123,7 +123,7 @@ case class SymTuple(ttype: Tuple, name: String) extends SymVar(ttype, name) {
 */
 
 case class ConcreteValue(atype: VType, var value: String) extends Expr {
-    val actualType = atype
+    var actualType = atype
     //check validity of passed ConcreteValue
     assert(atype match {
         case t: Numeric => try {
@@ -170,20 +170,22 @@ case class ConcreteValue(atype: VType, var value: String) extends Expr {
     override def deepCopy: ConcreteValue = {
         new ConcreteValue(actualType, value)
     }
+    
+    override def replace(thisVar: SymVar, other: SymVar): ConcreteValue = {this}
 }
 
 // case class UnaryExpr(op: SymOp, right: Expr) extends Expr{}
 
 case class NonTerminal(left: Expr, middle: SymOp, right: Expr) extends Expr {
     val op: SymOp = middle
-
+    
     val leftExpr: Expr = left
     val rightExpr: Expr = right
 
     //check validity of this partial expression before proceeding
     assert(left != null && right != null)
     assert(op.actualType == leftExpr.actualType && op.actualType == rightExpr.actualType)
-    val actualType = op.actualType
+    var actualType = op.actualType
 
     override def toString(): String = {
         left.toString + " " + op.toString + " " + right.toString
@@ -207,6 +209,9 @@ case class NonTerminal(left: Expr, middle: SymOp, right: Expr) extends Expr {
     override def deepCopy(): NonTerminal = {
         new NonTerminal(left.deepCopy, middle, right.deepCopy)
     }
+    override def replace(thisVar: SymVar, other: SymVar): NonTerminal = {
+        new NonTerminal(left.replace(thisVar, other), middle, right.replace(thisVar, other))
+    }
 }
 
 
@@ -216,7 +221,7 @@ case class StringExpr(obj: Expr, op: SymStringOp , opr:Array[Expr]) extends Expr
     //check validity of this partial expression before proceeding
     assert(obj != null)
    // assert(op.actualType == obj.actualType )//&& op.actualType == rightExpr.actualType)
-    val actualType = op.actualType
+    var actualType = op.actualType
 
     override def toString(): String = {
         obj.toString + " " + op.toString + " " + {
@@ -278,5 +283,8 @@ case class StringExpr(obj: Expr, op: SymStringOp , opr:Array[Expr]) extends Expr
 
     override def deepCopy(): StringExpr = {
         new StringExpr(obj.deepCopy, op, opr.clone())
+    }
+     override def replace(thisVar: SymVar, other: SymVar): StringExpr = {
+        new StringExpr(obj.replace(thisVar, other), op, opr.map(_.replace(thisVar, other)))
     }
 }

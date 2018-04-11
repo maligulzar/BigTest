@@ -271,4 +271,16 @@ public class NamedFields extends Fields {
     super.copyAttrs(other);
   }
 
+@Override
+public String getStringValue(int index) {
+	// TODO Auto-generated method stub
+	return null;
+}
+
+@Override
+public void setStringValue(int index, String newValue) {
+	// TODO Auto-generated method stub
+	
+}
+
 }

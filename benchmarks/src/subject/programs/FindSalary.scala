@@ -4,7 +4,7 @@ import org.apache.spark.{SparkConf, SparkContext}
 /**
   * Created by malig on 3/27/18.
   */
-object SalaryAverage {
+object FindSalarySum {
   def main(args: Array[String]): Unit = {
     val conf = new SparkConf()
     conf.setMaster("local[*]")
@@ -28,6 +28,17 @@ object SalaryAverage {
 }
 
 /***
+
+
+
+
+
+
+
+
+
+  sc.textFile("hdfs://scai01.cs.ucla.edu:9000/clash/datasets/bigsift/income/*").map{ line => if (line.substring(0, 1).equals("$")) { var i = line.substring(1); i } else {line}}.map(p => Integer.parseInt(p)).filter( r => r < 300).reduce(_+_)
+
 
 
   (define-fun integer ((x!1 String) (x!2 String) (x!3 String)) Bool

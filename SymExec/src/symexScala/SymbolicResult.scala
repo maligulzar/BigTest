@@ -95,7 +95,10 @@ class SymbolicResult(ss: SymbolicState,
             val result: Int = commandExecutor.executeCommand();
             val stdout: java.lang.StringBuilder = commandExecutor.getStandardOutputFromCommand
             val stderr: java.lang.StringBuilder = commandExecutor.getStandardErrorFromCommand
-            println("Model --> " + stdout.toString)
+            println("********** Satisfying Assigments **********************************************")
+            println(stdout.toString)
+            println("*******************************************************************************")
+            
             println("\n" + stderr.toString)
             return stdout.toString()
         }
@@ -274,6 +277,30 @@ class SymbolicResult(ss: SymbolicState,
         val input = if(this.symInput.length == 0) udfSymbolicResult.symInput else this.symInput
         new SymbolicResult(this.state, product, this.terminating, input, udfSymbolicResult.symOutput)
     }
+        
+        def reduceByKey(udfSymbolicResult: SymbolicResult): SymbolicResult = {
+          assert(this.symOutput.length>=2 , "ReduceByeKey is not Applicable, Effect of previous is not tuple")
+        //returns Cartesian product of already existing paths *  set of paths from given udf
+          
+          val tempSymOutput = Array(this.symOutput(1))
+        val product = new Array[PathEffect](paths.size * udfSymbolicResult.numOfPaths)
+        var i = 0  
+        for(pa <- this.paths) {
+            for(udfPath <- udfSymbolicResult.paths) {
+                //udf -> (x2, x3) / rdd -> (x0, x1) => link -> (x2 = x1)
+                val link: Tuple2[Array[SymVar], Array[SymVar]] = 
+                    if(this.symOutput != null) new Tuple2(udfSymbolicResult.symInput.asInstanceOf[Array[SymVar]], tempSymOutput)
+                    else null
+
+                product(i) = udfPath.conjunctPathEffect(pa, link)
+                i += 1
+            }
+        }
+        val input = if(this.symInput.length == 0) udfSymbolicResult.symInput else this.symInput
+        val finalSymOutput = Array(this.symOutput(0)) ++ udfSymbolicResult.symOutput
+        new SymbolicResult(this.state, product, this.terminating, input, finalSymOutput)
+    }
+
 
     def filter(udfSymbolicResult: SymbolicResult): SymbolicResult = {
         val product = new ArrayBuffer[PathEffect]()
@@ -317,47 +344,8 @@ class SymbolicResult(ss: SymbolicState,
     }
 
     def join(secondRDD: SymbolicResult): SymbolicResult = {
-        val product = new Array[PathEffect](paths.size * secondRDD.numOfPaths)
-
-        val joinedPaths = new Array[PathEffect](paths.size * secondRDD.numOfPaths)
-
-        val terminatingPaths = new ArrayBuffer[TerminatingPath]()
-        if(this.terminating != null) {
-            terminatingPaths ++= this.terminating
-        }
-        if(secondRDD.terminating != null) {
-            terminatingPaths ++= secondRDD.terminating
-        }
-
-        var i = 0  
-        for(pa <- this.paths) {
-            for(secondPath <- secondRDD.paths) {
-                //TODO: rdd -> (x0, x1) and second -> (x2, x3) => link -> ???
-                val link: Tuple2[SymVar, SymVar] = null
-    // product(i) = secondPath.conjunctPathEffect(pa, link)
-                i += 1
-            }
-        }
-          
-        for(i <- 0 until product.length) {
-            val c1 :Array[Clause] = Array(new Clause(this.symOutput.asInstanceOf[SymTuple]._1,Equality,
-                                                    secondRDD.symOutput.asInstanceOf[SymTuple]._1))
-            val keysEq = new Constraint(c1)
-            joinedPaths(i) = product(i).conjunctPathEffect(new PathEffect(keysEq), null)
-
-            val c2 :Array[Clause] = Array(new Clause(this.symOutput.asInstanceOf[SymTuple]._1,Inequality,
-                                                    secondRDD.symOutput.asInstanceOf[SymTuple]._1))
-            
-            // terminatingPaths += product(i).conjunctPathEffect(new TerminatingPath(new Constraint(c2)))
-            terminatingPaths += new TerminatingPath(new Constraint(c2)).conjunctPathEffect(product(i))
-        }
-
-
-       // val input = new SymTuple(Tuple(this.symInput.actualType, secondRDD.symInput.actualType), "x0-x1")
-        //val output = new SymTuple(Tuple(Numeric(_Int), Tuple(Numeric(_Int), Numeric(_Int))), "x0.x1")
-                              // val input = if(this.symInput == null) udfSymbolicResult.symInput else this.symInput
-      //  return new SymbolicResult(this.state, joinedPaths, terminatingPaths, input, output, true)
-          return new SymbolicResult(this.state, joinedPaths, terminatingPaths)
+      JoinSymbolicResult.apply(this.state, this, secondRDD)
+      
     }
 
     // override def equals(other: Any): Boolean = {

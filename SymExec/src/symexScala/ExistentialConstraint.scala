@@ -3,29 +3,21 @@ package symexScala
 import ComparisonOp._
 import NumericUnderlyingType._
 
-//TODO: change base Constraint class to a clause and a list of (rest of) Constraints -> so as to have Existential Constraint nested
-//E x such that x isAMemberOF SYM_A, or !E x such that x isAMemberOF SYM_A ->
-class ExistentialConstraint(nextIndex: Int, isNonExis: Boolean = false, c: Array[Clause] = new Array[Clause](0)) extends Constraint(c) {
-    //TODO: assumes type int for the existentialVar
-    val existentialVar: SymVar = new SymVar(Numeric(_Int), "c"+nextIndex)
-    
+/* **NOTE**
+ I am assuming that we HAVE ALREADY REPLACED A.Key or B.key (rhs of predicate) with the existential var in (rest: Constraint)
+*/
+class ExistentialConstraint(existentialVar: SymVar,
+                            rest: Array[Clause])
+                            extends Constraint(rest) {
 
-    def addCluase(other: Expr, op: ComparisonOp) = {
-        clauses = new Clause(other, op, existentialVar) +: clauses
+    //similar to conjunctWith
+    def addCluase(op: ComparisonOp, keySet: SymVar) = {
+        clauses = new Clause(existentialVar, op, keySet) +: clauses
     }
 
     override def toString: String = {
-        if (clauses.length == 0)
-            return ""
-
-        var result = ""
-        if(isNonExis) result += "!"
-        result += "E c"+nextIndex+": "
-        result += clauses(0).toString
-        for (i <- 1 to clauses.length - 1) {
-            result += " && " + clauses(i)
-        }
-        result
+        if (clauses.length == 0) return ""
+        s"E ${existentialVar.getName}: ${clauses.mkString(" && ")}"
     }
 
     //TODO:
@@ -36,6 +28,6 @@ class ExistentialConstraint(nextIndex: Int, isNonExis: Boolean = false, c: Array
     override def deepCopy: ExistentialConstraint = {
         val newArray = new Array[Clause](this.clauses.size)
         this.clauses.copyToArray(newArray) //TODO TEST: might shallow copying the clauses
-        new ExistentialConstraint(nextIndex, isNonExis, newArray)
+        new ExistentialConstraint(existentialVar.deepCopy, newArray)
     }
 }

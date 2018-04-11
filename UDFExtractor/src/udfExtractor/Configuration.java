@@ -21,7 +21,7 @@ public class Configuration {
     static String Z3_LIB = "/Users/malig/workspace/up_jpf/z3/build/";
     static String PYTHON_PATH = "/Users/malig/workspace/up_jpf/z3/build/python";
 
-    static String arr[] = "map,flatmap,filter,reduceByKey,reduce".split(",");
+    static String arr[] = "map,flatmap,filter,reduceByKey,reduce,reduceByKey".split(",");
     static ArrayList<String> spark_ops = new ArrayList<>(Arrays.asList(arr));
     static HashMap<String, String> map_args = new HashMap<>();
 

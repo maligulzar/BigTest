@@ -458,6 +458,7 @@ public class SymbolicListener extends PropertyListenerAdapter implements Publish
 								}
 								//ArrayList<Expression> a = new ArrayList<>();
 								//a.add(result);
+								if(resultp.size() >0 && (pc.header != null || pc.spc.header != null))
 								pathAndEffectL.addPCPair(pc, resultp); 
 								/*
 								 * pcString = pc.toString(); pcPair = new Pair<String,String>(pcString,returnString);
@@ -783,13 +784,13 @@ public class SymbolicListener extends PropertyListenerAdapter implements Publish
 									if (objIndex == MJIEnv.NULL){
 										exp = new IntegerConstant(objIndex);
 									//	pc._addDet(Comparator.EQ, symField, exp);
-										e_list.add( exp);
+										//e_list.add( exp);
 									}else{
 										exp = nameMap.get(new Integer(objIndex));
 										if (null == exp)
 											exp = new IntegerConstant(objIndex);
 									//	pc._addDet(Comparator.EQ, symField, exp);
-										e_list.add(exp);
+										//e_list.add(exp);
 										if (objIndex != objNum && !seenSet.contains(objIndex) && objIndex != MJIEnv.NULL)
 											expandReferenceObject(e_list,ti,ci,objIndex);
 									}

@@ -54,7 +54,7 @@ class PathEffect(pc: Constraint, udfEffect: ArrayBuffer[Tuple2[SymVar, Expr]]) {
       for( (k,v) <- state.split ){
           val del = v.del
           val arr = v.str_arr
-          val query  = arr.reverse.map(s=> if(s==null) "\"\"" else s).reduce((a,b) => "(str.++ " + "(str.++ " + b +del+" )  " + a +")")
+          val query  = arr.reverse.map(s=> if(s==null) "\" \"" else s).reduce((a,b) => "(str.++ " + "(str.++ " + b +del+" )  " + a +")")
          s = s  +"\n"+ s"""(assert (= ${k} ${query})) """
       }
       s
@@ -182,6 +182,20 @@ class PathEffect(pc: Constraint, udfEffect: ArrayBuffer[Tuple2[SymVar, Expr]]) {
         new PathEffect(this.pathConstraint.deepCopy, effectsCopy)
     }
     
+    
+        //Shagha: Should return a new instance of PathEffect
+    def replace(thisVar: SymVar, other: SymVar): PathEffect = {
+        val effectsCopy = new ArrayBuffer[Tuple2[SymVar, Expr]]()
+        for(e <- this.effects) {
+            val newRHS: Expr = e._2.replace(thisVar, other)
+            if(e._1.equals(thisVar)) {
+                effectsCopy += new Tuple2(thisVar, newRHS)
+            }
+            else effectsCopy += new Tuple2(e._1, newRHS)
+        }
+        val replacedPath = this.pathConstraint.replace(thisVar, other)
+        new PathEffect(replacedPath, effectsCopy)
+    }
 
     /*
         returns a new instance of PathEffect 

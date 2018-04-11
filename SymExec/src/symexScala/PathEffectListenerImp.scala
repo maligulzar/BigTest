@@ -72,7 +72,7 @@ class PathEffectListenerImp extends PathEffectListener  {
                 var opStr = i.getOp().toString().replaceAll("\\s", "")
                 if(opStr != "+" && opStr != "-" && opStr != "*" && opStr != "/") throw new NotSupportedRightNow(opStr)
                 
-                if(opStr == "/" ){
+                if(opStr == "/" && !right.isInstanceOf[ConcreteValue] ){
                    val t =  new Clause(right,  ComparisonOp.Equality , new ConcreteValue(Numeric(_Int), "0" ))
                    terminating.add(new TerminatingPath(new Constraint(Array(t))))
                 }
@@ -217,6 +217,17 @@ class PathEffectListenerImp extends PathEffectListener  {
         se match {
             case i: DerivedStringExpression => {
               val  op  = i.op
+              if(i.oprlist==null){
+                var opStr = op.toString().replaceAll("\\s", "")
+                val oper = new SymStringOp(NonNumeric(_String), StringOp.withName(opStr))  
+                   if(oper.op ==StringOp.Concat){
+                    val right = convertExpressionToExpr(i.right)
+                    val left = convertExpressionToExpr(i.left)
+                      var opStr = op.toString().replaceAll("\\s", "")
+                    val oper = new SymStringOp(NonNumeric(_String), StringOp.withName(opStr))  
+                    return new StringExpr(left,oper, Array(right))
+                  }
+                }
               val stringsym = convertExpressionToExpr(i.oprlist(0))
               val len_par = i.oprlist.length
               var pars = new Array[Expr](len_par-1)
@@ -241,14 +252,14 @@ class PathEffectListenerImp extends PathEffectListener  {
                 case e: Exception=>
                   throw new NotSupportedRightNow(opStr)
                 }
-              new StringExpr(stringsym, oper, pars) /// fix this 
+              return new StringExpr(stringsym, oper, pars) /// fix this 
           /// Write implementation here
             }
-            case c: StringConstant => new ConcreteValue(NonNumeric(_String), c.value())
+            case c: StringConstant => return new ConcreteValue(NonNumeric(_String), c.value())
             case s: StringSymbolic => {
                     val intVar = argsMap.getOrElse(s.getName().replace("_SYMSTRING", ""), null)
                     if(intVar == null) 
-                        new SymVar(NonNumeric(_String), fixArrayName(s.getName()))
+                     return   new SymVar(NonNumeric(_String), fixArrayName(s.getName()))
                     else intVar
                 }
             case _ => throw new NotSupportedRightNow(se.getClass.getName)
@@ -335,7 +346,7 @@ class PathEffectListenerImp extends PathEffectListener  {
         }
         var clses  = List[Clause]()
         for((k,v) <- this.argsMap){
-          clses = new Clause(new SymVar(v.atype, k+"_"+udfFileName),  
+          clses = new Clause(new SymVar(v.actualType, k+"_"+udfFileName),  
               ComparisonOp.withName("=") ,
               v) ::clses
         }
@@ -373,6 +384,7 @@ class PathEffectListenerImp extends PathEffectListener  {
                 throw new NotSupportedRightNow("more than 2 input arguments!")
             }
 
+        
         allPathEffects = new Array[PathEffect](pathVector.size())
         var outputV: Array[SymVar] = new Array[SymVar](pathVector.get(0)._2.size())
         for (i <- 0 until pathVector.size) {

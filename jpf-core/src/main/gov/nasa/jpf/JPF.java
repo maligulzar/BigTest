@@ -196,7 +196,8 @@ public class JPF implements Runnable {
 				if(args.length > 1) {
 					if(args[0].equals("-enableBT")) {
 						args[0]=args[1];
-						Runner.main(args);
+							long start = System.currentTimeMillis();
+							Runner.main(args);
 						ArrayList<JPFDAGNode> paths = Runner.getDataFlowDAG();
 						SymbolicState symState = new SymbolicState();
 						SymbolicResult currentPaths = new SymbolicResult(symState);
@@ -220,10 +221,16 @@ public class JPF implements Runnable {
 								break;
 							case "reduce" :
 								currentPaths = currentPaths.reduce(udfResult);
-								break; 	
+								break;
+							case "reduceByKey" :
+								currentPaths = currentPaths.reduceByKey(udfResult);
+								break;
 							default: 
 								throw new RuntimeException("This data flow operation is yet not supported!");
 							}
+							System.out.println("===== " +i  + "==========" + currentPaths.toString());
+							
+							
 						
 						}
 						System.out.println("Final Constraints");
@@ -231,6 +238,8 @@ public class JPF implements Runnable {
 						currentPaths.setZ3Dir("/Users/malig/workspace/up_jpf/");
 						currentPaths.setSolver("CVC4");
 						currentPaths.solveWithZ3();
+						
+						System.out.println("Test Generation Time : " + (System.currentTimeMillis() - start) + " ms");
 
 						/**
 						 * Gulzar
@@ -240,7 +249,7 @@ public class JPF implements Runnable {
 						SymbolicState symState = new SymbolicState();
 						SymbolicResult currentPaths = new SymbolicResult(symState);
 						//symbolicheap/StaticTest.jpf
-						Config conf1 = createConfig(new String[] {"/Users/malig/workspace/up_jpf/jpf-symbc/src/examples/map1.jpf"});//"/Users/malig/workspace/up_jpf/jpf-symbc/src/examples/strings/GoodbyeWorld.jpf"});
+						Config conf1 = createConfig(new String[] {"/Users/malig/workspace/up_jpf/jpf-symbc/src/examples/filter2.jpf"});//"/Users/malig/workspace/up_jpf/jpf-symbc/src/examples/strings/GoodbyeWorld.jpf"});
 							JPF jpf = new JPF(conf1);
 							jpf.run();
 							System.out.println("JPF Finished");
@@ -249,7 +258,32 @@ public class JPF implements Runnable {
 							udfResult.setSolver("Z3");
 							udfResult.setZ3Dir("/Users/malig/workspace/up_jpf/");
 							udfResult.solveWithZ3();
-					}else {
+					}else if(args[0].equals("-testjoin")){
+			/// Table1
+						SymbolicState symState = new SymbolicState();
+						SymbolicResult currentPaths = new SymbolicResult(symState);
+						Config conf1 = createConfig(new String[] {"/Users/malig/workspace/up_jpf/jpf-symbc/src/examples/mapjoin1.jpf"});//"/Users/malig/workspace/up_jpf/jpf-symbc/src/examples/strings/GoodbyeWorld.jpf"});
+							JPF jpf = new JPF(conf1);
+							jpf.run();
+							System.out.println("JPF Finished");
+							SymbolicResult udfResult  = jpf.pfl.convertAll(symState, "");
+							System.out.println(udfResult.toString());
+			/// Table 2
+							SymbolicResult currentPaths2 = new SymbolicResult(symState);
+							//symbolicheap/StaticTest.jpf
+							Config conf2 = createConfig(new String[] {"/Users/malig/workspace/up_jpf/jpf-symbc/src/examples/mapjoin2.jpf"});//"/Users/malig/workspace/up_jpf/jpf-symbc/src/examples/strings/GoodbyeWorld.jpf"});
+								JPF jpf2 = new JPF(conf2);
+								jpf2.run();
+								System.out.println("JPF Finished");
+								SymbolicResult udfResult2  = jpf2.pfl.convertAll(symState, "");
+								System.out.println(udfResult2.toString());
+								udfResult = udfResult.join(udfResult2);
+								System.out.println("After Join: \n" + udfResult.toString());
+							udfResult.setSolver("Z3");
+							udfResult.setZ3Dir("/Users/malig/workspace/up_jpf/");
+							udfResult.solveWithZ3();
+						
+			}else {
 						 JPF jpf = new JPF(conf);
 					     jpf.run();
 					     System.out.println("Done Running JPf");

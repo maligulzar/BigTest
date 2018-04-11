@@ -112,6 +112,8 @@ public class UDFWriter {
     		
     	case "String":
     			return "\"a\"";
+    	case "boolean":
+    			return "false";
     			
     	default :
     			return "null";
@@ -211,8 +213,8 @@ public class UDFWriter {
     }
     
     String replaceTuple2(String s) {
-    	return "\nint ia,ib;\n" + 
-    		"String sa,sb;\n" + 
+    	return  "String sa,sb;\n" + 
+    		"\nint ia,ib;\n" +
     		"public int _1(){\n" + 
     		"	return ia;\n" + 
     		"}\n" + 
