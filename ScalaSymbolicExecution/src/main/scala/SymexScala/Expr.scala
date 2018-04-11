@@ -13,22 +13,20 @@ object ArithmeticOp extends Enumeration {
     val Division = Value("/")
 }
 
-
 object StringOp extends Enumeration {
     type StringOp = Value
     val Substr = Value("substring")
     val IndexOf = Value("IndexOf")
-    val CharAt = Value("CharAt") 
-    val Length = Value("Length") 
-    val ToInt = Value("VALUEOF") 
+    val CharAt = Value("CharAt")
+    val Length = Value("Length")
+    val ToInt = Value("VALUEOF")
     val Splitn = Value("splitn")
     val Concat = Value("concat")
-    
+
 }
 
 import ArithmeticOp._
 import StringOp._
-
 
 abstract class Expr {
     var actualType: VType
@@ -36,100 +34,67 @@ abstract class Expr {
     def toString: String
     def applyEffect(x: SymVar, effect: Expr): Expr
     def checkValidity(ss: SymbolicState): Boolean
-    def toZ3Query(initials : Z3QueryState ): String
+    def toZ3Query(initials: Z3QueryState): String
     def deepCopy: Expr
-     def replace(thisVar: SymVar, other: SymVar): Expr
+    def replace(thisVar: SymVar, other: SymVar): Expr
 
 }
 
 abstract class Terminal extends Expr {}
 
-
-
 case class SymOp(atype: VType, op: ArithmeticOp) /*extends Terminal*/ {
     val actualType = atype
-    override def toString: String = { 
-      op match {
-        case Division =>
-              "/"
-        case Multiplication =>
-              "*"
-        case Addition =>
-              "+"
-        case Subtraction =>
-              "-"
-        case _ =>
-          
-          throw new NotSupportedRightNow("String Operator not supported")
-      } }
+    override def toString: String = {
+        op match {
+            case Division =>
+                "/"
+            case Multiplication =>
+                "*"
+            case Addition =>
+                "+"
+            case Subtraction =>
+                "-"
+            case _ =>
+
+                throw new NotSupportedRightNow("String Operator not supported")
+        }
+    }
 }
 
 case class SymStringOp(atype: VType, op: StringOp) /*extends Terminal*/ {
     val actualType = atype
-    override def toString: String = { 
-      op match {
-        case IndexOf =>
-              "str.indexof"
-        case CharAt =>
-              "str.at"
-        case Length =>
-              "str.len"
-        case Substr =>
-              "str.substr"
-        case ToInt =>
-              "str.to.int"
-        case Splitn =>
-              "splitn"
-        case Concat =>
-               "str.++"
-        case _ =>
-          
-          throw new NotSupportedRightNow("String Operator not supported")
-      }
-   }
-    
-}
+    override def toString: String = {
+        op match {
+            case IndexOf =>
+                "str.indexof"
+            case CharAt =>
+                "str.at"
+            case Length =>
+                "str.len"
+            case Substr =>
+                "str.substr"
+            case ToInt =>
+                "str.to.int"
+            case Splitn =>
+                "splitn"
+            case Concat =>
+                "str.++"
+            case _ =>
 
-/*
-case class SymTuple(ttype: Tuple, name: String) extends SymVar(ttype, name) {
-    override val actualType = ttype
-
-    val _1: SymVar = new SymVar(ttype._1Type, name+".key") 
-    val _2: SymVar = new SymVar(ttype._2Type, name+".val")
-
-    def getFirst: SymVar = {_1}
-    def getSecond: SymVar = {_2}
-
-    override def toString: String = name+"=("+_1.getName+", "+_2.getName+")"
-
-    //TODO: update this for tuple
-    override def applyEffect(x: SymVar, effect: Expr): Expr = {
-        if (this.equals(x)) effect
-        else this
-    }
-
-    override def checkValidity(ss: SymbolicState): Boolean = {
-        ss.isDefined(_1)
-        ss.isDefined(_2)
-    }
-
-    //def toZ3Query(initials :HashSet[(String , VType)] ): String
-
-    override def deepCopy: SymTuple = {
-        new SymTuple(actualType, name)
+                throw new NotSupportedRightNow("String Operator not supported")
+        }
     }
 
 }
-*/
 
 case class ConcreteValue(atype: VType, var value: String) extends Expr {
     var actualType = atype
     //check validity of passed ConcreteValue
     assert(atype match {
         case t: Numeric => try {
-          if(value.startsWith("CONST_")){
-            value  = value.substring(6)
-          }
+            if (value.startsWith("CONST_")) {
+                value = value.substring(6)
+            }
             val v = value.toDouble
             true
         } catch {
@@ -143,42 +108,42 @@ case class ConcreteValue(atype: VType, var value: String) extends Expr {
                 } catch {
                     case _: java.lang.IllegalArgumentException => false
                 }
-            } else if(t.underlyingType == _String){
-              val b = value.toString
-              true
-            }else true
+            } else if (t.underlyingType == _String) {
+                val b = value.toString
+                true
+            } else true
     })
 
     override def toString: String = { value.toString /*+" of type "+actualType*/ }
 
-    override def applyEffect(x: SymVar, effect: Expr): Expr = {this}
+    override def applyEffect(x: SymVar, effect: Expr): Expr = { this }
 
-    override def checkValidity(ss: SymbolicState): Boolean = {true}
+    override def checkValidity(ss: SymbolicState): Boolean = { true }
 
-    override def toZ3Query(initials :Z3QueryState): String = {
-     atype match {
-        case t: NonNumeric =>
-           if(t.underlyingType == _String){
-              return s""" "${value}" """
-            }
-        case _ =>
-          //
-    }
-      return value.toString
+    override def toZ3Query(initials: Z3QueryState): String = {
+        atype match {
+            case t: NonNumeric =>
+                if (t.underlyingType == _String) {
+                    return s""" "${value}" """
+                }
+            case _ =>
+            //
+        }
+        return value.toString
     }
 
     override def deepCopy: ConcreteValue = {
         new ConcreteValue(actualType, value)
     }
-    
-    override def replace(thisVar: SymVar, other: SymVar): ConcreteValue = {this}
+
+    override def replace(thisVar: SymVar, other: SymVar): ConcreteValue = { this }
 }
 
 // case class UnaryExpr(op: SymOp, right: Expr) extends Expr{}
 
 case class NonTerminal(left: Expr, middle: SymOp, right: Expr) extends Expr {
     val op: SymOp = middle
-    
+
     val leftExpr: Expr = left
     val rightExpr: Expr = right
 
@@ -199,7 +164,7 @@ case class NonTerminal(left: Expr, middle: SymOp, right: Expr) extends Expr {
         leftExpr.checkValidity(ss) && rightExpr.checkValidity(ss)
     }
 
-    override def toZ3Query(initials :Z3QueryState): String = {
+    override def toZ3Query(initials: Z3QueryState): String = {
         // left.toString + " " + op.toString + " " + right.toString
         s"""(${op.toString}  ${leftExpr.toZ3Query(initials)} ${rightExpr.toZ3Query(initials)} )"""
         //"FIX NON TERMINAL Z3 QUERY"
@@ -214,69 +179,67 @@ case class NonTerminal(left: Expr, middle: SymOp, right: Expr) extends Expr {
     }
 }
 
-
-
-case class StringExpr(obj: Expr, op: SymStringOp , opr:Array[Expr]) extends Expr {
+case class StringExpr(obj: Expr, op: SymStringOp, opr: Array[Expr]) extends Expr {
 
     //check validity of this partial expression before proceeding
     assert(obj != null)
-   // assert(op.actualType == obj.actualType )//&& op.actualType == rightExpr.actualType)
+    // assert(op.actualType == obj.actualType )//&& op.actualType == rightExpr.actualType)
     var actualType = op.actualType
 
     override def toString(): String = {
         obj.toString + " " + op.toString + " " + {
-          if(opr.length!=0)
-            opr.map(s => s.toString).reduce(_+" "+_)
-          else
-            ""
+            if (opr.length != 0)
+                opr.map(s => s.toString).reduce(_ + " " + _)
+            else
+                ""
         }
     }
 
     override def applyEffect(x: SymVar, effect: Expr): Expr = {
-        new StringExpr(obj.applyEffect(x, effect), op, opr.map(s=> s.applyEffect(x, effect)))
+        new StringExpr(obj.applyEffect(x, effect), op, opr.map(s => s.applyEffect(x, effect)))
     }
 
     override def checkValidity(ss: SymbolicState): Boolean = {
         obj.checkValidity(ss) //&& rightExpr.checkValidity(ss)
     }
-    def addStringToStringArray(initials :Z3QueryState, name:String, idx :Int, del: String  , new_name:String){
-         val arr_str = initials.split.getOrElse(name, SplitHandler(Array(),del))
-         if(arr_str.str_arr.length <= idx){
-           val temp_arr = new Array[String](idx+1)
-           for(i <- 0  to arr_str.str_arr.length-1){
-             temp_arr(i) = arr_str.str_arr(i)
-           }
-           temp_arr(idx) = new_name
-           initials.split(name) = SplitHandler(temp_arr, del)
-         }else{
-           arr_str.str_arr(idx) = new_name
-           initials.split(name) = SplitHandler(arr_str.str_arr, del)
-         }
-     } 
-    
-    override def toZ3Query(initials :Z3QueryState): String = {
-      if(op.op  == Splitn){
-            val name  =  obj.toZ3Query(initials)
+    def addStringToStringArray(initials: Z3QueryState, name: String, idx: Int, del: String, new_name: String) {
+        val arr_str = initials.split.getOrElse(name, SplitHandler(Array(), del))
+        if (arr_str.str_arr.length <= idx) {
+            val temp_arr = new Array[String](idx + 1)
+            for (i <- 0 to arr_str.str_arr.length - 1) {
+                temp_arr(i) = arr_str.str_arr(i)
+            }
+            temp_arr(idx) = new_name
+            initials.split(name) = SplitHandler(temp_arr, del)
+        } else {
+            arr_str.str_arr(idx) = new_name
+            initials.split(name) = SplitHandler(arr_str.str_arr, del)
+        }
+    }
+
+    override def toZ3Query(initials: Z3QueryState): String = {
+        if (op.op == Splitn) {
+            val name = obj.toZ3Query(initials)
             val idx = opr(0).toZ3Query(initials)
             val del = opr(1).toZ3Query(initials)
-          val new_name  =  name +idx 
-       /// var temp_name = name.replaceAll("[^A-Za-z0-9]","")
-        initials.init.add((new_name ,  NonNumeric(_String) ))
-        addStringToStringArray(initials, name, idx.toInt, del , new_name)
-        new_name
-      }else{
-        s"""( ${op.toString}  ${obj.toZ3Query(initials)} ${
-          if(opr.length>0) 
-            if(opr.length == 2 && op.op == Substr){
-              val a1 = opr(0).toZ3Query(initials)
-              val a2 = opr(1).toZ3Query(initials)
-              s""" $a1 (- ${a2} ${a1})"""
-            }else
-            opr.map(s => s.toZ3Query(initials)).reduce(_ +" " + _)
-          else 
-              ""
-         } )"""
-      }
+            val new_name = name + idx
+            /// var temp_name = name.replaceAll("[^A-Za-z0-9]","")
+            initials.init.add((new_name, NonNumeric(_String)))
+            addStringToStringArray(initials, name, idx.toInt, del, new_name)
+            new_name
+        } else {
+            s"""( ${op.toString}  ${obj.toZ3Query(initials)} ${
+                if (opr.length > 0)
+                    if (opr.length == 2 && op.op == Substr) {
+                        val a1 = opr(0).toZ3Query(initials)
+                        val a2 = opr(1).toZ3Query(initials)
+                        s""" $a1 (- ${a2} ${a1})"""
+                    } else
+                        opr.map(s => s.toZ3Query(initials)).reduce(_ + " " + _)
+                else
+                    ""
+            } )"""
+        }
         //"FIX NON TERMINAL Z3 QUERY"
 
     }
@@ -284,7 +247,7 @@ case class StringExpr(obj: Expr, op: SymStringOp , opr:Array[Expr]) extends Expr
     override def deepCopy(): StringExpr = {
         new StringExpr(obj.deepCopy, op, opr.clone())
     }
-     override def replace(thisVar: SymVar, other: SymVar): StringExpr = {
+    override def replace(thisVar: SymVar, other: SymVar): StringExpr = {
         new StringExpr(obj.replace(thisVar, other), op, opr.map(_.replace(thisVar, other)))
     }
 }

@@ -1,3 +1,5 @@
+jpf-core/*
+jpf-symbc/*
 */target/*
 */project
 *.jad

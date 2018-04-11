@@ -144,6 +144,9 @@ object JoinSymbolicResult {
         }
 
         for (i <- 0 until product.length) {
+            println("This is the product already!!!")
+            println(product(i))
+            println("End of product --------------------")
             //***Assuming that the first element of symOutput array is the key***
             //product(i) is the rest of the cluases and we need to replace A.key and B.key with the existential var in this rest!
 

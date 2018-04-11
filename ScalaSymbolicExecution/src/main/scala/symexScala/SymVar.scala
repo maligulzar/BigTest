@@ -2,7 +2,7 @@ package symexScala
 
 
 class SymVar(atype: VType, name: String) extends Terminal {
-    
+
     override var actualType = atype
       /**
      * Setting types of the newly introduced return variable in the effect
@@ -16,7 +16,7 @@ class SymVar(atype: VType, name: String) extends Terminal {
 
     override def applyEffect(x: SymVar, effect: Expr): Expr = {
         if (this.equals(x)) effect
-        else this //TODO TEST: may need to do a deep-copy instead of returning the same instance, in case of further effects 
+        else this //TODO TEST: may need to do a deep-copy instead of returning the same instance, in case of further effects
     }
 
     override def checkValidity(ss: SymbolicState): Boolean = {
@@ -32,14 +32,23 @@ class SymVar(atype: VType, name: String) extends Terminal {
     override def deepCopy: SymVar = {
         new SymVar(actualType, name)
     }
-    override def replace(thisVar: SymVar, other: SymVar): SymVar = other
+
+    override def replace(thisVar: SymVar, other: SymVar): SymVar = {
+        if(this.equals(thisVar)) other
+        else this
+    }
+
+    override def equals(that: Any): Boolean = that match {
+        case that: SymVar => this.actualType == that.actualType && this.name == that.getName
+        case _ => false
+    }
 }
 
 
 //case class SymTuple(ttype: Tuple, name: String) extends SymVar(ttype,name) {
 //    //val actualType = ttype
 //
-//    val _1: SymVar = new SymVar(ttype._1Type, name+".key") 
+//    val _1: SymVar = new SymVar(ttype._1Type, name+".key")
 //    val _2: SymVar = new SymVar(ttype._2Type, name+".val")
 //
 //    def getFirst: SymVar = {_1}

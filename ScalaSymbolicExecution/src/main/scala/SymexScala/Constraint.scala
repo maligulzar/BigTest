@@ -26,7 +26,6 @@ object UniaryOp extends Enumeration {
     val NotInteger = Value("notinteger")
 }
 
-
 import ComparisonOp._
 import UniaryOp._
 import gov.nasa.jpf.symbc.string.SymbolicCharAtInteger
@@ -38,11 +37,11 @@ class Constraint(c: Array[Clause]) {
         this(new Array[Clause](0))
     }
 
-      def replace(thisVar: SymVar, other: SymVar): Constraint = {
+    def replace(thisVar: SymVar, other: SymVar): Constraint = {
         val replacedArray = clauses.map(_.replace(thisVar, other))
         new Constraint(replacedArray)
     }
-    
+
     override def toString: String = {
         if (clauses.length == 0)
             return ""
@@ -55,27 +54,26 @@ class Constraint(c: Array[Clause]) {
     def toZ3Query(initials: Z3QueryState): String = {
         if (clauses.length == 0)
             return ""
-         if(clauses.length == 1){
-            return s"""(assert ${andClauses(0 , initials)} )"""
-         }
+        if (clauses.length == 1) {
+            return s"""(assert ${andClauses(0, initials)} )"""
+        }
         val idx = 0
         //s"""(assert (${andClauses(idx , initials)}) )"""
-        s"""(assert ${andClauses(idx , initials)} )"""
+        s"""(assert ${andClauses(idx, initials)} )"""
     }
 
-    def andClauses(idx :Int , initials: Z3QueryState): String ={
-        if(idx == clauses.length -1){
+    def andClauses(idx: Int, initials: Z3QueryState): String = {
+        if (idx == clauses.length - 1) {
             clauses(idx).toZ3Query(initials)
-        }else{
-            s""" (and ${clauses(idx).toZ3Query(initials)} ${andClauses(idx+1 , initials)} )"""
+        } else {
+            s""" (and ${clauses(idx).toZ3Query(initials)} ${andClauses(idx + 1, initials)} )"""
         }
     }
 
     override def equals(other: Any): Boolean = {
-        if(other != null && other.isInstanceOf[Constraint]) {
+        if (other != null && other.isInstanceOf[Constraint]) {
             this.clauses.deep == other.asInstanceOf[Constraint].clauses.deep
-        }
-        else false
+        } else false
     }
 
     def conjunctWith(other: Constraint) = {
@@ -89,7 +87,7 @@ class Constraint(c: Array[Clause]) {
         */
         val updated = clauses.map(_.applyEffect(x, effect))
         // for(c <- clauses) {
-        //     // if(c.contains(x)) 
+        //     // if(c.contains(x))
         //     c.applyEffect(x, effect)
         // }
         new Constraint(updated)
@@ -109,38 +107,37 @@ class Constraint(c: Array[Clause]) {
         new Constraint(newArray)
     }
 }
-class UniaryClause(left: Expr, op: UniaryOp) extends Clause(left,null,null){
+class UniaryClause(left: Expr, op: UniaryOp) extends Clause(left, null, null) {
 
-      override def toString: String = {
+    override def toString: String = {
         if (op == null) leftExpr.toString
-        else leftExpr.toString + " " + op 
+        else leftExpr.toString + " " + op
     }
     override def toZ3Query(initials: Z3QueryState): String = {
-      var isString = false;
-      if(leftExpr.isInstanceOf[StringExpr]){
-        isString = true;
-      }
-      
-      var leftstr = leftExpr.toZ3Query(initials)
-      try{
-         if(leftExpr.isInstanceOf[ConcreteValue] && isString){
-           leftstr = leftstr.toInt.toChar.toString()
-           leftstr = s""" "${leftstr}" """
-         } 
-      }catch{
-        case e:Exception => 
-          
-      }
-      
-    //  if(op == UniaryOp.IsInteger){
-     //     val gen_name = leftstr.replaceAll("[^A-Za-z0-9]","") + "i";
-     //     initials.init.add((gen_name , Numeric(NumericUnderlyingType._Int)))
-     //     initials.replacements(gen_name) = "\\Q( str.to.int  "+leftstr+"  )\\E" //( str.to.int  line5  )
-    //     return s"""(= (int.to.str ${gen_name}) ${leftstr} )"""
-    //  }
-            return s"""(${op.toString()}  ${leftstr} )"""
-        
-      
+        var isString = false;
+        if (leftExpr.isInstanceOf[StringExpr]) {
+            isString = true;
+        }
+
+        var leftstr = leftExpr.toZ3Query(initials)
+        try {
+            if (leftExpr.isInstanceOf[ConcreteValue] && isString) {
+                leftstr = leftstr.toInt.toChar.toString()
+                leftstr = s""" "${leftstr}" """
+            }
+        } catch {
+            case e: Exception =>
+
+        }
+
+        //  if(op == UniaryOp.IsInteger){
+        //     val gen_name = leftstr.replaceAll("[^A-Za-z0-9]","") + "i";
+        //     initials.init.add((gen_name , Numeric(NumericUnderlyingType._Int)))
+        //     initials.replacements(gen_name) = "\\Q( str.to.int  "+leftstr+"  )\\E" //( str.to.int  line5  )
+        //     return s"""(= (int.to.str ${gen_name}) ${leftstr} )"""
+        //  }
+        return s"""(${op.toString()}  ${leftstr} )"""
+
     }
     override def applyEffect(x: SymVar, effect: Expr): Clause = {
         val newLeftExpr = leftExpr.applyEffect(x, effect)
@@ -164,52 +161,50 @@ class Clause(left: Expr, op: ComparisonOp = null, right: Expr = null) {
     }
 
     def toZ3Query(initials: Z3QueryState): String = {
-      var isString = false;
-      if(leftExpr.actualType == NonNumeric(NonNumericUnderlyingType._String) ||  right.actualType == NonNumericUnderlyingType._String){       
-        isString = true;
-      }
-      
-      var leftstr = leftExpr.toZ3Query(initials)
-      var rightstr = rightExpr.toZ3Query(initials)
-      try{
-         if(leftExpr.isInstanceOf[ConcreteValue] && isString){
-           leftstr = leftstr.toInt.toChar.toString()
-           leftstr = s""" "${leftstr}" """
-         } else if(rightExpr.isInstanceOf[ConcreteValue] && isString){
-           rightstr = rightstr.toInt.toChar.toString()
-           rightstr = s""" "${rightstr}" """
+        var isString = false;
+        if (leftExpr.actualType == NonNumeric(NonNumericUnderlyingType._String) || right.actualType == NonNumericUnderlyingType._String) {
+            isString = true;
+        }
 
-         }
-      }catch{
-        case e:Exception => 
-          
-      }
-      
-      
+        var leftstr = leftExpr.toZ3Query(initials)
+        var rightstr = rightExpr.toZ3Query(initials)
+        try {
+            if (leftExpr.isInstanceOf[ConcreteValue] && isString) {
+                leftstr = leftstr.toInt.toChar.toString()
+                leftstr = s""" "${leftstr}" """
+            } else if (rightExpr.isInstanceOf[ConcreteValue] && isString) {
+                rightstr = rightstr.toInt.toChar.toString()
+                rightstr = s""" "${rightstr}" """
+
+            }
+        } catch {
+            case e: Exception =>
+
+        }
+
         if (compOp == null || rightExpr == null)
             leftExpr.toString
-        else
-        {
-          
-          if(compOp == Notequals || compOp ==Inequality){
-                    return s""" (not (=  ${leftstr} ${rightstr} ))"""
-           }else{      
-                    //Z3 -- > Assertion (assert (> x 2))
-                    //  if(leftExpr.isInstanceOf[Terminal] && rightExpr.isInstanceOf[Terminal])
-                    return s"""(${if(compOp == Notequals || compOp == Equals){
-                      "="
-                    }else{
-                      compOp.toString()
+        else {
+
+            if (compOp == Notequals || compOp == Inequality) {
+                return s""" (not (=  ${leftstr} ${rightstr} ))"""
+            } else {
+                //Z3 -- > Assertion (assert (> x 2))
+                //  if(leftExpr.isInstanceOf[Terminal] && rightExpr.isInstanceOf[Terminal])
+                return s"""(${
+                    if (compOp == Notequals || compOp == Equals) {
+                        "="
+                    } else {
+                        compOp.toString()
                     }
-                    }  ${leftstr} ${rightstr} )"""
+                }  ${leftstr} ${rightstr} )"""
+            }
         }
-      }
     }
     override def equals(other: Any): Boolean = {
-        if(other != null && other.isInstanceOf[Clause]) {
+        if (other != null && other.isInstanceOf[Clause]) {
             this.toString == other.asInstanceOf[Clause].toString
-        }
-        else false
+        } else false
     }
 
     def applyEffect(x: SymVar, effect: Expr): Clause = {
@@ -229,8 +224,8 @@ class Clause(left: Expr, op: ComparisonOp = null, right: Expr = null) {
         if (rightExpr != null) leftRes && rightExpr.checkValidity(ss)
         else leftRes
     }
-      def replace(thisVar: SymVar, other: SymVar): Clause = {
-        if(rightExpr != null) new Clause(leftExpr.replace(thisVar, other), compOp, rightExpr.replace(thisVar, other))
+    def replace(thisVar: SymVar, other: SymVar): Clause = {
+        if (rightExpr != null) new Clause(leftExpr.replace(thisVar, other), compOp, rightExpr.replace(thisVar, other))
         else new Clause(leftExpr.replace(thisVar, other))
     }
 }
