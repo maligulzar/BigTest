@@ -8,113 +8,111 @@ class UnexpectedInputType(message: String, cause: Throwable = null)
     extends RuntimeException(message, cause) {}
 
 class JoinSymbolicResult(ss: SymbolicState,
-                        nonTerminatingPaths: Array[PathEffect],
-                        terminatingPaths: ArrayBuffer[TerminatingPath] = null,
-                        iVar: Array[SymVar],
-                        oVar: Array[SymVar])
-                        extends SymbolicResult(ss, nonTerminatingPaths, terminatingPaths, iVar, oVar) {
-
+    nonTerminatingPaths: Array[PathEffect],
+    terminatingPaths: ArrayBuffer[TerminatingPath] = null,
+    iVar: Array[SymVar],
+    oVar: Array[SymVar])
+    extends SymbolicResult(ss, nonTerminatingPaths, terminatingPaths, iVar, oVar) {
 
     // var joined: Boolean = j
 
     def getPartial(pc: String, constName: String): String = {
         val x0 = pc.indexOf("x0")
-        val partial1 = pc.substring(x0-4, x0)+constName+pc.substring(x0+2, x0+6)
+        val partial1 = pc.substring(x0 - 4, x0) + constName + pc.substring(x0 + 2, x0 + 6)
 
         val x2 = pc.indexOf("x2")
-        val partial2 = pc.substring(x2-4, x2)+constName+pc.substring(x2+2, x2+7)
+        val partial2 = pc.substring(x2 - 4, x2) + constName + pc.substring(x2 + 2, x2 + 7)
         s"""(assert (and ${partial1} ${partial2}))
         |""".stripMargin
     }
 
     override def solveWithZ3() = {
-        var hashCode: Int = 0
-        var first = ""
-        var second = ""
-        var pc = ""
-        val list: HashSet[(String, VType)] = new HashSet[(String, VType)]();
-
-        for (path <- paths) {
-            pc += (path.pathConstraint.toZ3Query(list)+"\n")
-
-            //we use the first seen hashCode to save the whole query!
-            if(hashCode == 0)
-                hashCode = path.hashCode
-        }
-        for(ters <- terminating) {
-            pc += (ters.pathConstraint.toZ3Query(list)+"\n")
-        }
-
-        var decls = ""
-        val itr = list.iterator()
-        while(itr.hasNext){
-            val i = itr.next()
-            if(i._1.indexOf(".") != -1) {
-                val setName = i._1.substring(0, i._1.indexOf("."))
-                decls += s"""(declare-fun ${setName} (Int) Bool)"""+"\n"
-                if(first == "")
-                    first = setName
-                else if(second == "")
-                    second = setName
-            }
-            else {
-                decls +=
-                s""" (declare-fun ${i._1} () ${i._2.toZ3Query()} )
-                |""".stripMargin
-            }
-        }
-
-        var result = ""
-        result += getPartial(pc, "c1")
-        result += s"""(assert (and ($first c1) ($second c1) ) )"""+"\n\n"
-
-        result += "(declare-const c11 Int)\n"
-        result += getPartial(pc, "c11")
-        result += s"""(assert (and ($first c11) ($second c11) ) )"""+"\n\n"
-
-        result += "(declare-const c12 Int)\n"
-        result += getPartial(pc, "c12")
-        result += s"""(assert (and ($first c12) ($second c12) ) )"""+"\n\n"
-
-        result += getPartial(pc, "c2")
-        result += s"""(assert (and ($first c2) (not ($second c2)) ) )"""+"\n\n"
-
-        result += "(declare-const c22 Int)\n"
-        result += getPartial(pc, "c22")
-        result += s"""(assert (and ($first c22) (not ($second c22)) ) )"""+"\n\n"
-
-        result += "(declare-const c23 Int)\n"
-        result += getPartial(pc, "c23")
-        result += s"""(assert (and ($first c23) (not ($second c23)) ) )"""+"\n\n"
-
-        result += getPartial(pc, "c3")
-        result += s"""(assert (and (not ($first c3)) ($second c3) ) )"""+"\n\n"
-
-        result += "(declare-const c33 Int)\n"
-        result += getPartial(pc, "c33")
-        result += s"""(assert (and (not ($first c33)) ($second c33) ) )"""+"\n\n"
-
-        result += "(declare-const c34 Int)\n"
-        result += getPartial(pc, "c34")
-        result += s"""(assert (and (not ($first c34)) ($second c34) ) )"""+"\n\n"
-
-       // we are the programming languages and compiler and types group
-
-        val str = s"""$decls
-                    |$result
-                    |(check-sat)
-                    |(get-model)
-                    """.stripMargin
-
-        var filename = "/tmp/"+hashCode
-        writeTempSMTFile(filename , str)
-        println(str)
-        println("------------------------")
-        runZ3Command(filename , Z3DIR);
-        println("------------------------")
+        //        var hashCode: Int = 0
+        //        var first = ""
+        //        var second = ""
+        //        var pc = ""
+        //        val list: HashSet[(String, VType)] = new HashSet[(String, VType)]();
+        //
+        //        for (path <- paths) {
+        //            pc += (path.pathConstraint.toZ3Query(list)+"\n")
+        //
+        //            //we use the first seen hashCode to save the whole query!
+        //            if(hashCode == 0)
+        //                hashCode = path.hashCode
+        //        }
+        //        for(ters <- terminating) {
+        //            pc += (ters.pathConstraint.toZ3Query(list)+"\n")
+        //        }
+        //
+        //        var decls = ""
+        //        val itr = list.iterator()
+        //        while(itr.hasNext){
+        //            val i = itr.next()
+        //            if(i._1.indexOf(".") != -1) {
+        //                val setName = i._1.substring(0, i._1.indexOf("."))
+        //                decls += s"""(declare-fun ${setName} (Int) Bool)"""+"\n"
+        //                if(first == "")
+        //                    first = setName
+        //                else if(second == "")
+        //                    second = setName
+        //            }
+        //            else {
+        //                decls +=
+        //                s""" (declare-fun ${i._1} () ${i._2.toZ3Query()} )
+        //                |""".stripMargin
+        //            }
+        //        }
+        //
+        //        var result = ""
+        //        result += getPartial(pc, "c1")
+        //        result += s"""(assert (and ($first c1) ($second c1) ) )"""+"\n\n"
+        //
+        //        result += "(declare-const c11 Int)\n"
+        //        result += getPartial(pc, "c11")
+        //        result += s"""(assert (and ($first c11) ($second c11) ) )"""+"\n\n"
+        //
+        //        result += "(declare-const c12 Int)\n"
+        //        result += getPartial(pc, "c12")
+        //        result += s"""(assert (and ($first c12) ($second c12) ) )"""+"\n\n"
+        //
+        //        result += getPartial(pc, "c2")
+        //        result += s"""(assert (and ($first c2) (not ($second c2)) ) )"""+"\n\n"
+        //
+        //        result += "(declare-const c22 Int)\n"
+        //        result += getPartial(pc, "c22")
+        //        result += s"""(assert (and ($first c22) (not ($second c22)) ) )"""+"\n\n"
+        //
+        //        result += "(declare-const c23 Int)\n"
+        //        result += getPartial(pc, "c23")
+        //        result += s"""(assert (and ($first c23) (not ($second c23)) ) )"""+"\n\n"
+        //
+        //        result += getPartial(pc, "c3")
+        //        result += s"""(assert (and (not ($first c3)) ($second c3) ) )"""+"\n\n"
+        //
+        //        result += "(declare-const c33 Int)\n"
+        //        result += getPartial(pc, "c33")
+        //        result += s"""(assert (and (not ($first c33)) ($second c33) ) )"""+"\n\n"
+        //
+        //        result += "(declare-const c34 Int)\n"
+        //        result += getPartial(pc, "c34")
+        //        result += s"""(assert (and (not ($first c34)) ($second c34) ) )"""+"\n\n"
+        //
+        //       // we are the programming languages and compiler and types group
+        //
+        //        val str = s"""$decls
+        //                    |$result
+        //                    |(check-sat)
+        //                    |(get-model)
+        //                    """.stripMargin
+        //
+        //        var filename = "/tmp/"+hashCode
+        //        writeTempSMTFile(filename , str)
+        //        println(str)
+        //        println("------------------------")
+        //        runZ3Command(filename , Z3DIR);
+        //        println("------------------------")
     }
 }
-
 
 object JoinSymbolicResult {
     def apply(ss: SymbolicState, rddA: SymbolicResult, rddB: SymbolicResult): JoinSymbolicResult = {
@@ -130,22 +128,22 @@ object JoinSymbolicResult {
         val joinedPaths = new Array[PathEffect](rddA.numOfPaths * rddB.numOfPaths)
         val terminatingPaths = new ArrayBuffer[TerminatingPath]()
 
-        if(rddA.terminating != null) {
+        if (rddA.terminating != null) {
             terminatingPaths ++= rddA.terminating
         }
-        if(rddB.terminating != null) {
+        if (rddB.terminating != null) {
             terminatingPaths ++= rddB.terminating
         }
 
         var i = 0
-        for(pA <- rddA.paths) {
-            for(pB <- rddB.paths) {
+        for (pA <- rddA.paths) {
+            for (pB <- rddB.paths) {
                 product(i) = pB.conjunctPathEffect(pA)
                 i += 1
             }
         }
 
-        for(i <- 0 until product.length) {
+        for (i <- 0 until product.length) {
             //***Assuming that the first element of symOutput array is the key***
             //product(i) is the rest of the cluases and we need to replace A.key and B.key with the existential var in this rest!
 
@@ -169,7 +167,6 @@ object JoinSymbolicResult {
 
             terminatingPaths += new TerminatingPath(existA_NotB, replacedC2.effects)
 
-
             //Case 3: Terminating
             val c3 = new SymVar(keyA.actualType, ss.getFreshName)
             val replacedC3: PathEffect = product(i).replace(keyA, c3).replace(keyB, c3)
@@ -185,11 +182,9 @@ object JoinSymbolicResult {
         // joinedPaths.foreach(result += _.toString+"\n")
         // println(result)
 
-        // val input =  ??
-        // val output = ??
+        val input = rddA.symOutput ++ rddB.symOutput
+        val output = Array(rddA.symOutput(0)) ++ rddA.symOutput.drop(1) ++ rddB.symOutput.drop(1)
 
-        // val input = new SymTuple(Tuple(this.symInput.actualType, secondRDD.symInput.actualType), "x0-x1")
-        // val output = new SymTuple(Tuple(Numeric(_Int), Tuple(Numeric(_Int), Numeric(_Int))), "x0.x1")
         return new JoinSymbolicResult(ss, joinedPaths, terminatingPaths, input, output)
 
     }

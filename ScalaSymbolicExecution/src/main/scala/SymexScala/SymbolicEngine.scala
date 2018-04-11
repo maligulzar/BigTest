@@ -1,8 +1,8 @@
 package symexScala
 
-//import sys.process._
-import gov.nasa.jpf.JPF
+//import sys.process.
 import gov.nasa.jpf.Config
+import gov.nasa.jpf.JPF
 import gov.nasa.jpf.symbc.SymbolicListener
 
 class parseEffectException(message: String, cause: Throwable = null) extends RuntimeException("Effect: "+message, cause) {}
@@ -15,15 +15,18 @@ object SymbolicEngine {
         val lastPart = jpfFile.split("/")(jpfFile.count(_ == '/'))
         val fileName = lastPart.substring(0, lastPart.length-4)
         //<<<<<
-        val injectedListener = new PathEffectListenerImp()
-        val config: Config = JPF.createConfig(Array(jpfFile))
-        val jpf: JPF = new JPF(config)
-        val symbc: SymbolicListener = new SymbolicListener(config, jpf, injectedListener)
-        jpf.addListener(symbc)
-        jpf.run()
-        //>>>>>
-        val udfResult = injectedListener.convertAll(symState, fileName)
-        udfResult
+       val injectedListener = new PathEffectListenerImp()
+       val config: Config = JPF.createConfig(Array(jpfFile));
+       config.setProperty("symbolic.dp", "no_solver")
+       config.getArgs.foreach(println)
+
+       val jpf: JPF = new JPF(config)
+       val symbc: SymbolicListener = new SymbolicListener(config, jpf, injectedListener)
+       jpf.addListener(symbc)
+       jpf.run()
+
+       val udfResult = injectedListener.convertAll(symState, fileName)
+       udfResult
     }
 
     /*
@@ -61,10 +64,9 @@ object SymbolicEngine {
         //println(res)
 
         for((dfName, jpfFile) <- opJpfList) {
-            println("------"+jpfFile+"-------")
             val udfResult = callSPF(jpfFile, symState)
-            // println(udfResult)
-            // println("--------------")
+            //println(udfResult)
+            //println("--------------")
 
             currentPaths = dfName match {
                 case "map" => currentPaths.map(udfResult)
@@ -74,11 +76,10 @@ object SymbolicEngine {
             }
 
             println("after "+dfName)
-            println(currentPaths.symInput.asInstanceOf[SymVar]+" "+currentPaths.symOutput.asInstanceOf[SymVar])
             println(currentPaths)
         }
-        currentPaths.Z3DIR = "/Users/amytis/Projects/z3-master"
-        // currentPaths.solveWithZ3
+        currentPaths.Z3DIR = "/Users/malig/workspace/git/Test-Minimization-in-Big-Data/z3-master"
+        currentPaths.solveWithZ3
         currentPaths
     }
 

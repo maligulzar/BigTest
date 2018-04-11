@@ -18,7 +18,7 @@ object NonNumericUnderlyingType extends Enumeration {
     val _Boolean = Value("Boolean")
     val _Unit = Value("Unit")
     val _String = Value("String")
-
+    
 }
 
 import NumericUnderlyingType._
@@ -29,6 +29,8 @@ abstract class VType {
     // def varVal: v
     def toZ3Query(): String
 }
+
+
 
 //case class SString(ut: NonNumericUnderlyingType) extends VType {
 //    val underlyingType: NonNumericUnderlyingType = ut
@@ -51,6 +53,7 @@ case class NonNumeric(ut: NonNumericUnderlyingType) extends VType {
     }
 }
 
+
 case class CollectionNonNumeric(ut: NonNumericUnderlyingType) extends VType {
     val underlyingType: NonNumericUnderlyingType = ut
     def toZ3Query(): String = {
@@ -66,14 +69,9 @@ case class CollectionNumeric(ut: NumericUnderlyingType) extends VType {
 }
 
 case class Tuple(ut1: VType, ut2: VType) extends VType {
-    val underlyingType: Tuple2[VType, VType] = (ut1, ut2)
-    val _1Type: VType = ut1
-    val _2Type: VType = ut2
-
-    def this(ttype: Tuple2[VType, VType]) {
-        this(ttype._1, ttype._2)
-    }
-
+    val underlyingType: Tuple2[VType, VType] = new Tuple2(ut1, ut2)
+    val _1Type = ut1
+    val _2Type = ut2
     //Todo: Fix this
     def toZ3Query(): String = {
         ""

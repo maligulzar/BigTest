@@ -56,7 +56,7 @@ class PathEffectTest extends FlatSpec with BeforeAndAfterAll with Matchers {
         effects3 += new Tuple2(returnVar3, eff2)
         val pe23 = new PathEffect(pathCond2, effects3)
 
-        val link = new Tuple2(x2, returnVar1)
+        val link = new Tuple2(Array(x2), Array(returnVar1))
 
         val result = pe01.conjunctPathEffect(pe23, link)
 
