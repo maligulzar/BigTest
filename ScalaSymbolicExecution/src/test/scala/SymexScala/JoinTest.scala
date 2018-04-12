@@ -57,8 +57,11 @@ class JoinTest extends FlatSpec with BeforeAndAfterAll with Matchers {
 
         val result = filter1.join(filter2)
         // val result = JoinSymbolicResult(symState, initA, initB)
-        println(result)
-        // result.solveWithZ3
+        // println(result.paths(0))
+        println("--------------------------------")
+        println(result.solveWithZ3)
+        println("--------------------------------")
+        // println(result.paths(0).toZ3Query)
 
     }
 

@@ -26,7 +26,7 @@ class JoinSymbolicResult(ss: SymbolicState,
         |""".stripMargin
     }
 
-    override def solveWithZ3() = {
+    // override def solveWithZ3() = {
         //        var hashCode: Int = 0
         //        var first = ""
         //        var second = ""
@@ -111,7 +111,7 @@ class JoinSymbolicResult(ss: SymbolicState,
         //        println("------------------------")
         //        runZ3Command(filename , Z3DIR);
         //        println("------------------------")
-    }
+    // }
 }
 
 object JoinSymbolicResult {
@@ -154,9 +154,9 @@ object JoinSymbolicResult {
             val c1 = new SymVar(keyA.actualType, ss.getFreshName)
             val replacedC1: PathEffect = product(i).replace(keyA, c1).replace(keyB, c1)
 
-            val existA_B = new ExistentialConstraint(c1, replacedC1.pathConstraint.clauses)
-            existA_B.addCluase(ComparisonOp.isIn, keyA)
-            existA_B.addCluase(ComparisonOp.isIn, keyB)
+            val existA_B = new ExistentialConstraint(c1, keyA, keyB, replacedC1.pathConstraint.clauses)
+            existA_B.addCluase(ComparisonOp.IsIn, keyA)
+            existA_B.addCluase(ComparisonOp.IsIn, keyB)
 
             joinedPaths(i) = new PathEffect(existA_B, replacedC1.effects)
 
@@ -164,9 +164,9 @@ object JoinSymbolicResult {
             val c2 = new SymVar(keyA.actualType, ss.getFreshName)
             val replacedC2: PathEffect = product(i).replace(keyA, c2).replace(keyB, c2)
 
-            val existA_NotB = new ExistentialConstraint(c2, replacedC2.pathConstraint.clauses)
-            existA_NotB.addCluase(ComparisonOp.isIn, keyA)
-            existA_NotB.addCluase(ComparisonOp.isNotIn, keyB)
+            val existA_NotB = new ExistentialConstraint(c2, keyA, keyB, replacedC2.pathConstraint.clauses)
+            existA_NotB.addCluase(ComparisonOp.IsIn, keyA)
+            existA_NotB.addCluase(ComparisonOp.IsNotIn, keyB)
 
             terminatingPaths += new TerminatingPath(existA_NotB, replacedC2.effects)
 
@@ -174,9 +174,9 @@ object JoinSymbolicResult {
             val c3 = new SymVar(keyA.actualType, ss.getFreshName)
             val replacedC3: PathEffect = product(i).replace(keyA, c3).replace(keyB, c3)
 
-            val existNotA_B = new ExistentialConstraint(c3, replacedC3.pathConstraint.clauses)
-            existNotA_B.addCluase(ComparisonOp.isNotIn, keyA)
-            existNotA_B.addCluase(ComparisonOp.isIn, keyB)
+            val existNotA_B = new ExistentialConstraint(c3, keyA, keyB, replacedC3.pathConstraint.clauses)
+            existNotA_B.addCluase(ComparisonOp.IsNotIn, keyA)
+            existNotA_B.addCluase(ComparisonOp.IsIn, keyB)
 
             terminatingPaths += new TerminatingPath(existNotA_B, replacedC3.effects)
         }

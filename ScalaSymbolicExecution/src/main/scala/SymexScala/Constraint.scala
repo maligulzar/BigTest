@@ -14,8 +14,8 @@ object ComparisonOp extends Enumeration {
     val GreaterThanOrEq = Value(">=")
     val Equals = Value("equals")
     val Notequals = Value("notequals")
-    val isIn = Value("isIn")
-    val isNotIn = Value("isNotIn")
+    val IsIn = Value("isIn")
+    val IsNotIn = Value("isNotIn")
 
     //def isComparisonOp(s: String): Boolean = values.exists(_.toString == s)
 }
@@ -167,7 +167,9 @@ class Clause(left: Expr, op: ComparisonOp = null, right: Expr = null) {
         }
 
         var leftstr = leftExpr.toZ3Query(initials)
-        var rightstr = rightExpr.toZ3Query(initials)
+        var rightstr =
+            if(rightExpr != null) rightExpr.toZ3Query(initials)
+            else ""
         try {
             if (leftExpr.isInstanceOf[ConcreteValue] && isString) {
                 leftstr = leftstr.toInt.toChar.toString()
@@ -179,25 +181,33 @@ class Clause(left: Expr, op: ComparisonOp = null, right: Expr = null) {
             }
         } catch {
             case e: Exception =>
-
         }
 
         if (compOp == null || rightExpr == null)
-            leftExpr.toString
+            leftstr
         else {
-
             if (compOp == Notequals || compOp == Inequality) {
-                return s""" (not (=  ${leftstr} ${rightstr} ))"""
-            } else {
+                return s""" (not (=  ${leftstr} ${rightstr}))"""
+            }
+            else if (compOp == IsIn || compOp == IsNotIn) {
+                require(leftExpr.isInstanceOf[SymVar] && rightExpr.isInstanceOf[SymVar])
+                val const = leftExpr.toZ3Query(initials)
+                val set = rightExpr.asInstanceOf[SymVar].getName.replaceAll("[^A-Za-z0-9]","")+"_KEY" //e.g. x0 -> x0_KEY
+                val member = s" (${set} ${const})" //c1 IsIn S1 => (S1 c1)
+                if(compOp == IsNotIn) s" (not ${member})"
+                else member
+            }
+            else {
                 //Z3 -- > Assertion (assert (> x 2))
                 //  if(leftExpr.isInstanceOf[Terminal] && rightExpr.isInstanceOf[Terminal])
                 return s"""(${
-                    if (compOp == Notequals || compOp == Equals) {
+                    if (compOp == Equals || compOp == Equality) {
                         "="
-                    } else {
+                    }
+                    else {
                         compOp.toString()
                     }
-                }  ${leftstr} ${rightstr} )"""
+                }  ${leftstr} ${rightstr})"""
             }
         }
     }

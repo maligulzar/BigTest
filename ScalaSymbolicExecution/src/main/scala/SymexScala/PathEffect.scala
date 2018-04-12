@@ -76,11 +76,11 @@ class PathEffect(pc: Constraint, udfEffect: ArrayBuffer[Tuple2[SymVar, Expr]]) {
     def toZ3Query(): String = {
 
         val list: HashSet[(String, VType)] = new HashSet[(String, VType)]();
-
         val split = new HashMap[String, SplitHandler]();
         val replace = new HashMap[String, String]();
+        val sets: HashSet[(String, VType)] = new HashSet[(String, VType)]()
 
-        val state: Z3QueryState = Z3QueryState(list, split, replace)
+        val state: Z3QueryState = Z3QueryState(list, split, replace, sets)
 
         var pc = pathConstraint.toZ3Query(state) + "\n" + getEffectZ3Query(state)
         //fix the references
@@ -103,6 +103,15 @@ class PathEffect(pc: Constraint, udfEffect: ArrayBuffer[Tuple2[SymVar, Expr]]) {
           |)
           |
           |""".stripMargin
+
+        val setItr = state.setDecls.iterator
+        while (setItr.hasNext) {
+            val decl = setItr.next
+            decls +=
+                s"""(declare-fun ${decl._1} (${decl._2.toZ3Query}) Bool)
+                |""".stripMargin
+        }
+
         val itr = state.init.iterator()
         while (itr.hasNext) {
             val i = itr.next()
@@ -110,6 +119,7 @@ class PathEffect(pc: Constraint, udfEffect: ArrayBuffer[Tuple2[SymVar, Expr]]) {
                 s"""(declare-fun ${i._1} () ${i._2.toZ3Query()})
                   |""".stripMargin
         }
+
         s"""$decls
            |${generateSplitConstraints(state)}
            |$pc
@@ -190,23 +200,6 @@ class PathEffect(pc: Constraint, udfEffect: ArrayBuffer[Tuple2[SymVar, Expr]]) {
         new PathEffect(replacedPath, effectsCopy)
     }
 
-    /*
-        returns a new instance of PathEffect
-        by applying the given effect on to (this) instance's path condition and effects
-        this instance should NOT be modified
-    */
-    /*
-    def applyLastEffect(x: SymVar, lastEffect: Expr): PathEffect = {
-        val newPathConstraint: Constraint = this.pathConstraint.applyEffect(x, lastEffect)
-        val newEffect: Tuple2[SymVar, ArrayBuffer[Expr]] =
-            if(this.effect != null) {
-                val newEffectArray = this.effect._2.map(_.applyEffect(x, lastEffect))
-                (this.effect._1, newEffectArray)
-            } else null
-        new PathEffect(newPathConstraint, newEffect)
-    }
-    */
-
     def checkValidity(ss: SymbolicState): Boolean = {
         var result = this.pathConstraint.checkValidity(ss)
         effects.foreach(effect => result &= effect._2.checkValidity(ss))
@@ -247,7 +240,10 @@ case class TerminatingPath(c: Constraint, u: ArrayBuffer[Tuple2[SymVar, Expr]]) 
 
 }
 
-case class Z3QueryState(init: HashSet[(String, VType)], split: HashMap[String, SplitHandler], replacements: HashMap[String, String]) {
+case class Z3QueryState(init: HashSet[(String, VType)],
+                        split: HashMap[String, SplitHandler],
+                        replacements: HashMap[String, String],
+                        setDecls: HashSet[(String, VType)]) {
 
     def addtoInit(a: (String, VType)) {
         val itr = init.iterator()
@@ -258,7 +254,21 @@ case class Z3QueryState(init: HashSet[(String, VType)], split: HashMap[String, S
             }
         }
         init.add(a);
+    }
 
+    def addToSetDecls(toBeAdded: (String, VType)) {
+        //TODO: have to remove the declaration of toBeAdded.name from init hash map
+        //e.g. c1 isIn x0 -> x0 is probably has been defined as variable before and now it is being defined as set
+        val oldName = toBeAdded._1 //x0
+        val newName = oldName+"_KEY"
+        val itr = setDecls.iterator()
+        while (itr.hasNext) {
+            val decl = itr.next()
+            if (oldName.equals(decl._1)) {
+                return
+            }
+        }
+        setDecls.add(new Tuple2(newName, toBeAdded._2))
     }
 }
 case class SplitHandler(str_arr: Array[String], del: String)

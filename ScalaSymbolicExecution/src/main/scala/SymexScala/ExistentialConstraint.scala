@@ -7,6 +7,8 @@ import NumericUnderlyingType._
  I am assuming that we HAVE ALREADY REPLACED A.Key or B.key (rhs of predicate) with the existential var in (rest: Constraint)
 */
 class ExistentialConstraint(existentialVar: SymVar,
+                            keyA: SymVar,
+                            keyB: SymVar,
                             rest: Array[Clause])
                             extends Constraint(rest) {
 
@@ -20,14 +22,21 @@ class ExistentialConstraint(existentialVar: SymVar,
         s"E ${existentialVar.getName}: ${clauses.mkString(" && ")}"
     }
 
-    //TODO:
-    // override def toZ3Query(initials: HashSet[(String , VType)]): String = {
 
-    // }
+    override def toZ3Query(decls: Z3QueryState): String = {
+        var keyATempName = keyA.getName.replaceAll("[^A-Za-z0-9]","")
+        var keyBTempName = keyB.getName.replaceAll("[^A-Za-z0-9]","")
+        decls.addToSetDecls((keyATempName, keyA.actualType))
+        decls.addToSetDecls((keyBTempName, keyB.actualType))
+        super.toZ3Query(decls)
+    }
 
     override def deepCopy: ExistentialConstraint = {
         val newArray = new Array[Clause](this.clauses.size)
         this.clauses.copyToArray(newArray) //TODO TEST: might shallow copying the clauses
-        new ExistentialConstraint(existentialVar.deepCopy, newArray)
+        new ExistentialConstraint(existentialVar.deepCopy,
+                                    keyA.deepCopy,
+                                    keyB.deepCopy,
+                                    newArray)
     }
 }

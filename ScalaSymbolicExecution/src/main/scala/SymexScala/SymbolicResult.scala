@@ -73,125 +73,74 @@ class SymbolicResult(ss: SymbolicState,
     def runZ3Command(filename: String, Z3dir: String, args: Array[String] = Array()): String = {
         // build the system command we want to run
         var s = ""
-        if (SOLVER.equals("CVC4")) {
-            s = "/Users/malig/Downloads/cvc4-1.5/builds/x86_64-apple-darwin16.7.0/production/bin/cvc4 --strings-exp --lang smt2 < " + filename
+        // if (SOLVER.equals("CVC4")) {
+        //     s = "/Users/malig/Downloads/cvc4-1.5/builds/x86_64-apple-darwin16.7.0/production/bin/cvc4 --strings-exp --lang smt2 < " + filename
 
-        } else {
-            s = "python " + Z3dir + "runZ3.py " + filename
-        }
+        // } else {
+        //     s = "python " + Z3dir + "runZ3.py " + filename
+        // }
 
-        for (a <- args) {
-            s = s + "  " + a
-        }
-        println("run z3 for file " + s)
-        try {
-            val commands: util.List[String] = new util.ArrayList[String]
-            commands.add("/bin/sh")
-            commands.add("-c")
-            commands.add(s)
-            val commandExecutor: SystemCommandExecutor = new SystemCommandExecutor(commands, Z3dir)
-            val result: Int = commandExecutor.executeCommand();
-            val stdout: java.lang.StringBuilder = commandExecutor.getStandardOutputFromCommand
-            val stderr: java.lang.StringBuilder = commandExecutor.getStandardErrorFromCommand
-            println("********** Satisfying Assigments **********************************************")
-            println(stdout.toString)
-            println("*******************************************************************************")
+        // for (a <- args) {
+        //     s = s + "  " + a
+        // }
+        // println("run z3 for file " + s)
+        // try {
+        //     val commands: util.List[String] = new util.ArrayList[String]
+        //     commands.add("/bin/sh")
+        //     commands.add("-c")
+        //     commands.add(s)
+        //     val commandExecutor: SystemCommandExecutor = new SystemCommandExecutor(commands, Z3dir)
+        //     val result: Int = commandExecutor.executeCommand();
+        //     val stdout: java.lang.StringBuilder = commandExecutor.getStandardOutputFromCommand
+        //     val stderr: java.lang.StringBuilder = commandExecutor.getStandardErrorFromCommand
+        //     println("********** Satisfying Assigments **********************************************")
+        //     println(stdout.toString)
+        //     println("*******************************************************************************")
 
-            println("\n" + stderr.toString)
-            return stdout.toString()
-        } catch {
-            case e: Exception => {
-                e.printStackTrace
-            }
-        }
-        return "";
+        //     println("\n" + stderr.toString)
+        //     return stdout.toString()
+        // } catch {
+        //     case e: Exception => {
+        //         e.printStackTrace
+        //     }
+        // }
+        ""
     }
 
-    def solveWithZ3(): Unit = {
-        var first = ""
-        var second = ""
-        println("Non - Terminating")
+    def solveWithZ3(): String = {
+        var result = ""
+        println("Non-Terminating")
         for (path <- paths) {
             var str = path.toZ3Query();
             if (SOLVER.equals("CVC4")) {
                 str = str + "\n(check-sat)\n(get-model)"
             }
             var filename = "/tmp/" + path.hashCode();
+            result += str+"\n"
             writeTempSMTFile(filename, str);
+            println("------------------------")
             println(path.toString)
             println("Z3Query:\n" + str)
             println("------------------------")
             runZ3Command(filename, Z3DIR);
-            println("------------------------")
-
         }
         println("Terminating")
         for (path <- terminating) {
             var str = path.toZ3Query();
-            var filename = "/tmp/" + path.hashCode();
             if (SOLVER.equals("CVC4")) {
                 str = str + "\n(check-sat)\n(get-model)"
             }
+            var filename = "/tmp/" + path.hashCode();
+            result += str+"\n"
             writeTempSMTFile(filename, str);
+            println("------------------------")
             println(path.toString)
             println("Z3Query:\n" + str)
             println("------------------------")
             runZ3Command(filename, Z3DIR);
-            println("------------------------")
 
         }
-        /*else {
-            val path = paths(0)
-            println(path)
-
-            val list: HashSet[(String, VType)] = new HashSet[(String, VType)]();
-            val pc = path.pathConstraint.toZ3Query(list)
-            var decls = ""
-            val itr = list.iterator()
-            while(itr.hasNext){
-                val i = itr.next()
-                if(i._1.indexOf(".") != -1) {
-                    val setName = i._1.substring(0, i._1.indexOf("."))
-                    decls += s"""(declare-fun ${setName} (Int) Bool)"""+"\n"
-                    if(first == "")
-                        first = setName
-                    else if(second == "")
-                        second = setName
-                }
-                // else {
-                //     decls +=
-                //     s""" (declare-fun ${i._1} () ${i._2.toZ3Query()} )
-                //     |""".stripMargin
-                // }
-            }
-
-            var result = ""
-            result += "(declare-const c1 Int)\n"
-            result += getPartial(pc, "c1")
-            result += s"""(assert (and ($first c1) ($second c1) ) )"""+"\n\n"
-
-            result += "(declare-const c2 Int)\n"
-            result += getPartial(pc, "c2")
-            result += s"""(assert (and ($first c2) (not ($second c2)) ) )"""+"\n\n"
-
-            result += "(declare-const c3 Int)\n"
-            result += getPartial(pc, "c3")
-            result += s"""(assert (and (not ($first c3)) ($second c3) ) )"""+"\n\n"
-
-            val str = s"""$decls
-                        |$result
-                        |(check-sat)
-                        |(get-model)
-                        """.stripMargin
-
-            var filename = "/tmp/"+path.hashCode();
-            writeTempSMTFile(filename , str);
-            println(path.toString)
-            println("Z3Query:\n"+str)
-            println("------------------------")
-            runZ3Command(filename , Z3DIR);
-            println("------------------------")
-        }*/
+        result
     }
 
     def numOfPaths: Int = { paths.size }

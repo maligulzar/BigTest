@@ -23,7 +23,7 @@ class SymVar(atype: VType, name: String) extends Terminal {
         ss.isDefined(this)
     }
 
-    override def toZ3Query(initials:Z3QueryState): String = {
+    override def toZ3Query(initials: Z3QueryState): String = {
         var temp_name = name.replaceAll("[^A-Za-z0-9]","")
         initials.addtoInit((temp_name , actualType))
         temp_name
