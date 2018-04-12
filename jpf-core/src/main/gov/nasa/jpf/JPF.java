@@ -164,6 +164,101 @@ public class JPF implements Runnable {
 		start(conf, args);
 	}
 
+	
+	public static SymbolicResult computeSym(SymbolicState state , JPFDAGNode node , String modelDir) {
+		SymbolicResult[] results= new SymbolicResult[node.getParents().length];
+		
+		int i = 0;
+		for(JPFDAGNode p :  node.getParents()) {	
+			results[i] = computeSym(state , p ,  modelDir);
+			i++;
+		}
+		
+		if(node.getParents().length ==0) {
+			results  = new SymbolicResult[1];
+			results[0] = new SymbolicResult(state);
+		}
+		String args_new[] = new String[1];
+		Config conf1;
+		JPF jpf;
+		SymbolicResult udfResult ;
+		switch(node.getOperatorName().replaceAll("[0-9]","")) {
+		case "map": 
+			 args_new[0] = modelDir + node.getOperatorName() + ".jpf";		
+			 conf1 = createConfig(args_new);
+			 jpf = new JPF(conf1);
+			jpf.run();
+			 udfResult  = jpf.pfl.convertAll(state,"");
+			 System.out.println(node.getOperatorName()+"\n"+udfResult.toString());
+			return  results[0].map(udfResult);
+	
+		case "filter" : 
+			 args_new[0]= modelDir + node.getOperatorName() + ".jpf";		
+			 conf1 = createConfig(args_new);
+			 jpf = new JPF(conf1);
+			jpf.run();
+			 udfResult  = jpf.pfl.convertAll(state,"");
+			 System.out.println(node.getOperatorName()+"\n"+udfResult.toString());
+					
+			return  results[0].filter(udfResult);
+		
+		case "reduce" :
+			 args_new[0] = modelDir + node.getOperatorName() + ".jpf";		
+			 conf1 = createConfig(args_new);
+			 jpf = new JPF(conf1);
+			jpf.run();
+			 udfResult  = jpf.pfl.convertAll(state,"");
+			 System.out.println(node.getOperatorName()+"\n"+udfResult.toString());
+				
+			return  results[0].reduce(udfResult);
+			
+		case "reduceByKey" :
+			args_new[0] = modelDir + node.getOperatorName() + ".jpf";		
+			 conf1 = createConfig(args_new);
+			 jpf = new JPF(conf1);
+			jpf.run();
+			 udfResult  = jpf.pfl.convertAll(state,"");
+			 System.out.println(node.getOperatorName()+"\n"+udfResult.toString());
+				
+			 return results[0].reduceByKey(udfResult);
+	
+		case "join" :
+			udfResult = results[0].join(results[1]);
+			 System.out.println(node.getOperatorName()+"\n"+udfResult.toString());
+				
+			return udfResult;
+		
+		default: 
+			throw new RuntimeException("This data flow operation is yet not supported! :" +node.getOperatorName().replaceAll("[0-9]",""));
+		}
+		
+		
+	}
+	
+	public static void runJPFWithBtest(String[] args) {
+		if(args[0].equals("-enableBT")) {
+			args[0]=args[1];
+				long start = System.currentTimeMillis();
+				Runner.main(args);
+				
+			JPFDAGNode node = Runner.getDataFlowDAG();
+			String modelDir = Runner.getModelPath();
+			SymbolicState symState = new SymbolicState();
+			
+			SymbolicResult currentPaths = computeSym(symState , node ,  modelDir);
+			
+			System.out.println("Final Constraints");
+			System.out.println(currentPaths.toString());
+			currentPaths.setZ3Dir("/Users/malig/workspace/up_jpf/");
+			currentPaths.setSolver("CVC4");
+			currentPaths.solveWithZ3();
+			System.out.println("Test Generation Time : " + (System.currentTimeMillis() - start) + " ms");
+
+			/**
+			 * Gulzar
+			 * */
+			}
+	}
 	public static void start(Config conf, String[] args){
 		// this is redundant to jpf.report.<publisher>.start=..config..
 		// but nobody can remember this (it's only used to produce complete reports)
@@ -194,62 +289,12 @@ public class JPF implements Runnable {
 
 			try {
 				if(args.length > 1) {
-					if(args[0].equals("-enableBT")) {
-						args[0]=args[1];
-							long start = System.currentTimeMillis();
-							Runner.main(args);
-						ArrayList<JPFDAGNode> paths = Runner.getDataFlowDAG();
-						SymbolicState symState = new SymbolicState();
-						SymbolicResult currentPaths = new SymbolicResult(symState);
-						for(int i = 0 ; i< paths.size() ; i++) {        		
-							String args_new[] = {paths.get(i).getJPFFileName()};		
-							Config conf1 = createConfig(args_new);
-							JPF jpf = new JPF(conf1);
-							jpf.run();
-							System.out.println(paths.get(i).getOperatorName());
-							String file_name = args_new[0].split("/")[args_new[0].split("/").length-1];
-							String op_name = file_name.substring(0,file_name.length()-5);
-							SymbolicResult udfResult  = jpf.pfl.convertAll(symState,"");
-							
-							System.out.println(udfResult.toString());
-							switch(paths.get(i).getOperatorName().replaceAll("[0-9]","")) {
-							case "map": 
-								currentPaths = currentPaths.map(udfResult);
-								break;
-							case "filter" : 
-								currentPaths = currentPaths.filter(udfResult);
-								break;
-							case "reduce" :
-								currentPaths = currentPaths.reduce(udfResult);
-								break;
-							case "reduceByKey" :
-								currentPaths = currentPaths.reduceByKey(udfResult);
-								break;
-							default: 
-								throw new RuntimeException("This data flow operation is yet not supported!");
-							}
-							System.out.println("===== " +i  + "==========" + currentPaths.toString());
-							
-							
-						
-						}
-						System.out.println("Final Constraints");
-						System.out.println(currentPaths.toString());
-						currentPaths.setZ3Dir("/Users/malig/workspace/up_jpf/");
-						currentPaths.setSolver("CVC4");
-						currentPaths.solveWithZ3();
-						
-						System.out.println("Test Generation Time : " + (System.currentTimeMillis() - start) + " ms");
-
-						/**
-						 * Gulzar
-						 * */
-					}	
+						runJPFWithBtest(args);	
 					}else if(args[0].equals("-testjpf")){
 						SymbolicState symState = new SymbolicState();
 						SymbolicResult currentPaths = new SymbolicResult(symState);
 						//symbolicheap/StaticTest.jpf
-						Config conf1 = createConfig(new String[] {"/Users/malig/workspace/up_jpf/jpf-symbc/src/examples/filter2.jpf"});//"/Users/malig/workspace/up_jpf/jpf-symbc/src/examples/strings/GoodbyeWorld.jpf"});
+						Config conf1 = createConfig(new String[] {"/Users/malig/workspace/up_jpf/jpf-symbc/src/examples/map5.jpf"});//"/Users/malig/workspace/up_jpf/jpf-symbc/src/examples/strings/GoodbyeWorld.jpf"});
 							JPF jpf = new JPF(conf1);
 							jpf.run();
 							System.out.println("JPF Finished");

@@ -438,12 +438,20 @@ public class SymbolicListener extends PropertyListenerAdapter implements Publish
 									for(int i=argsInfo.length-numberOfArgs; i < argsInfo.length; ++i){
 										System.out.println(argsInfo[i].getType());
 										String type = argsInfo[i].getType();
-										if(type.startsWith("Tuple")) {
+										if(type.startsWith("Tuple") && type.length() == 7) {
 											String t1 = type.charAt(5) == 'S' ? "java.lang.String" : "int";
 											String t2 = type.charAt(6) == 'S' ? "java.lang.String" : "int";
 											pathAndEffectL.addArgsInfo(argsInfo[i].getName()+"_1", t1);
 											pathAndEffectL.addArgsInfo(argsInfo[i].getName()+"_2", t2);
-										}else {
+										}else if(type.startsWith("Tuple") && type.length() == 8) {
+											String t1 = type.charAt(5) == 'S' ? "java.lang.String" : "int";
+											String t2 = type.charAt(6) == 'S' ? "java.lang.String" : "int";
+											String t3 = type.charAt(7) == 'S' ? "java.lang.String" : "int";
+											pathAndEffectL.addArgsInfo(argsInfo[i].getName()+"_1", t1);
+											pathAndEffectL.addArgsInfo(argsInfo[i].getName()+"_2_1", t2);
+											pathAndEffectL.addArgsInfo(argsInfo[i].getName()+"_2_2", t3);
+										}
+										else {
 											pathAndEffectL.addArgsInfo(argsInfo[i].getName(), argsInfo[i].getType());
 														
 										}
@@ -458,8 +466,20 @@ public class SymbolicListener extends PropertyListenerAdapter implements Publish
 								}
 								//ArrayList<Expression> a = new ArrayList<>();
 								//a.add(result);
-								if(resultp.size() >0 && (pc.header != null || pc.spc.header != null))
-								pathAndEffectL.addPCPair(pc, resultp); 
+								
+								if(resultp.size() >0)// || (pc.header != null || pc.spc.header != null))
+								{
+									//if(resultp.get(0) instanceof IntegerConstant) {
+									//	if( ((IntegerConstant)resultp.get(0)).value == 0 ) {
+											//return;
+									//	}else
+										//	pathAndEffectL.addPCPair(pc, resultp); 									
+												
+									
+									//}else
+									pathAndEffectL.addPCPair(pc, resultp); 									
+								}	
+								
 								/*
 								 * pcString = pc.toString(); pcPair = new Pair<String,String>(pcString,returnString);
 								 * MethodSummary methodSummary = allSummaries.get(longName); Vector<Pair> pcs =
@@ -790,9 +810,9 @@ public class SymbolicListener extends PropertyListenerAdapter implements Publish
 										if (null == exp)
 											exp = new IntegerConstant(objIndex);
 									//	pc._addDet(Comparator.EQ, symField, exp);
-										//e_list.add(exp);
-										if (objIndex != objNum && !seenSet.contains(objIndex) && objIndex != MJIEnv.NULL)
-											expandReferenceObject(e_list,ti,ci,objIndex);
+										e_list.add(exp);
+										if (objIndex != objNum && !seenSet.contains(objIndex) && objIndex != MJIEnv.NULL);
+											//expandReferenceObject(e_list,ti,ci,objIndex);
 									}
 								}else{
 									//pc._addDet(Comparator.EQ, symField, new IntegerConstant(objIndex));

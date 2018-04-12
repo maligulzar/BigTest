@@ -68,7 +68,9 @@ public class ALOAD extends gov.nasa.jpf.jvm.bytecode.ALOAD {
 			return super.execute(th);
 
 		// TODO: fix handle polymorphism
-		
+		if(this.mi.getName().equals("apply")) {
+		//	System.out.println("Foudn Apply");
+		}
 
 		StackFrame sf = th.getModifiableTopFrame();
 		int objRef = sf.peek();

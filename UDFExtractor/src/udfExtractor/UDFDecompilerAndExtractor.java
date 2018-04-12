@@ -20,7 +20,21 @@ public class UDFDecompilerAndExtractor extends Logging {
         outputJava = output_java;
     }
 
-
+public JPFDAGNode getDAG() {
+	
+	JPFDAGNode prev = null;
+	for(JPFDAGNode node  : jpf_dag ) {
+		if(prev ==null) {
+			prev = node;
+		}else {
+			JPFDAGNode[] p = {prev};
+			node.parents = p;
+			prev = node;
+		}
+	}
+	return prev;
+}    
+    
     public void parse(String str , String jpfdir) {
         ASTParser parser = ASTParser.newParser(AST.JLS3);
         parser.setSource(str.toCharArray());

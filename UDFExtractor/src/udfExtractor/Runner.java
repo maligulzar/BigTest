@@ -37,7 +37,7 @@ public class Runner extends Logging {
         // Required for SPF. The Ids appended to the operator name are in reverse order.
         // Write the input args in the <classname>.conf file
 
-        readSPFInputArgs(conf_file);
+        Configuration.readSPFInputArgs(conf_file);
 
         /* Manually inserting input args
         Configuration.map_args.put("filter1" , "1");
@@ -68,27 +68,15 @@ public class Runner extends Logging {
 
     }
 
-    public static ArrayList<JPFDAGNode> getDataFlowDAG() {
-        return udf_ex.jpf_dag;
+    public static JPFDAGNode getDataFlowDAG() {
+        return Configuration.program_dag == null ? udf_ex.getDAG() : Configuration.program_dag;
+    }
+    
+
+    public static String getModelPath() {
+        return Configuration.JPF_HOME+ "jpf-symbc/src/examples/";
     }
 
-    public static void readSPFInputArgs(String classname){
-        try(BufferedReader br = new BufferedReader(new FileReader(classname ))) {
-            for(String line; (line = br.readLine()) != null; ) {
-               String arr[] = line.split(">");
-                if(arr.length < 2) {
-                    logerr("Invalid Configuration File");
-                    return;
-                }else{
-                    Configuration.map_args.put(arr[0].trim(), arr[1].trim());
-                    logdebug("Adding1 input arguments : " + arr[0].trim() + " --> " + arr[1].trim());
-                }
-            }
-            // line is not visible here.
-        }catch(Exception e){
-            e.printStackTrace();
-        }
-    }
 
     public static void createDirectory(String dir){
         File file = new File(dir);

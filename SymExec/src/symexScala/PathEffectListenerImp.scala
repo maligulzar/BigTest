@@ -142,8 +142,11 @@ class PathEffectListenerImp extends PathEffectListener  {
       if(str.contains("SYMREF")){
         val arr = str.split("_")
         val varname=  arr(0)
-        val field = arr(arr.length-1)
-        return varname + "_"+field+"_"
+        val dots_sep = str.split("\\.").drop(1)
+        if(dots_sep.length == 0){
+          return varname;
+        }
+        return varname + dots_sep.reduce(_+_)
       }
       
       if(str.endsWith("_SYMINT")){
@@ -346,7 +349,7 @@ class PathEffectListenerImp extends PathEffectListener  {
         }
         var clses  = List[Clause]()
         for((k,v) <- this.argsMap){
-          clses = new Clause(new SymVar(v.actualType, k+"_"+udfFileName),  
+          clses = new Clause(new SymVar(v.actualType, k),//+"_"+udfFileName),  
               ComparisonOp.withName("=") ,
               v) ::clses
         }
@@ -376,7 +379,20 @@ class PathEffectListenerImp extends PathEffectListener  {
                 argsMap += (argsInfo.get(1)._1 -> f2)
                 
                 (Array(f1,f2),symState.getFreshSymVar(argsInfo.get(0)._2))
-            } else {
+            } 
+            else if (argsInfo.size == 3) {
+                val freshVar: SymVar = symState.getFreshSymVar(argsInfo.get(0)._2)
+                var f1 = new SymVar(SymbolicState.getVType(argsInfo.get(0)._2) , freshVar.getName +"_1")
+                var f2 = new SymVar(SymbolicState.getVType(argsInfo.get(1)._2) , freshVar.getName +"_2_1")
+                var f3 = new SymVar(SymbolicState.getVType(argsInfo.get(2)._2) , freshVar.getName +"_2_2")
+                argsMap += (argsInfo.get(0)._1 -> f1)
+                argsMap += (argsInfo.get(1)._1 -> f2)
+                argsMap += (argsInfo.get(2)._1 -> f3)
+           
+                (Array(f1,f2, f3),symState.getFreshSymVar(argsInfo.get(0)._2))
+            }            
+            
+            else {
                 for (i <- 0 until argsInfo.size) {
                     println(argsInfo.get(i)._1 + " " + argsInfo.get(i)._2)
                 }

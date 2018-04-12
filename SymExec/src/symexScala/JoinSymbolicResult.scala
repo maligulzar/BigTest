@@ -150,35 +150,40 @@ object JoinSymbolicResult {
             //product(i) is the rest of the cluases and we need to replace A.key and B.key with the existential var in this rest!
 
             //Case 1:
-            val c1 = new SymVar(keyA.actualType, ss.getFreshName)
-            val replacedC1: PathEffect = product(i)//.replace(keyA, c1).replace(keyB, c1)
+          //  val c1 = new SymVar(keyA.actualType, ss.getFreshName)
+           // val replacedC1: PathEffect = product(i).replace(keyA, c1).replace(keyB, c1)
 
-            val existA_B = new ExistentialConstraint(c1, replacedC1.pathConstraint.clauses)
-            existA_B.addCluase(ComparisonOp.isIn, keyA)
-            existA_B.addCluase(ComparisonOp.isIn, keyB)
+           // val existA_B = new ExistentialConstraint(c1, replacedC1.pathConstraint.clauses)
+            //existA_B.addCluase(ComparisonOp.isIn, keyA)
+           //existA_B.addCluase(ComparisonOp.isIn, keyB)
 
-            joinedPaths(i) = new PathEffect(existA_B, replacedC1.effects)
+          //  joinedPaths(i) = new PathEffect(existA_B, replacedC1.effects)
 
             //Case 2: Terminating
-            val c2 = new SymVar(keyA.actualType, ss.getFreshName)
-            val replacedC2: PathEffect = product(i)//.replace(keyA, c2).replace(keyB, c2)
+          //  val c2 = new SymVar(keyA.actualType, ss.getFreshName)
+          //  val replacedC2: PathEffect = product(i)//.replace(keyA, c2).replace(keyB, c2)
 
-            val existA_NotB = new ExistentialConstraint(c2, replacedC2.pathConstraint.clauses)
-            existA_NotB.addCluase(ComparisonOp.isIn, keyA)
-            existA_NotB.addCluase(ComparisonOp.isNotIn, keyB)
-
-            terminatingPaths += new TerminatingPath(existA_NotB, replacedC2.effects)
+          //  val existA_NotB = new ExistentialConstraint(c2, replacedC2.pathConstraint.clauses)
+           // existA_NotB.addCluase(ComparisonOp.isIn, keyA)
+           // existA_NotB.addCluase(ComparisonOp.isNotIn, keyB)
+            
+            val t1= new Constraint(product(i).pathConstraint.clauses ++ Array(new Clause(keyA, ComparisonOp.Inequality , keyB)))
+            val t2 = new Constraint(product(i).pathConstraint.clauses ++ Array(new Clause(keyA, ComparisonOp.Equality , keyB)))
+            product(i).pathConstraint = t2
+            
+            
+            terminatingPaths += new TerminatingPath(t1 , new ArrayBuffer())
 
 
             //Case 3: Terminating
-            val c3 = new SymVar(keyA.actualType, ss.getFreshName)
-            val replacedC3: PathEffect = product(i)//.replace(keyA, c3).replace(keyB, c3)
+           // val c3 = new SymVar(keyA.actualType, ss.getFreshName)
+           // val replacedC3: PathEffect = product(i)//.replace(keyA, c3).replace(keyB, c3)
 
-            val existNotA_B = new ExistentialConstraint(c3, replacedC3.pathConstraint.clauses)
-            existNotA_B.addCluase(ComparisonOp.isNotIn, keyA)
-            existNotA_B.addCluase(ComparisonOp.isIn, keyB)
+          //  val existNotA_B = new ExistentialConstraint(c3, replacedC3.pathConstraint.clauses)
+         //   existNotA_B.addCluase(ComparisonOp.isNotIn, keyA)
+          //  existNotA_B.addCluase(ComparisonOp.isIn, keyB)
 
-            terminatingPaths += new TerminatingPath(existNotA_B, replacedC3.effects)
+            terminatingPaths += new TerminatingPath(t1,new ArrayBuffer())
         }
 
         // var result = ""
@@ -190,9 +195,8 @@ object JoinSymbolicResult {
          
          val output = Array(rddA.symOutput(0)) ++ rddA.symOutput.drop(1) ++ rddB.symOutput.drop(1)  
 
-        // val input = new SymTuple(Tuple(this.symInput.actualType, secondRDD.symInput.actualType), "x0-x1")
-        // val output = new SymTuple(Tuple(Numeric(_Int), Tuple(Numeric(_Int), Numeric(_Int))), "x0.x1")
-       return new JoinSymbolicResult(ss, joinedPaths, terminatingPaths, input, output)
+      return new JoinSymbolicResult(ss, product, terminatingPaths, input, output)
+       //return new JoinSymbolicResult(ss, product, terminatingPaths, input, output)
 
     }
 }

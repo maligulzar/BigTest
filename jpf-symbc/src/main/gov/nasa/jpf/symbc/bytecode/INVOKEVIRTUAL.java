@@ -40,7 +40,7 @@ public class INVOKEVIRTUAL extends gov.nasa.jpf.jvm.bytecode.INVOKEVIRTUAL {
 	    }
 
 	    MethodInfo mi = getInvokedMethod(th, objRef);
-
+	    
 	    if (mi == null) {
 	      ClassInfo ci = th.getClassInfo(objRef);
 	      String clsName = (ci != null) ? ci.getName() : "?UNKNOWN?";

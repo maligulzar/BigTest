@@ -17,7 +17,7 @@ object CommuteType {
         "/Users/malig/workspace/up_jpf/benchmarks/src/datasets/trips/*")
       .map { s =>
         val cols = s.split(",")
-        (cols(1), (cols(3).toInt / cols(4).toInt))
+        (cols(1), Integer.parseInt(cols(3)) / Integer.parseInt(cols(4)))
       }
     val locations = sc
       .textFile(

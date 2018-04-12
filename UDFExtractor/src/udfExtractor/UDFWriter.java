@@ -106,28 +106,46 @@ public class UDFWriter {
     }
 
     public String getReturnInstant(String s) {
-    	switch(s) {
-    	case "int":
-    			return "0";
-    		
-    	case "String":
-    			return "\"a\"";
-    	case "boolean":
-    			return "false";
-    			
-    	default :
-    			return "null";
-    			
-    	}
+	    	switch(s) {
+	    	case "int":
+	    			return "0";
+	    		
+	    	case "String":
+	    			return "\"a\"";
+	    	case "boolean":
+	    			return "false"; 			
+	    	default :
+	    			return "null";
+	    			
+	    	}
     }
-    String wrapNullAroundBody(String body, String returnT, String Varname) {
+    String wrapNullAroundBody(String body, String returnT, String Varname , int wrapType) {
     	String retVa = getReturnInstant(returnT);
+    	switch(wrapType) {
+    	case 1:
     	return " { \n if( " + Varname + " == null ){ \n"
-    			+ "return "+retVa + ";"
-    			+ "\n"
-    			+ "}else\n"
-    			+ body + "\n}";
+		+ "return "+retVa + ";"
+		+ "\n"
+		+ "}else\n"
+		+ body + "\n}";
+    	case 2:
+    		return " { \n"
+    			+ "	if( " + Varname + " == null ){ \n"
+			+ "			return "+retVa + ";"
+			+ "\n"
+			+ "	}else if( " + Varname + "._2 == null ){ \n"
+			+ "		return "+retVa + ";"
+			+ ""
+			+ "	}else"
+			+ "\n"
+			+ body + "\n}";
+    	default:
+    		return body;
+    	}
+    	
     }
+    
+    
     public String getFunctionCode(String name) {
         FunctionStructure fs = functions.get(name);
         String s = "";
@@ -139,13 +157,15 @@ public class UDFWriter {
         if(name.equals("apply")){
             System.out.println("");
         }
-        boolean wrapNull = false;
-        
+        int wrapNull = 0;
+       
         for (Object par : fs.parameters) {
             SingleVariableDeclaration p = (SingleVariableDeclaration) par;
             String para = getParameterType(p,fs) ;
-            if(para.startsWith("Tuple")) {
-            		wrapNull = true;
+            if(para.startsWith("Tuple")) {            		
+            		wrapNull = 1;
+            		 if(para.startsWith("TupleSIS")) wrapNull = 2; 
+            		
             }
             s = s + para + ",";
         }
@@ -154,8 +174,8 @@ public class UDFWriter {
         }
         s = s + ")"; //+ fs.body.toString();
         String body_str = fs.body.toString();
-        if(wrapNull) {
-        	body_str =  	wrapNullAroundBody(body_str,  fs.returnType.toString() ,((SingleVariableDeclaration)fs.parameters.get(0)).getName().getIdentifier() );
+        if(wrapNull >0) {
+        	body_str =  	wrapNullAroundBody(body_str,  fs.returnType.toString() ,((SingleVariableDeclaration)fs.parameters.get(0)).getName().getIdentifier() , wrapNull);
         }
         
         for(String ty : fs.map.keySet()){
@@ -165,6 +185,7 @@ public class UDFWriter {
         return s + body_str;
     }
 
+    
     private String getParameterType(SingleVariableDeclaration p, FunctionStructure fs) {
         if(p.getType().toString().equals("Tuple2")) {
             String _1 = null;
@@ -203,6 +224,9 @@ public class UDFWriter {
                 if(_1.equals("String") && _2.equals("String")) {
                 		isString  = true;
                     return "TupleSS "+p.getName().getIdentifier();
+                }else if(_1.equals("String") && _2.equals("Tuple2")){
+                		isString  = true;
+                    return "TupleSIS "+p.getName().getIdentifier();
                 }
             }
             return "TupleII "+p.getName().getIdentifier();
