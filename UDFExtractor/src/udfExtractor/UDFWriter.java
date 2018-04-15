@@ -73,17 +73,17 @@ public class UDFWriter {
 
         for (String fun : used_func) {
             if (functions.containsKey(fun)) {
-            	String fun_code = getFunctionCode(fun);
-            	if(fun_code.contains("Tuple2")) {
-            		fun_code = fun_code.replaceAll("Tuple2", filename.replace(".java", ""));
-            		content += fun_code;
-            		content += replaceTuple2(filename.replace(".java", ""));
-            						
-            	}else
-            		content += getFunctionCode(fun);
-            	
+                String fun_code = getFunctionCode(fun);
+                if (fun_code.contains("Tuple2")) {
+                    fun_code = fun_code.replaceAll("Tuple2", filename.replace(".java", ""));
+                    content += fun_code;
+                    content += replaceTuple2(filename.replace(".java", ""));
+
+                } else
+                    content += getFunctionCode(fun);
+
             }
-               
+
         }
 
         try {
@@ -106,46 +106,46 @@ public class UDFWriter {
     }
 
     public String getReturnInstant(String s) {
-	    	switch(s) {
-	    	case "int":
-	    			return "0";
-	    		
-	    	case "String":
-	    			return "\"a\"";
-	    	case "boolean":
-	    			return "false"; 			
-	    	default :
-	    			return "null";
-	    			
-	    	}
+        switch (s) {
+            case "int":
+                return "0";
+
+            case "String":
+                return "\"a\"";
+            case "boolean":
+                return "false";
+            default:
+                return "null";
+
+        }
     }
-    String wrapNullAroundBody(String body, String returnT, String Varname , int wrapType) {
-    	String retVa = getReturnInstant(returnT);
-    	switch(wrapType) {
-    	case 1:
-    	return " { \n if( " + Varname + " == null ){ \n"
-		+ "return "+retVa + ";"
-		+ "\n"
-		+ "}else\n"
-		+ body + "\n}";
-    	case 2:
-    		return " { \n"
-    			+ "	if( " + Varname + " == null ){ \n"
-			+ "			return "+retVa + ";"
-			+ "\n"
-			+ "	}else if( " + Varname + "._2 == null ){ \n"
-			+ "		return "+retVa + ";"
-			+ ""
-			+ "	}else"
-			+ "\n"
-			+ body + "\n}";
-    	default:
-    		return body;
-    	}
-    	
+
+    String wrapNullAroundBody(String body, String returnT, String Varname, int wrapType) {
+        String retVa = getReturnInstant(returnT);
+        switch (wrapType) {
+            case 1:
+                return " { \n if( " + Varname + " == null ){ \n"
+                        + "return " + retVa + ";"
+                        + "\n"
+                        + "}else\n"
+                        + body + "\n}";
+            case 2:
+                return " { \n"
+                        + "     if( " + Varname + " == null ){ \n"
+                        + "			return " + retVa + ";\n"
+                        + "     }else if( " + Varname + "._2 == null ){ \n"
+                        + "		    return " + retVa + ";\n"
+                        + "     }else\n"
+                        + body + "\n }";
+            default:
+                return body;
+        }
+
     }
-    
-    
+
+    int wrapNull = 0;
+    int symInputs=0;
+
     public String getFunctionCode(String name) {
         FunctionStructure fs = functions.get(name);
         String s = "";
@@ -154,19 +154,15 @@ public class UDFWriter {
         }
         s = s + " " + fs.returnType.toString();
         s = s + " " + name + "(";
-        if(name.equals("apply")){
+        if (name.equals("apply")) {
             System.out.println("");
         }
-        int wrapNull = 0;
-       
+
+
         for (Object par : fs.parameters) {
             SingleVariableDeclaration p = (SingleVariableDeclaration) par;
-            String para = getParameterType(p,fs) ;
-            if(para.startsWith("Tuple")) {            		
-            		wrapNull = 1;
-            		 if(para.startsWith("TupleSIS")) wrapNull = 2; 
-            		
-            }
+            String para = getParameterType(p, fs);
+
             s = s + para + ",";
         }
         if (s.endsWith(",")) {
@@ -174,92 +170,139 @@ public class UDFWriter {
         }
         s = s + ")"; //+ fs.body.toString();
         String body_str = fs.body.toString();
-        if(wrapNull >0) {
-        	body_str =  	wrapNullAroundBody(body_str,  fs.returnType.toString() ,((SingleVariableDeclaration)fs.parameters.get(0)).getName().getIdentifier() , wrapNull);
-        }
-        
-        for(String ty : fs.map.keySet()){
+//        if (wrapNull > 0) {
+//            body_str = wrapNullAroundBody(body_str, fs.returnType.toString(), ((SingleVariableDeclaration) fs.parameters.get(0)).getName().getIdentifier(), wrapNull);
+//        }
+
+
+        for (String ty : fs.map.keySet()) {
             String typ = fs.map.get(ty);
-            body_str = body_str.replaceAll("\\("+typ+"\\)","");
+            body_str = body_str.replaceAll("\\(" + typ + "\\)", "");
         }
+        body_str = tupleRenaming(body_str);
         return s + body_str;
     }
 
-    
+    HashMap<String, String> replacements = new HashMap<>();
+
+    private String tupleRenaming(String code) {
+        for (String k : replacements.keySet()) {
+            code = code.replaceAll(k, replacements.get(k));
+        }
+        return code;
+    }
+
     private String getParameterType(SingleVariableDeclaration p, FunctionStructure fs) {
-        if(p.getType().toString().equals("Tuple2")) {
+
+        String par_name = p.getName().getIdentifier();
+        if (p.getType().toString().equals("Tuple2")) {
             String _1 = null;
             String _2 = null;
             for (String s : fs.map.keySet()) {
                 String[] s_arr = s.split("\\.");
-                if (p.getName().getIdentifier().equals(s_arr[0])) {
+                if (par_name.equals(s_arr[0])) {
                     if (s_arr.length > 1) {
                         if (s_arr[1].startsWith("_1")) {
-                                _1 = fs.map.get(s);
+                            _1 = fs.map.get(s);
                         } else if (s_arr[1].startsWith("_2")) {
-                                _2 = fs.map.get(s);
+                            _2 = fs.map.get(s);
                         }
                     }
                 }
+            }
 
-            }
-            if(_1 == null && _2==null){
-                return "TupleII "+p.getName().getIdentifier();
-            }
-            else if(_1 == null ){
-                if(_2.equals("String")){
-                		isString  = true;
-                    return "TupleIS "+p.getName().getIdentifier();
-                }else if(_2.equals("Tuple2")){
-                		isString  = true;
-                    return "TupleSIS "+p.getName().getIdentifier();
+            if (_1 == null && _2 == null) {
+                replacements.put(par_name + "._1", par_name + "_t1");
+                replacements.put(par_name + "._1\\(\\)", par_name + "_t1");
+                replacements.put(par_name + "._2", par_name + "_t2");
+                replacements.put(par_name + "._2\\(\\)", par_name + "_t2");
+                wrapNull = 1;
+                symInputs = 2;
+                return "int " + par_name + "_t1" + ", int " + par_name + "_t2";
+            } else if (_1 == null) {
+                if (_2.equals("String")) {
+                    isString = true;
+                    replacements.put(par_name + "._1", par_name + "_t1");
+                    replacements.put(par_name + "._1\\(\\)", par_name + "_t1");
+                    replacements.put(par_name + "._2", par_name + "_t2");
+                    replacements.put(par_name + "._2\\(\\)", par_name + "_t2");
+                    symInputs = 2;
+                    wrapNull = 1;
+                    return "int " + par_name + "_t1" + ", String " + par_name + "_t2";
+                } else if (_2.equals("Tuple2")) {
+                    isString = true;
+                    replacements.put(par_name + "._1", par_name + "_t1");
+                    replacements.put(par_name + "._1\\(\\)", par_name + "_t1");
+                    replacements.put("\\(" + par_name + "._2\\(\\)\\)._1\\(\\)", par_name + "_t2");
+                    replacements.put("\\(" + par_name + "._2\\(\\)\\)._2\\(\\)", par_name + "_t3");
+                    wrapNull = 2;
+                    symInputs = 3;
+                    return "String " + par_name + "_t1" + ", int " + par_name + "_t2" + ", String " + p.getName().getIdentifier() + "_t3";
+                }
+            } else if (_2 == null) {
+                if (_1.equals("String")) {
+                    isString = true;
+                    replacements.put(par_name + "._1", par_name + "_t1");
+                    replacements.put(par_name + "._1\\(\\)", par_name + "_t1");
+                    replacements.put(par_name + "._2", par_name + "_t2");
+                    replacements.put(par_name + "._2\\(\\)", par_name + "_t2");
+                    wrapNull = 1;
+                    symInputs = 2;
+                    return "String " + par_name + "_t1" + ", int " + par_name + "_t2";
+                }
+            } else {
+                if (_1.equals("String") && _2.equals("String")) {
+                    isString = true;
+                    replacements.put(par_name + "._1", par_name + "_t1");
+                    replacements.put(par_name + "._1\\(\\)", par_name + "_t1");
+                    replacements.put(par_name + "._2", par_name + "_t2");
+                    replacements.put(par_name + "._2\\(\\)", par_name + "_t2");
+                    wrapNull = 1;
+                    symInputs = 2;
+                    return "String " + par_name + "_t1" + ", String " + par_name + "_t2";
+                } else if (_1.equals("String") && _2.equals("Tuple2")) {
+                    isString = true;
+                    replacements.put(par_name + "._1", par_name + "_t1");
+                    replacements.put(par_name + "._1\\(\\)", par_name + "_t1");
+                    replacements.put("\\(" + par_name + "._2\\(\\)\\)._1\\(\\)", par_name + "_t2");
+                    replacements.put("\\(" + par_name + "._2\\(\\)\\)._2\\(\\)", par_name + "_t3");
+                    wrapNull = 2;
+                    symInputs = 3;
+                    return "String " + par_name + "_t1" + ", int " + par_name + "_t2" + ", String " + par_name + "_t3";
                 }
             }
-            else if(_2 == null){
-                if(_1.equals("String")) {
-                		isString  = true;
-                    return "TupleSI " + p.getName().getIdentifier();
-                }
-            } else{
-                if(_1.equals("String") && _2.equals("String")) {
-                		isString  = true;
-                    return "TupleSS "+p.getName().getIdentifier();
-                }else if(_1.equals("String") && _2.equals("Tuple2")){
-                		isString  = true;
-                    return "TupleSIS "+p.getName().getIdentifier();
-                }
-            }
-            return "TupleII "+p.getName().getIdentifier();
-        }
-        else{
+            wrapNull = 1;
+            symInputs = 2;
+            return "int " + par_name + "_t1" + ", int " + par_name + "_t2";
+        } else {
             return p.toString();
         }
     }
-    
+
     String replaceTuple2(String s) {
-    	return  "String sa,sb;\n" + 
-    		"\nint ia,ib;\n" +
-    		"public int _1(){\n" + 
-    		"	return ia;\n" + 
-    		"}\n" + 
-    		"public int _2(){\n" + 
-    		"	return ib;\n" + 
-    		"}\n" + 
-    		"public "+s+"(int k, int v){\n" + 
-    		"        ia = k;\n" + 
-    		"        ib = v;\n" + 
-    		"}\n" + 
-    		"public "+s+"(String k, int v){\n" + 
-    		"        sa = k;\n" + 
-    		"        ib = v;\n" + 
-    		"}\n" + 
-    		"public "+s+"(int k, String v){\n" + 
-    		"        ia = k;\n" + 
-    		"        sb = v;\n" + 
-    		"}\n" + 
-    		"public "+s+"(String k, String v){\n" + 
-    		"        sa = k;\n" + 
-    		"        sb = v;\n" + 
-    		"}";
+        return "String sa,sb;\n" +
+                "\nint ia,ib;\n" +
+                "public int _1(){\n" +
+                "	return ia;\n" +
+                "}\n" +
+                "public int _2(){\n" +
+                "	return ib;\n" +
+                "}\n" +
+                "public " + s + "(int k, int v){\n" +
+                "        ia = k;\n" +
+                "        ib = v;\n" +
+                "}\n" +
+                "public " + s + "(String k, int v){\n" +
+                "        sa = k;\n" +
+                "        ib = v;\n" +
+                "}\n" +
+                "public " + s + "(int k, String v){\n" +
+                "        ia = k;\n" +
+                "        sb = v;\n" +
+                "}\n" +
+                "public " + s + "(String k, String v){\n" +
+                "        sa = k;\n" +
+                "        sb = v;\n" +
+                "}";
     }
 }

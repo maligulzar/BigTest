@@ -31,7 +31,12 @@ public class Configuration extends Logging  {
     
 
     //// TODO: 9/14/17 Populate the input arguments to each of the udfs
-    static String JPF_FILE_PLACEHOLDER(String target, String fun_name, String example_build, boolean isString) {
+    static String JPF_FILE_PLACEHOLDER(String target, String fun_name, String example_build, boolean isString , int numInputs) {
+
+        String input = "sym";
+        for(int i = 1 ; i < numInputs ; i++){
+            input +="#sym";
+        }
 
         String str = "";
         if (isString) {
@@ -47,7 +52,7 @@ public class Configuration extends Logging  {
                     "classpath=" + example_build + "\n" +
                     "#sourcepath=${jpf-symbc}/src/examples\n" +
                     "\n" +
-                    "symbolic.method=" + target + "." + fun_name + "(sym)\n" +
+                    "symbolic.method=" + target + "." + fun_name + "("+input+")\n" +
                     "\n" +
                     "symbolic.debug=true\n" +
                     "\n" +
@@ -71,7 +76,7 @@ public class Configuration extends Logging  {
                     "classpath=" + example_build + "\n" +
                     "#sourcepath=${jpf-symbc}/src/examples\n" +
                     "\n" +
-                    "symbolic.method=" + target + "." + fun_name + "(sym)\n" +
+                    "symbolic.method=" + target + "." + fun_name + "("+input+")\n" +
                     "\n" +
                     "\n" + "\n"
                     + "symbolic.lazy=true"

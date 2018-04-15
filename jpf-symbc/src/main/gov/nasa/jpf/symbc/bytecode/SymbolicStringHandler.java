@@ -103,8 +103,8 @@ public class SymbolicStringHandler {
 				|| cname.equals("java.lang.Byte")
 				|| cname.equals("java.lang.Char")
 				|| cname.equals("java.lang.Boolean")
-				|| cname.equals("java.lang.Object")
-				|| invInst.getInvokedMethodSignature().endsWith("java/lang/String;")) {
+				|| cname.equals("java.lang.Object"){
+//				|| invInst.getInvokedMethodSignature().endsWith("java/lang/String;")) {
 	        
 			StackFrame sf = th.getModifiableTopFrame();
 

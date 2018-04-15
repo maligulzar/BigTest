@@ -1,6 +1,7 @@
 package udfExtractor;
 
 import org.eclipse.jdt.core.dom.*;
+import org.eclipse.jdt.core.dom.rewrite.ASTRewrite;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -12,15 +13,18 @@ public class SparkProgramVisitor extends ASTVisitor {
     HashMap<String, ArrayList<String>> call_graph = new HashMap<String, ArrayList<String>>();
     UDFDecompilerAndExtractor log = null;
     String jpf_dir = null;
+    ASTRewrite rewrite;
 
-    public SparkProgramVisitor(UDFDecompilerAndExtractor l, String output_jpf) {
+    public SparkProgramVisitor(UDFDecompilerAndExtractor l, String output_jpf , ASTRewrite rw) {
         log = l;
         jpf_dir = output_jpf;
+        rewrite = rw;
     }
 
     Set names = new HashSet();
     String current_fun = "";
     String current_method_inc = null;
+    String parameters = null;
 
 
     public boolean visit(ClassInstanceCreation cls) {
@@ -32,14 +36,21 @@ public class SparkProgramVisitor extends ASTVisitor {
             }
         return true;
     }
+
     HashMap<String, String> typeMapping = new HashMap<>();
-    public boolean visit(CastExpression ce){
+
+    public boolean visit(CastExpression ce) {
         //log.logdebug(ce.getType().toString());
         //log.logdebug(ce.getExpression().toString());
-        typeMapping.put(ce.getExpression().toString(),ce.getType().toString() );
-       // ce.setType(ce.getAST().newSimpleType(ce.getAST().newName("")));
+        typeMapping.put(ce.getExpression().toString(), ce.getType().toString());
+        //SimpleName s = ce.getAST().newSimpleName(parameters+"_t2");
+
+       //rewrite.replace(ce.getType() , ce.getAST().newSimpleName("") ,null);
+        //ce.getExpression().accept(this);
+        // ce.setType(ce.getAST().newSimpleType(ce.getAST().newName("")));
         return true;
     }
+
     public boolean visit(MethodDeclaration node) {
         typeMapping = new HashMap<>();
         if (current_method_inc == null) return true;
@@ -59,13 +70,14 @@ public class SparkProgramVisitor extends ASTVisitor {
                 if (vol) return true;
             }
         }
-       // log.loginfo(Logging.LogType.DEBUG, node.toString());
+        // log.loginfo(Logging.LogType.DEBUG, node.toString());
         Modifier mod = ((Modifier) node.modifiers().get(0));
         mod.setKeyword(Modifier.ModifierKeyword.STATIC_KEYWORD);
-        FunctionStructure fs  = new FunctionStructure(node.modifiers() , node.getReturnType2() , node.parameters() , node.getBody());
+        FunctionStructure fs = new FunctionStructure(node.modifiers(), node.getReturnType2(), node.parameters(), node.getBody());
+        parameters = ((SingleVariableDeclaration) node.parameters().get(0)).getName().getIdentifier();
         node.getBody().accept(this);
         fs.map = typeMapping;
-        u_writer.enrollFunction(name.toString(),fs );//node.toString() + "\n  " );
+        u_writer.enrollFunction(name.toString(), fs);//node.toString() + "\n  " );
         typeMapping = new HashMap<>();
         return false;
     }
@@ -89,12 +101,23 @@ public class SparkProgramVisitor extends ASTVisitor {
                 current_method_inc = null;
             }
         }
-        if(inv.getName().getIdentifier().startsWith("_2")){
-           // log.logdebug(inv.getName().getIdentifier());
+        if (inv.getName().getIdentifier().startsWith("_2") && parameters.equals(inv.getExpression().toString())) {
+            SimpleName s = inv.getAST().newSimpleName(parameters+"_t2");
+            rewrite.replace(inv , s,null);
             inv.getName().setIdentifier("_2");
         }
-        if(inv.getName().getIdentifier().startsWith("_1")){
+        if (inv.getName().getIdentifier().startsWith("_1")){
+           inv.getName().setIdentifier("_1");
+        }
+        if (inv.getName().getIdentifier().startsWith("_2")){
+            inv.getName().setIdentifier("_2");
+        }
+        if (inv.getName().getIdentifier().startsWith("_1")&& parameters.equals(inv.getExpression().toString())) {
             //log.logdebug(inv.getName().getIdentifier());
+            SimpleName s = inv.getAST().newSimpleName(parameters+"_t1");
+           // rewrite.track(inv);
+            rewrite.replace(inv , s,null);
+
             inv.getName().setIdentifier("_1");
         }
         return true;
@@ -129,14 +152,16 @@ public class SparkProgramVisitor extends ASTVisitor {
     UDFWriter u_writer;
     int op_id = 0;
 
-    public void addToCallGraph(String caller, String callee){
+    public void addToCallGraph(String caller, String callee) {
         ArrayList<String> temp = new ArrayList<String>();
         temp.add(callee);
         call_graph.put(caller, temp);
     }
-    String target_func_jpf  = null;
-    public void setTargetJPF(String fun){
-            target_func_jpf = fun;
+
+    String target_func_jpf = null;
+
+    public void setTargetJPF(String fun) {
+        target_func_jpf = fun;
     }
 
     public void startUDFClass() {
@@ -154,11 +179,11 @@ public class SparkProgramVisitor extends ASTVisitor {
         String jpffunction = getJPFFunction("apply");
         functions_set.add(jpffunction);
         getAllCallee(jpffunction, functions_set);
-        u_writer.write(functions_set, jpffunction , this);
+        u_writer.write(functions_set, jpffunction, this);
         u_writer.close();
         String new_classname = u_writer.filename.replace(".java", "");
         try {
-            createJPFile(new_classname, getJPFFunction("apply"), jpf_dir + new_classname + ".jpf" , u_writer.isString);
+            createJPFile(new_classname, getJPFFunction("apply"), jpf_dir + new_classname + ".jpf", u_writer.isString , u_writer.symInputs);
 
             Runner.runCommand(new String[]{"javac", "-g",
                             Configuration.JPF_HOME + "jpf-symbc/src/examples/" + new_classname + ".java"},
@@ -171,12 +196,11 @@ public class SparkProgramVisitor extends ASTVisitor {
 
     }
 
-    public void createJPFile(String target, String fun_name, String jpfPath , boolean isString) throws Exception {
-        if(target_func_jpf!=null)
-        {
+    public void createJPFile(String target, String fun_name, String jpfPath, boolean isString , int numInputs) throws Exception {
+        if (target_func_jpf != null) {
             fun_name = target_func_jpf;
         }
-        String content = Configuration.JPF_FILE_PLACEHOLDER(target, fun_name, log.outputJava , isString);
+        String content = Configuration.JPF_FILE_PLACEHOLDER(target, fun_name, log.outputJava, isString , numInputs);
         FileWriter fw = null;
         try {
             File file = new File(jpfPath);

@@ -4,7 +4,11 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.*;
+import org.eclipse.jdt.core.dom.rewrite.ASTRewrite;
+import org.eclipse.jface.text.Document;
+import org.eclipse.text.edits.TextEdit;
 
 public class UDFDecompilerAndExtractor extends Logging {
 
@@ -37,11 +41,25 @@ public JPFDAGNode getDAG() {
     
     public void parse(String str , String jpfdir) {
         ASTParser parser = ASTParser.newParser(AST.JLS3);
-        parser.setSource(str.toCharArray());
+        Document doc = new Document(str);
+        parser.setSource(doc.get().toCharArray());
+
+//        parser.setSource(str.toCharArray());
         parser.setKind(ASTParser.K_COMPILATION_UNIT);
         final CompilationUnit cu = (CompilationUnit) parser.createAST(null);
         AST ast = cu.getAST();
-        cu.accept(new SparkProgramVisitor(this , jpfdir));
+        ASTRewrite rewriter = ASTRewrite.create(ast);
+        cu.recordModifications();
+        SparkProgramVisitor spv = new SparkProgramVisitor(this , jpfdir , rewriter);
+        cu.accept(spv);
+//       TextEdit edits = null;
+//        edits = spv.rewrite.rewriteAST(doc, null);
+//        try{edits.apply(doc);
+//        }catch(Exception e){
+//            e.printStackTrace();
+//        }
+//        System.out.println(doc.get());
+
     }
     //read file content into a string
     public String readFileToString(String filePath) throws IOException {
