@@ -14,6 +14,12 @@ object ArithmeticOp extends Enumeration {
 }
 
 
+object ArrayOp extends Enumeration {
+    type ArrayOp = Value
+    val Select = Value("select")
+    val Length = Value("length")
+}
+
 object StringOp extends Enumeration {
     type StringOp = Value
     val Substr = Value("substring")
@@ -28,6 +34,7 @@ object StringOp extends Enumeration {
 
 import ArithmeticOp._
 import StringOp._
+import ArrayOp._
 
 
 abstract class Expr {
@@ -72,7 +79,7 @@ case class SymStringOp(atype: VType, op: StringOp) /*extends Terminal*/ {
               "str.indexof"
         case CharAt =>
               "str.at"
-        case Length =>
+        case StringOp.Length =>
               "str.len"
         case Substr =>
               "str.substr"
@@ -82,12 +89,24 @@ case class SymStringOp(atype: VType, op: StringOp) /*extends Terminal*/ {
               "splitn"
         case Concat =>
                "str.++"
-        case _ =>
-          
+        case _ =>   
           throw new NotSupportedRightNow("String Operator not supported")
       }
-   }
-    
+   }  
+}
+
+case class SymArrayOp(atype: VType, op: ArrayOp) /*extends Terminal*/ {
+    val actualType = atype
+    override def toString: String = { 
+      op match {
+        case Select =>
+              "select"
+        case ArrayOp.Length =>
+              "length"
+        case _ =>
+          throw new NotSupportedRightNow("String Operator not supported")
+      }
+   }  
 }
 
 /*
@@ -286,5 +305,47 @@ case class StringExpr(obj: Expr, op: SymStringOp , opr:Array[Expr]) extends Expr
     }
      override def replace(thisVar: SymVar, other: SymVar): StringExpr = {
         new StringExpr(obj.replace(thisVar, other), op, opr.map(_.replace(thisVar, other)))
+    }
+}
+
+case class ArrayExpr(obj: Expr, op: SymArrayOp , opr:Array[Expr]) extends Expr {
+
+    //check validity of this partial expression before proceeding
+    assert(obj != null)
+   // assert(op.actualType == obj.actualType )//&& op.actualType == rightExpr.actualType)
+    var actualType = op.actualType
+
+    override def toString(): String = {
+        obj.toString + " " + op.toString + " " + {
+          if(opr.length!=0)
+            opr.map(s => s.toString).reduce(_+" "+_)
+          else
+            ""
+        }
+    }
+
+    override def applyEffect(x: SymVar, effect: Expr): Expr = {
+        new ArrayExpr(obj.applyEffect(x, effect), op, opr.map(s=> s.applyEffect(x, effect)))
+    }
+
+    override def checkValidity(ss: SymbolicState): Boolean = {
+        obj.checkValidity(ss) //&& rightExpr.checkValidity(ss)
+    }
+
+    
+    override def toZ3Query(initials :Z3QueryState): String = {
+        s"""( ${op.toString}  ${obj.toZ3Query(initials)} ${
+          if(opr.length>0) 
+            opr.map(s => s.toZ3Query(initials)).reduce(_ +" " + _)
+          else 
+              ""
+         } )"""
+      }
+
+    override def deepCopy(): ArrayExpr = {
+        new ArrayExpr(obj.deepCopy, op, opr.clone())
+    }
+     override def replace(thisVar: SymVar, other: SymVar): ArrayExpr = {
+        new ArrayExpr(obj.replace(thisVar, other), op, opr.map(_.replace(thisVar, other)))
     }
 }

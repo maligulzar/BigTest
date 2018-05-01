@@ -12,40 +12,61 @@ object MovieRatingsCount {
     val conf = new SparkConf()
     conf.setMaster("local[*]")
     conf.setAppName("Weather")
+    val data1 = Array(" : _5",
+      "",
+      " :",
+      ": _",
+      ": _0")
+
+    val startTime = System.currentTimeMillis();
     val sc = new SparkContext(conf)
-    val averageRating = sc
-      .textFile("/Users/malig/workspace/up_jpf/benchmarks/src/datasets/movie/*")
-      .map { line =>
-        val arr = line.split(":")
-        val movie_str = arr(0)
-        val ratings = arr(1).split(",")(0).split("_")(1)
-        (movie_str, ratings.substring(0,1))
+    for (i <- 0 to data1.length - 1) {
+      try {
+        val averageRating = sc
+          .parallelize(Array(data1(i)))
+          .map { line =>
+            val arr = line.split(":")
+            val movie_str = arr(0)
+            val ratings = arr(1).split(",")(0).split("_")(1)
+            (movie_str, ratings.substring(0, 1))
+          }
+          .map { c =>
+            val str = c._1
+            (str, Integer.parseInt(c._2))
+          }
+          .filter { b =>
+            val t1 = b._1
+            val t2 = b._2
+            t2 > 4
+          }.reduceByKey(_ + _).collect().foreach(println)
       }
-      .map{c =>
-        val str = c._1
-        (str, Integer.parseInt(c._2))}
-      .filter{b =>
-        val t1  = b._1
-        val t2 = b._2
-        t2 > 4}.reduceByKey(_+_)
+      catch {
+        case e: Exception =>
+          e.printStackTrace()
+      }
+    }
+
+    println("Time: " + (System.currentTimeMillis() - startTime))
   }
 }
+
+//.textFile("/Users/malig/workspace/up_jpf/benchmarks/src/datasets/movie/*")
 
 /**
   *
   *
-
-sc.textFile("hdfs://scai01.cs.ucla.edu:9000/clash/datasets/bigsift/kmeans/*").map { line =>
-        val arr = line.split(":")
-        val movie_str = arr(0)
-        val ratings = arr(1).split(",")(0).split("_")(1)
-        (movie_str, ratings.substring(0,1))
-      }.map{c =>
-        val str = c._1
-        (str, Integer.parseInt(c._2))}.filter{b =>
-        val t1  = b._1
-        val t2 = b._2
-        t2 > 4}.reduceByKey(_+_).collect.foreach(println)
-
-
-  */
+  * *
+  *sc.textFile("hdfs://scai01.cs.ucla.edu:9000/clash/datasets/bigsift/kmeans/*").map { line =>
+  * val arr = line.split(":")
+  * val movie_str = arr(0)
+  * val ratings = arr(1).split(",")(0).split("_")(1)
+  * (movie_str, ratings.substring(0,1))
+  * }.map{c =>
+  * val str = c._1
+  * (str, Integer.parseInt(c._2))}.filter{b =>
+  * val t1  = b._1
+  * val t2 = b._2
+  * t2 > 4}.reduceByKey(_+_).collect.foreach(println)
+  *
+  *
+  */*/

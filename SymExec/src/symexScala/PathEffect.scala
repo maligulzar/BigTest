@@ -92,7 +92,7 @@ class PathEffect(pc: Constraint, udfEffect: ArrayBuffer[Tuple2[SymVar, Expr]]) {
         
         
         var decls = s"""
-          |(set-logic QF_SNIA)
+          |(set-logic QF_ASNIA)
           |(set-option :produce-models true)
           |
           |

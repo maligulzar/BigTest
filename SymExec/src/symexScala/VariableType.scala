@@ -64,7 +64,7 @@ case class CollectionNonNumeric(ut: NonNumericUnderlyingType) extends VType {
 case class CollectionNumeric(ut: NumericUnderlyingType) extends VType {
     val underlyingType: NumericUnderlyingType = ut
     def toZ3Query(): String = {
-        ut.toString
+        s"""(Array Int ${ut.toString})"""
     }
 }
 

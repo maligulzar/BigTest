@@ -24,7 +24,7 @@ class SymVar(atype: VType, name: String) extends Terminal {
     }
 
     override def toZ3Query(initials:Z3QueryState): String = {
-        var temp_name = name.replaceAll("[^A-Za-z0-9]","")
+        var temp_name = name.replaceAll("[^A-Za-z0-9_]","")
         initials.addtoInit((temp_name , actualType))
         temp_name
     }
@@ -35,6 +35,16 @@ class SymVar(atype: VType, name: String) extends Terminal {
     override def replace(thisVar: SymVar, other: SymVar): SymVar = other
 }
 
+
+case class SymArray(atype: VType, name: String) extends SymVar(atype, name) {
+      actualType = atype
+
+    override def toZ3Query(initials:Z3QueryState): String = {
+        var temp_name = name.replaceAll("[^A-Za-z0-9_]","")
+        initials.addtoInit((temp_name , actualType))
+        temp_name
+    }
+}
 
 //case class SymTuple(ttype: Tuple, name: String) extends SymVar(ttype,name) {
 //    //val actualType = ttype

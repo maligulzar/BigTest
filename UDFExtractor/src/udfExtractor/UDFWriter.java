@@ -43,12 +43,43 @@ public class UDFWriter {
         functions.put(name, code);
     }
 
+    public String getInputParamters(String f_name) {
+        FunctionStructure fs = functions.get(f_name);
+        String s = "";
+        for (Object par : fs.parameters) {
+            SingleVariableDeclaration p = (SingleVariableDeclaration) par;
+            s = s + par + ",";
+        }
+        if (s.endsWith(",")) {
+            s = s.substring(0, s.length() - 1);
+        }
+        return s;
+    }
+    public String getInputParamtersName(String f_name) {
+        FunctionStructure fs = functions.get(f_name);
+        String s = "";
+        for (Object par : fs.parameters) {
+            SingleVariableDeclaration p = (SingleVariableDeclaration) par;
+            s = s + ((SingleVariableDeclaration) par).getName().getIdentifier() + ",";
+        }
+        if (s.endsWith(",")) {
+            s = s.substring(0, s.length() - 1);
+        }
+        return s;
+    }
+    public String getReturnType(String f_name) {
+        FunctionStructure fs = functions.get(f_name);
+
+        return fs.returnType.toString().equals("ArrayOps")?"Object[]":fs.returnType.toString();
+    }
+
     public void write(Set<String> used_func, String target_func, SparkProgramVisitor visitor) {
         String wrapper_func_body = "";
         String wrapper_name = "applyReduce";
         isString = argsToMain.startsWith("\"") && argsToMain.endsWith("\"");
         String method_call = target_func + "(" + argsToMain + ");\n";
         if (filename.startsWith("reduce")) {
+            wrapper_name = "applyReduce";
             wrapper_func_body = "static int " + wrapper_name + "( int[] a) {\n" +
                     "   int s = a[0];\n" +
                     "   for(int i = 1 ; i < " + Runner.loop_bound + " ; i++){\n" + //// This is where we set the upper bound for the loop in reduce.
@@ -59,8 +90,17 @@ public class UDFWriter {
             visitor.setTargetJPF(wrapper_name);
             target_func = wrapper_name;
             method_call = "int[] arr = " + argsToMain + ";\n       " + target_func + "(arr);\n";
+        } else if (filename.startsWith("flatMap")) {
+            wrapper_name = "applyFlatmap";
+            String retType = getReturnType(target_func);
+            if(retType.endsWith("[]")) retType = retType.replace("[]", "");
+            wrapper_func_body = "static " + retType +" "+  wrapper_name + "( "+ getInputParamters(target_func)+" ) {\n" +
+                    "   return " +target_func+"(" + getInputParamtersName(target_func) +")["+ Runner.loop_bound + "];\n"+
+                    "}\n";
+            visitor.setTargetJPF(wrapper_name);
+            target_func = wrapper_name;
+            method_call =  target_func + "("+argsToMain+");\n";
         }
-
 
         String skeleton =
                 "public class " + filename.replace(".java", "") + " { \n" +
@@ -144,7 +184,7 @@ public class UDFWriter {
     }
 
     int wrapNull = 0;
-    int symInputs=0;
+    int symInputs = 0;
 
     public String getFunctionCode(String name) {
         FunctionStructure fs = functions.get(name);
@@ -152,7 +192,12 @@ public class UDFWriter {
         for (Modifier m : fs.mods) {
             s = s + " " + m.getKeyword().toString();
         }
-        s = s + " " + fs.returnType.toString();
+
+        if(fs.returnType.toString().equals("ArrayOps")){
+            s = s + " " + "Object[]";
+        }else {
+            s = s + " " + fs.returnType.toString();
+        }
         s = s + " " + name + "(";
         if (name.equals("apply")) {
             System.out.println("");
@@ -177,7 +222,9 @@ public class UDFWriter {
 
         for (String ty : fs.map.keySet()) {
             String typ = fs.map.get(ty);
-            body_str = body_str.replaceAll("\\(" + typ + "\\)", "");
+            body_str = body_str.replaceAll("\\Q(" + typ + ")\\E", "");
+            body_str = body_str.replaceAll("\\QPredef$.MODULE$.refArrayOps\\E" , "");
+            body_str = body_str.replaceAll("ArrayOps" , "Object[]");
         }
         body_str = tupleRenaming(body_str);
         return s + body_str;

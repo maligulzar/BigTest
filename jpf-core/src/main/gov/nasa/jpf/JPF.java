@@ -286,24 +286,23 @@ public class JPF implements Runnable {
 			// this has to be done after we checked&consumed all "-.." arguments
 			// this is NOT about checking properties!
 			checkUnknownArgs(args);
-
 			try {
-				if(args.length > 1) {
+				if(args.length > 1) {// ----->  Running BigTest 
 						runJPFWithBtest(args);	
-					}else if(args[0].equals("-testjpf")){
+					}else if(args[0].equals("-testjpf")){  // ----->  Testing JPF with individual udf 
 						SymbolicState symState = new SymbolicState();
 						SymbolicResult currentPaths = new SymbolicResult(symState);
 						//symbolicheap/StaticTest.jpf
-						Config conf1 = createConfig(new String[] {"/Users/malig/workspace/up_jpf/jpf-symbc/src/examples/filter2.jpf"});//"/Users/malig/workspace/up_jpf/jpf-symbc/src/examples/strings/GoodbyeWorld.jpf"});
+						Config conf1 = createConfig(new String[] {"/Users/malig/workspace/up_jpf/jpf-symbc/src/examples/reduce1.jpf"});//"/Users/malig/workspace/up_jpf/jpf-symbc/src/examples/strings/GoodbyeWorld.jpf"});
 							JPF jpf = new JPF(conf1);
 							jpf.run();
 							System.out.println("JPF Finished");
 							SymbolicResult udfResult  = jpf.pfl.convertAll(symState, "");
 							System.out.println(udfResult.toString());
-							udfResult.setSolver("Z3");
+							udfResult.setSolver("CVC4");
 							udfResult.setZ3Dir("/Users/malig/workspace/up_jpf/");
 							udfResult.solveWithZ3();
-					}else if(args[0].equals("-testjoin")){
+					}else if(args[0].equals("-testjoin")){ // ----->  Testing JPF with join
 			/// Table1
 						SymbolicState symState = new SymbolicState();
 						SymbolicResult currentPaths = new SymbolicResult(symState);

@@ -32,6 +32,7 @@ import gov.nasa.jpf.symbc.string.SymbolicCharAtInteger
 import gov.nasa.jpf.symbc.mixednumstrg.SpecialIntegerExpression
 import gov.nasa.jpf.symbc.PathEffectListener
 import scala.collection.mutable.HashSet
+import gov.nasa.jpf.symbc.arrays.ArrayExpression
 
 class NotSupportedRightNow(message: String, cause: Throwable = null) 
     extends RuntimeException("This is not supported right now: "+message, cause) {}
@@ -158,12 +159,13 @@ class PathEffectListenerImp extends PathEffectListener  {
           name
         }
       }
-      if(str.startsWith("[") &&  str.endsWith("]")){
-        val s = str.split("\\[")
-        val name  = searchInputArrayName(s(1))
-        val idx = s(2).replaceAll("\\]", "")
-        return name+idx
-      }
+//      if(str.startsWith("[") &&  str.endsWith("]")){
+//        val s = str.split("\\[")
+//        val name  = searchInputArrayName(s(1))
+//        val idx = s(2).replaceAll("\\]", "")
+//        return name+idx
+//      }
+//    
       return str;
     }
 
@@ -182,18 +184,46 @@ class PathEffectListenerImp extends PathEffectListener  {
         argsMap.put(str, link)
     }
     
+    def getArrayType(ae: ArrayExpression): String = {
+     var elementtype = ae.getElemType()
+     if(elementtype.equals("?")){
+     var name = ae.getName
+      name = name.replace("[" , "");
+      name.charAt(0) match{
+        case 'I' =>
+            return "Int"
+        case _ =>
+         throw new NotSupportedRightNow(name)
+      }
+      
+    }
+     else return elementtype
+    }
+    
+    
     def convertSelectExpression(li: SelectExpression): Expr = {
      var ar =  li.arrayExpression
      var name  =  searchInputArrayName(ar.getName)
      var i = li.indexExpression
-     addInArgsMap(name + convertIntegerExpression(i) , name)
-     new SymVar(Numeric(_Int), name + convertIntegerExpression(i) )
+     var indexexpr =  convertIntegerExpression(i)
+     //addInArgsMap(name + convertIntegerExpression(i) , name)
+     // terminating path added   --- Check the ArrayINdexOut Of Bound exception
+    val arr_type = getArrayType(ar)
+    val symarray = new SymArray(CollectionNumeric(NumericUnderlyingType.withName(arr_type)), name)
+    val arr_op = new SymArrayOp(Numeric(_Int), ArrayOp.withName("length"))
+    val arr_expr = new ArrayExpr(symarray ,arr_op , Array())
+    val t =  new Clause(arr_expr,  ComparisonOp.LessThanOrEq , indexexpr)             
+    //terminating.add(new TerminatingPath(new Constraint(Array(t))))
+     //TODO: Uncomment this line to catch out of bound exception 
+     
+     //non terminating
+    val arr_op_non = new SymArrayOp(Numeric(NumericUnderlyingType.withName(arr_type)), ArrayOp.withName("select")) ///*** TODO: Only supporting Arrays of Integers
+    new ArrayExpr(symarray ,arr_op_non, Array(indexexpr))
      /**
       * The select array operation or array expression needs to be evaluated recursively. 
       * Right now I am assuming that the name of the array is used all the time
       * **/
     }
-    
     /*def compute(JPFDagNode j) : SymbolicResult = {
       val arr = new Array[SymbloicResult](j.parents)     
       var i =o
