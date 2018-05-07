@@ -259,18 +259,37 @@ class SymbolicResult(ss: SymbolicState,
         val input = if(this.symInput.length == 0) udfSymbolicResult.symInput else this.symInput
         new SymbolicResult(this.state, product, product_terminating, input, udfSymbolicResult.symOutput)
     }
-        def reduce(udfSymbolicResult: SymbolicResult): SymbolicResult = {
+
+    
+    
+    def reduce(udfSymbolicResult: SymbolicResult): SymbolicResult = {
         //returns Cartesian product of already existing paths *  set of paths from given udf
         val product = new Array[PathEffect](paths.size * udfSymbolicResult.numOfPaths)
+        
+          var arr_name = ss.getFreshName
+        var arr_type =this.symOutput(0).actualType
+        var type_name  = arr_type match {
+            case NonNumeric(t) =>            
+              CollectionNonNumeric(t)
+            case Numeric(t) =>  
+              CollectionNumeric(t)
+            case _ => throw new UnsupportedOperationException("Not Supported Type " + arr_type.toString() )
+          }
+        val symarray = new SymArray(type_name, arr_name)  
+        val arr_op_non = new SymArrayOp(type_name, ArrayOp.withName("select")) ///*** TODO: Only supporting Arrays of Integers
+        val arr_0 = new ArrayExpr(symarray ,arr_op_non, Array(new ConcreteValue(Numeric(_Int) , "0")))
+        val arr_1 = new ArrayExpr(symarray ,arr_op_non, Array(new ConcreteValue(Numeric(_Int) , "1")))
+ 
         var i = 0  
         for(pa <- this.paths) {
             for(udfPath <- udfSymbolicResult.paths) {
                 //udf -> (x2, x3) / rdd -> (x0, x1) => link -> (x2 = x1)
                 val link: Tuple2[Array[SymVar], Array[SymVar]] = 
-                    if(this.symOutput != null) new Tuple2(udfSymbolicResult.symInput.asInstanceOf[Array[SymVar]], this.symOutput.asInstanceOf[Array[SymVar]])
+                    if(this.symOutput != null) new Tuple2(udfSymbolicResult.symInput.asInstanceOf[Array[SymVar]], Array(symarray))
                     else null
 
                 product(i) = udfPath.conjunctPathEffect(pa, link)
+                product(i) = product(i).addOneToN_Mapping(this.symOutput(0), Array(arr_0, arr_1))
                 i += 1
             }
         }
@@ -282,17 +301,34 @@ class SymbolicResult(ss: SymbolicState,
           assert(this.symOutput.length>=2 , "ReduceByeKey is not Applicable, Effect of previous is not tuple")
         //returns Cartesian product of already existing paths *  set of paths from given udf
           
-          val tempSymOutput = Array(this.symOutput(1))
+        val tempSymOutput = Array(this.symOutput(1))
+       
+        var arr_name = ss.getFreshName
+        var arr_type =this.symOutput(1).actualType
+        var type_name  = arr_type match {
+            case NonNumeric(t) =>            
+              CollectionNonNumeric(t)
+            case Numeric(t) =>  
+              CollectionNumeric(t)
+            case _ => throw new UnsupportedOperationException("Not Supported Type " + arr_type.toString() )
+          }
+        val symarray = new SymArray(type_name, arr_name)  
+        val arr_op_non = new SymArrayOp(type_name, ArrayOp.withName("select")) ///*** TODO: Only supporting Arrays of Integers
+        val arr_0 = new ArrayExpr(symarray ,arr_op_non, Array(new ConcreteValue(Numeric(_Int) , "0")))
+        val arr_1 = new ArrayExpr(symarray ,arr_op_non, Array(new ConcreteValue(Numeric(_Int) , "1")))
+ 
+          
         val product = new Array[PathEffect](paths.size * udfSymbolicResult.numOfPaths)
         var i = 0  
         for(pa <- this.paths) {
             for(udfPath <- udfSymbolicResult.paths) {
                 //udf -> (x2, x3) / rdd -> (x0, x1) => link -> (x2 = x1)
                 val link: Tuple2[Array[SymVar], Array[SymVar]] = 
-                    if(this.symOutput != null) new Tuple2(udfSymbolicResult.symInput.asInstanceOf[Array[SymVar]], tempSymOutput)
+                    if(this.symOutput != null) new Tuple2(udfSymbolicResult.symInput.asInstanceOf[Array[SymVar]], Array(symarray))
                     else null
 
                 product(i) = udfPath.conjunctPathEffect(pa, link)
+                product(i) = product(i).addOneToN_Mapping(this.symOutput(1), Array(arr_0, arr_1))
                 i += 1
             }
         }
