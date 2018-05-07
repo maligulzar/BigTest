@@ -211,6 +211,7 @@ public class JPF implements Runnable {
 			 System.out.println(node.getOperatorName()+"\n"+udfResult.toString());
 				
 			return  results[0].reduce(udfResult);
+	
 			
 		case "reduceByKey" :
 			args_new[0] = modelDir + node.getOperatorName() + ".jpf";		
@@ -224,6 +225,11 @@ public class JPF implements Runnable {
 	
 		case "join" :
 			udfResult = results[0].join(results[1]);
+			 System.out.println(node.getOperatorName()+"\n"+udfResult.toString());
+				
+			return udfResult;
+		case "groupByKey" :
+			udfResult = results[0].groupByKey();
 			 System.out.println(node.getOperatorName()+"\n"+udfResult.toString());
 				
 			return udfResult;

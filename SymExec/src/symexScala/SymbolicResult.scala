@@ -347,6 +347,41 @@ class SymbolicResult(ss: SymbolicState,
       JoinSymbolicResult.apply(this.state, this, secondRDD)
       
     }
+    
+    
+    
+    // We need to spawn new branch to link the input of this operation to the output
+    // E.g Input  : V -->  Output : [V1 ,V2] Such that V1 ==V, and V2 ==V 
+      def groupByKey(): SymbolicResult = {
+          assert(this.symOutput.length>=2 , "GroupByKey is not Applicable, Effect of previous is not tuple")
+        val product = new Array[PathEffect](paths.size)
+        var i = 0  
+        var arr_name = ss.getFreshName
+        var arr_type =this.symOutput(1).actualType
+        var type_name  = arr_type match {
+            case NonNumeric(t) =>            
+              CollectionNonNumeric(t)
+            case Numeric(t) =>  
+              CollectionNumeric(t)
+            case _ => throw new UnsupportedOperationException("Not Supported Type " + arr_type.toString() )
+          }
+        val symarray = new SymArray(type_name, arr_name)
+        for(pa <- this.paths) {
+                //(x0, x1) -> (x2, [x3,x4] )  => link -> (x0 = x2) && (x1 = x3 , x4 = x1)
+                
+                val arr_op_non = new SymArrayOp(type_name, ArrayOp.withName("select")) ///*** TODO: Only supporting Arrays of Integers
+                val arr_0 = new ArrayExpr(symarray ,arr_op_non, Array(new ConcreteValue(Numeric(_Int) , "0")))
+                val arr_1 = new ArrayExpr(symarray ,arr_op_non, Array(new ConcreteValue(Numeric(_Int) , "1")))
+ 
+                //TODO: *****THIS IS WHERE WE NEED TO SPAWN A NEW LINK TO CONSTRUCT 1-N MAPPING BETWEEN INPUT AND OUTPUT
+                product(i) = pa.addOneToN_Mapping(this.symOutput(1), Array(arr_0, arr_1))
+                //*******
+                i += 1
+        }
+        val input = this.symOutput
+        val finalSymOutput = Array(this.symOutput(0)) ++ Array(symarray)
+        new SymbolicResult(this.state, product, this.terminating, input, finalSymOutput)
+    }
 
     // override def equals(other: Any): Boolean = {
     //     if(other != null && other.isInstanceOf[SymbolicResult]) {

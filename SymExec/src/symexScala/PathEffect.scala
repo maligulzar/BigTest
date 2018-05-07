@@ -174,6 +174,19 @@ class PathEffect(pc: Constraint, udfEffect: ArrayBuffer[Tuple2[SymVar, Expr]]) {
     }
 
     
+     def addOneToN_Mapping(link: SymVar , arr: Array[Expr]): PathEffect = {
+        val newEffects = new ArrayBuffer[Tuple2[SymVar, Expr]]() 
+        if(link != null){ 
+            for(i  <- 0  to arr.length-1){
+              newEffects += new Tuple2( link, arr(i))
+            }
+          
+        }
+        newEffects.appendAll(this.effects)
+        this.effects.appendAll(newEffects)
+        this
+    }
+    
     def deepCopy: PathEffect = {
         val effectsCopy = new ArrayBuffer[Tuple2[SymVar, Expr]]() 
             if(this.effects.size != 0) {
