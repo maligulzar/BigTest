@@ -259,10 +259,10 @@ public class UDFWriter {
             }
 
             if (_1 == null && _2 == null) {
-                replacements.put(par_name + "._1", par_name + "_t1");
                 replacements.put(par_name + "._1\\(\\)", par_name + "_t1");
-                replacements.put(par_name + "._2", par_name + "_t2");
                 replacements.put(par_name + "._2\\(\\)", par_name + "_t2");
+                replacements.put(par_name + "._1", par_name + "_t1");
+                replacements.put(par_name + "._2", par_name + "_t2");
                 wrapNull = 1;
                 symInputs = 2;
                 return "int " + par_name + "_t1" + ", int " + par_name + "_t2";

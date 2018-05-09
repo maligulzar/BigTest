@@ -8,26 +8,31 @@ class UnexpectedInputType(message: String, cause: Throwable = null)
     extends RuntimeException(message, cause) {}
 
 class JoinSymbolicResult(ss: SymbolicState,
-                        nonTerminatingPaths: Array[PathEffect],
-                        terminatingPaths: ArrayBuffer[TerminatingPath] = null,
-                        iVar: Array[SymVar],
-                        oVar: Array[SymVar])
-                        extends SymbolicResult(ss, nonTerminatingPaths, terminatingPaths, iVar, oVar) {
+                         nonTerminatingPaths: Array[PathEffect],
+                         terminatingPaths: ArrayBuffer[TerminatingPath] = null,
+                         iVar: Array[SymVar],
+                         oVar: Array[SymVar])
+    extends SymbolicResult(ss,
+                           nonTerminatingPaths,
+                           terminatingPaths,
+                           iVar,
+                           oVar) {
 
+  // var joined: Boolean = j
 
-    // var joined: Boolean = j
+  def getPartial(pc: String, constName: String): String = {
+    val x0 = pc.indexOf("x0")
+    val partial1 = pc.substring(x0 - 4, x0) + constName + pc.substring(x0 + 2,
+                                                                       x0 + 6)
 
-    def getPartial(pc: String, constName: String): String = {
-        val x0 = pc.indexOf("x0")
-        val partial1 = pc.substring(x0-4, x0)+constName+pc.substring(x0+2, x0+6)
-
-        val x2 = pc.indexOf("x2")
-        val partial2 = pc.substring(x2-4, x2)+constName+pc.substring(x2+2, x2+7)
-        s"""(assert (and ${partial1} ${partial2}))
+    val x2 = pc.indexOf("x2")
+    val partial2 = pc.substring(x2 - 4, x2) + constName + pc.substring(x2 + 2,
+                                                                       x2 + 7)
+    s"""(assert (and ${partial1} ${partial2}))
         |""".stripMargin
-    }
+  }
 
-    override def solveWithZ3() = {
+  override def solveWithZ3() = {
 //        var hashCode: Int = 0
 //        var first = ""
 //        var second = ""
@@ -112,91 +117,94 @@ class JoinSymbolicResult(ss: SymbolicState,
 //        println("------------------------")
 //        runZ3Command(filename , Z3DIR);
 //        println("------------------------")
-    }
+  }
 }
 
-
 object JoinSymbolicResult {
-    def apply(ss: SymbolicState, rddA: SymbolicResult, rddB: SymbolicResult): JoinSymbolicResult = {
-        //Makes sure that A and B both have a more than one element as their symOutput
-        require(rddA.symOutput.size > 1 && rddB.symOutput.size > 1)
+  def apply(ss: SymbolicState,
+            rddA: SymbolicResult,
+            rddB: SymbolicResult): JoinSymbolicResult = {
+    //Makes sure that A and B both have a more than one element as their symOutput
+    require(rddA.symOutput.size > 1 && rddB.symOutput.size > 1)
 
-        val keyA: SymVar = rddA.symOutput(0)
-        val keyB: SymVar = rddB.symOutput(0)
-        require(keyA.actualType.equals(keyB.actualType))
+    val keyA: SymVar = rddA.symOutput(0)
+    val keyB: SymVar = rddB.symOutput(0)
+    require(keyA.actualType.equals(keyB.actualType))
 
-        //do join
-        val product = new Array[PathEffect](rddA.numOfPaths * rddB.numOfPaths)
-        val joinedPaths = new Array[PathEffect](rddA.numOfPaths * rddB.numOfPaths)
-        val terminatingPaths = new ArrayBuffer[TerminatingPath]()
+    //do join
+    val product = new Array[PathEffect](rddA.numOfPaths * rddB.numOfPaths)
+    val joinedPaths = new Array[PathEffect](rddA.numOfPaths * rddB.numOfPaths)
+    val terminatingPaths = new ArrayBuffer[TerminatingPath]()
 
-        if(rddA.terminating != null) {
-            terminatingPaths ++= rddA.terminating
-        }
-        if(rddB.terminating != null) {
-            terminatingPaths ++= rddB.terminating
-        }
-
-        var i = 0
-        for(pA <- rddA.paths) {
-            for(pB <- rddB.paths) {
-                product(i) = pB.conjunctPathEffect(pA)
-                i += 1
-            }
-        }
-
-        for(i <- 0 until product.length) {
-            //***Assuming that the first element of symOutput array is the key***
-            //product(i) is the rest of the cluases and we need to replace A.key and B.key with the existential var in this rest!
-
-            //Case 1:
-          //  val c1 = new SymVar(keyA.actualType, ss.getFreshName)
-           // val replacedC1: PathEffect = product(i).replace(keyA, c1).replace(keyB, c1)
-
-           // val existA_B = new ExistentialConstraint(c1, replacedC1.pathConstraint.clauses)
-            //existA_B.addCluase(ComparisonOp.isIn, keyA)
-           //existA_B.addCluase(ComparisonOp.isIn, keyB)
-
-          //  joinedPaths(i) = new PathEffect(existA_B, replacedC1.effects)
-
-            //Case 2: Terminating
-          //  val c2 = new SymVar(keyA.actualType, ss.getFreshName)
-          //  val replacedC2: PathEffect = product(i)//.replace(keyA, c2).replace(keyB, c2)
-
-          //  val existA_NotB = new ExistentialConstraint(c2, replacedC2.pathConstraint.clauses)
-           // existA_NotB.addCluase(ComparisonOp.isIn, keyA)
-           // existA_NotB.addCluase(ComparisonOp.isNotIn, keyB)
-            
-            val t1= new Constraint(product(i).pathConstraint.clauses ++ Array(new Clause(keyA, ComparisonOp.Inequality , keyB)))
-            val t2 = new Constraint(product(i).pathConstraint.clauses ++ Array(new Clause(keyA, ComparisonOp.Equality , keyB)))
-            product(i).pathConstraint = t2
-            
-            
-            terminatingPaths += new TerminatingPath(t1 , new ArrayBuffer())
-
-
-            //Case 3: Terminating
-           // val c3 = new SymVar(keyA.actualType, ss.getFreshName)
-           // val replacedC3: PathEffect = product(i)//.replace(keyA, c3).replace(keyB, c3)
-
-          //  val existNotA_B = new ExistentialConstraint(c3, replacedC3.pathConstraint.clauses)
-         //   existNotA_B.addCluase(ComparisonOp.isNotIn, keyA)
-          //  existNotA_B.addCluase(ComparisonOp.isIn, keyB)
-
-            terminatingPaths += new TerminatingPath(t1,new ArrayBuffer())
-        }
-
-        // var result = ""
-        // joinedPaths.foreach(result += _.toString+"\n")
-        // println(result)
-
-      
-         val input =  rddA.symOutput ++ rddB.symOutput
-         
-         val output = Array(rddA.symOutput(0)) ++ rddA.symOutput.drop(1) ++ rddB.symOutput.drop(1)  
-
-      return new JoinSymbolicResult(ss, product, terminatingPaths, input, output)
-       //return new JoinSymbolicResult(ss, product, terminatingPaths, input, output)
-
+    if (rddA.terminating != null) {
+      terminatingPaths ++= rddA.terminating
     }
+    if (rddB.terminating != null) {
+      terminatingPaths ++= rddB.terminating
+    }
+
+    var i = 0
+    for (pA <- rddA.paths) {
+      for (pB <- rddB.paths) {
+        product(i) = pB.conjunctPathEffect(pA)
+        i += 1
+      }
+    }
+
+    for (i <- 0 until product.length) {
+      //***Assuming that the first element of symOutput array is the key***
+      //product(i) is the rest of the cluases and we need to replace A.key and B.key with the existential var in this rest!
+
+      //Case 1:
+      //  val c1 = new SymVar(keyA.actualType, ss.getFreshName)
+      // val replacedC1: PathEffect = product(i).replace(keyA, c1).replace(keyB, c1)
+
+      // val existA_B = new ExistentialConstraint(c1, replacedC1.pathConstraint.clauses)
+      //existA_B.addCluase(ComparisonOp.isIn, keyA)
+      //existA_B.addCluase(ComparisonOp.isIn, keyB)
+
+      //  joinedPaths(i) = new PathEffect(existA_B, replacedC1.effects)
+
+      //Case 2: Terminating
+      //  val c2 = new SymVar(keyA.actualType, ss.getFreshName)
+      //  val replacedC2: PathEffect = product(i)//.replace(keyA, c2).replace(keyB, c2)
+
+      //  val existA_NotB = new ExistentialConstraint(c2, replacedC2.pathConstraint.clauses)
+      // existA_NotB.addCluase(ComparisonOp.isIn, keyA)
+      // existA_NotB.addCluase(ComparisonOp.isNotIn, keyB)
+
+      val t1 = new Constraint(
+        product(i).pathConstraint.clauses ++ Array(
+          new Clause(keyA, ComparisonOp.Inequality, keyB)))
+      val t2 = new Constraint(
+        product(i).pathConstraint.clauses ++ Array(
+          new Clause(keyA, ComparisonOp.Equality, keyB)))
+      product(i).pathConstraint = t2
+
+      terminatingPaths += new TerminatingPath(t1, new ArrayBuffer())
+
+      //Case 3: Terminating
+      // val c3 = new SymVar(keyA.actualType, ss.getFreshName)
+      // val replacedC3: PathEffect = product(i)//.replace(keyA, c3).replace(keyB, c3)
+
+      //  val existNotA_B = new ExistentialConstraint(c3, replacedC3.pathConstraint.clauses)
+      //   existNotA_B.addCluase(ComparisonOp.isNotIn, keyA)
+      //  existNotA_B.addCluase(ComparisonOp.isIn, keyB)
+
+      terminatingPaths += new TerminatingPath(t1, new ArrayBuffer())
+    }
+
+    // var result = ""
+    // joinedPaths.foreach(result += _.toString+"\n")
+    // println(result)
+
+    val input = rddA.symOutput ++ rddB.symOutput
+
+    val output = Array(rddA.symOutput(0)) ++ rddA.symOutput.drop(1) ++ rddB.symOutput
+      .drop(1)
+
+    return new JoinSymbolicResult(ss, product, terminatingPaths, input, output)
+    //return new JoinSymbolicResult(ss, product, terminatingPaths, input, output)
+
+  }
 }
