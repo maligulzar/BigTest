@@ -36,9 +36,7 @@ object SymRunner {
     // convertList(Runner.getDataFlowDAG)
     val dagOpList: Array[Tuple2[String, String]] =
       new Array[Tuple2[String, String]](1)
-    dagOpList(0) =
-      ("reduce",
-       "/Users/malig/workspace/up_jpf/jpf-symbc/src/examples/arrays/reduce1.jpf")
+    dagOpList(0) = ("reduce", "/Users/malig/workspace/up_jpf/jpf-symbc/src/examples/arrays/reduce1.jpf")
 
     val result = SymbolicEngine.executeSymbolicDF(dagOpList)
     // println(result)

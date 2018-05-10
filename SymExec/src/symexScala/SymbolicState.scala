@@ -95,8 +95,7 @@ class SymbolicVarDef(v: SymVar) {
   }
 
   def updateEffect(effect: Expr) = {
-    println(
-      "Variable " + v.getName + " updated from " + symbolicValue + " to " + effect)
+    println("Variable " + v.getName + " updated from " + symbolicValue + " to " + effect)
     symbolicValue = effect
   }
 }

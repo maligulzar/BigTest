@@ -9,20 +9,16 @@ import NumericUnderlyingType._
 import ComparisonOp._
 import ArithmeticOp._
 import udfExtractor.SystemCommandExecutor
+import sun.misc.ObjectInputFilter.Config
+import udfExtractor.Configuration
+import udfExtractor.Runner
 
-class NotFoundPathCondition(message: String, cause: Throwable = null)
-    extends RuntimeException("Not found Pa in C(A) for record " + message,
-                             cause) {}
+class NotFoundPathCondition(message: String, cause: Throwable = null) extends RuntimeException("Not found Pa in C(A) for record " + message, cause) {}
 
 /*
     paths = different paths each being satisfied by an equivalent class of tuples in dataset V
  */
-class SymbolicResult(ss: SymbolicState,
-                     nonT: Array[PathEffect],
-                     t: ArrayBuffer[TerminatingPath] = null,
-                     iVar: Array[SymVar] = Array(),
-                     oVar: Array[SymVar] = Array(),
-                     j: Boolean = false) {
+class SymbolicResult(ss: SymbolicState, nonT: Array[PathEffect], t: ArrayBuffer[TerminatingPath] = null, iVar: Array[SymVar] = Array(), oVar: Array[SymVar] = Array(), j: Boolean = false) {
   var Z3DIR: String = "/Users/amytis/Projects/z3-master"
   var SOLVER: String = "Z3"
   val state: SymbolicState = ss
@@ -72,9 +68,7 @@ class SymbolicResult(ss: SymbolicState,
     }
   }
 
-  def runZ3Command(filename: String,
-                   Z3dir: String,
-                   args: Array[String] = Array()): String = {
+  def runZ3Command(filename: String, Z3dir: String, args: Array[String] = Array()): String = {
     // build the system command we want to run
     var s = ""
     if (SOLVER.equals("CVC4")) {
@@ -100,11 +94,9 @@ class SymbolicResult(ss: SymbolicState,
         commandExecutor.getStandardOutputFromCommand
       val stderr: java.lang.StringBuilder =
         commandExecutor.getStandardErrorFromCommand
-      println(
-        "********** Satisfying Assigments **********************************************")
+      println("********** Satisfying Assigments **********************************************")
       println(stdout.toString)
-      println(
-        "*******************************************************************************")
+      println("*******************************************************************************")
 
       println("\n" + stderr.toString)
       return stdout.toString()
@@ -214,14 +206,21 @@ class SymbolicResult(ss: SymbolicState,
     else 0
   }
 
+  /**
+    *
+    * Map
+    * @param udfSymbolicResult symbolic execution output of a Udf
+    * @result the combined SymbolicResult object
+    *
+    *
+    * **/
   def map(udfSymbolicResult: SymbolicResult): SymbolicResult = {
     //returns Cartesian product of already existing paths *  set of paths from given udf
 
     val product =
       new Array[PathEffect](paths.size * udfSymbolicResult.numOfPaths)
-    val product_terminating = ArrayBuffer.fill(
-      (paths.size * udfSymbolicResult.numOfTerminating) + numOfTerminating)(
-      new TerminatingPath(new Constraint()))
+    val product_terminating =
+      ArrayBuffer.fill((paths.size * udfSymbolicResult.numOfTerminating) + numOfTerminating)(new TerminatingPath(new Constraint()))
     var i = 0
     var j = 0;
     var terminatingPaths = new ArrayBuffer[TerminatingPath]()
@@ -238,8 +237,7 @@ class SymbolicResult(ss: SymbolicState,
         //udf -> (x2, x3) / rdd -> (x0, x1) => link -> (x2 = x1)
         val link: Tuple2[Array[SymVar], Array[SymVar]] =
           if (this.symOutput != null)
-            new Tuple2(udfSymbolicResult.symInput.asInstanceOf[Array[SymVar]],
-                       this.symOutput.asInstanceOf[Array[SymVar]])
+            new Tuple2(udfSymbolicResult.symInput.asInstanceOf[Array[SymVar]], this.symOutput.asInstanceOf[Array[SymVar]])
           else null
 
         product(i) = udfPath.conjunctPathEffect(pa, link)
@@ -252,8 +250,7 @@ class SymbolicResult(ss: SymbolicState,
         //udf -> (x2, x3) / rdd -> (x0, x1) => link -> (x2 = x1)
         val link: Tuple2[Array[SymVar], Array[SymVar]] =
           if (this.symOutput != null)
-            new Tuple2(udfSymbolicResult.symInput.asInstanceOf[Array[SymVar]],
-                       this.symOutput.asInstanceOf[Array[SymVar]])
+            new Tuple2(udfSymbolicResult.symInput.asInstanceOf[Array[SymVar]], this.symOutput.asInstanceOf[Array[SymVar]])
           else null
 
         product_terminating(j) = udfPath.conjunctPathEffect(pa, link)
@@ -264,13 +261,17 @@ class SymbolicResult(ss: SymbolicState,
     val input =
       if (this.symInput.length == 0) udfSymbolicResult.symInput
       else this.symInput
-    new SymbolicResult(this.state,
-                       product,
-                       product_terminating,
-                       input,
-                       udfSymbolicResult.symOutput)
+    new SymbolicResult(this.state, product, product_terminating, input, udfSymbolicResult.symOutput)
   }
 
+  /**
+    *
+    * Reduce
+    * @param udfSymbolicResult symbolic execution output of a Udf
+    * @result the combined SymbolicResult object
+    *
+    *
+    * **/
   def reduce(udfSymbolicResult: SymbolicResult): SymbolicResult = {
     //returns Cartesian product of already existing paths *  set of paths from given udf
     var arr_name = ss.getFreshName
@@ -281,58 +282,57 @@ class SymbolicResult(ss: SymbolicState,
       case Numeric(t) =>
         CollectionNumeric(t)
       case _ =>
-        throw new UnsupportedOperationException(
-          "Not Supported Type " + arr_type.toString())
+        throw new UnsupportedOperationException("Not Supported Type " + arr_type.toString())
     }
     val symarray = new SymArray(type_name, arr_name)
     val arr_op_non = new SymArrayOp(type_name, ArrayOp.withName("select")) ///*** TODO: Only supporting Arrays of Integers
-    val arr_0 = new ArrayExpr(symarray,
-                              arr_op_non,
-                              Array(new ConcreteValue(Numeric(_Int), "0")))
-    val arr_1 = new ArrayExpr(symarray,
-                              arr_op_non,
-                              Array(new ConcreteValue(Numeric(_Int), "1")))
+    val arr_0 =
+      new ArrayExpr(symarray, arr_op_non, Array(new ConcreteValue(Numeric(_Int), "0")))
+    val arr_1 =
+      new ArrayExpr(symarray, arr_op_non, Array(new ConcreteValue(Numeric(_Int), "1")))
 
     var i = 0
-    val linked_paths  =  new Array[PathEffect](paths.size * paths.size)
-    
+    val linked_paths = new Array[PathEffect](paths.size * paths.size)
+
     for (pa1 <- this.paths) {
       for (pa2 <- this.paths) {
-          linked_paths(i) = pa1.addOneToN_Mapping(this.symOutput(1), Array(arr_0, arr_1) , pa2)
-          i = i+1     
-        }
+        linked_paths(i) = pa1.addOneToN_Mapping(this.symOutput(1), Array(arr_0, arr_1), pa2)
+        i = i + 1
       }
+    }
     val product =
       new Array[PathEffect](linked_paths.size * udfSymbolicResult.numOfPaths)
     i = 0
-    for (pa <- linked_paths){    
-        for (udfPath <- udfSymbolicResult.paths) {
+    for (pa <- linked_paths) {
+      for (udfPath <- udfSymbolicResult.paths) {
         //udf -> (x2, x3) / rdd -> (x0, x1) => link -> (x2 = x1)
-          val link: Tuple2[Array[SymVar], Array[SymVar]] =
-            if (this.symOutput != null)
-              new Tuple2(udfSymbolicResult.symInput.asInstanceOf[Array[SymVar]],
-                       Array(symarray))
-            else null
+        val link: Tuple2[Array[SymVar], Array[SymVar]] =
+          if (this.symOutput != null)
+            new Tuple2(udfSymbolicResult.symInput.asInstanceOf[Array[SymVar]], Array(symarray))
+          else null
 
         product(i) = udfPath.conjunctPathEffect(pa, link)
-    //    product(i) =
-      //    product(i).addOneToN_Mapping(this.symOutput(1), Array(arr_0, arr_1))
+        //    product(i) =
+        //    product(i).addOneToN_Mapping(this.symOutput(1), Array(arr_0, arr_1))
         i += 1
-          }
-       }
+      }
+    }
     val input =
       if (this.symInput.length == 0) udfSymbolicResult.symInput
       else this.symInput
-    new SymbolicResult(this.state,
-                       product,
-                       this.terminating,
-                       input,
-                       udfSymbolicResult.symOutput)
+    new SymbolicResult(this.state, product, this.terminating, input, udfSymbolicResult.symOutput)
   }
 
+  /**
+    *
+    * ReduceByKey
+    * @param udfSymbolicResult symbolic execution output of a Udf
+    * @result the combined SymbolicResult object
+    *
+    *
+    * **/
   def reduceByKey(udfSymbolicResult: SymbolicResult): SymbolicResult = {
-    assert(this.symOutput.length >= 2,
-           "ReduceByeKey is not Applicable, Effect of previous is not tuple")
+    assert(this.symOutput.length >= 2, "ReduceByeKey is not Applicable, Effect of previous is not tuple")
     //returns Cartesian product of already existing paths *  set of paths from given udf
 
     val tempSymOutput = Array(this.symOutput(1))
@@ -345,63 +345,140 @@ class SymbolicResult(ss: SymbolicState,
       case Numeric(t) =>
         CollectionNumeric(t)
       case _ =>
-        throw new UnsupportedOperationException(
-          "Not Supported Type " + arr_type.toString())
+        throw new UnsupportedOperationException("Not Supported Type " + arr_type.toString())
     }
     val symarray = new SymArray(type_name, arr_name)
     val arr_op_non = new SymArrayOp(type_name, ArrayOp.withName("select")) ///*** TODO: Only supporting Arrays of Integers
-    val arr_0 = new ArrayExpr(symarray,
-                              arr_op_non,
-                              Array(new ConcreteValue(Numeric(_Int), "0")))
-    val arr_1 = new ArrayExpr(symarray,
-                              arr_op_non,
-                              Array(new ConcreteValue(Numeric(_Int), "1")))
+    val arr_0 =
+      new ArrayExpr(symarray, arr_op_non, Array(new ConcreteValue(Numeric(_Int), "0")))
+    val arr_1 =
+      new ArrayExpr(symarray, arr_op_non, Array(new ConcreteValue(Numeric(_Int), "1")))
 
     var i = 0
-    val linked_paths  =  new Array[PathEffect](paths.size * paths.size)
-    
+    val linked_paths = new Array[PathEffect](paths.size * paths.size)
+
     for (pa1 <- this.paths) {
       for (pa2 <- this.paths) {
-          linked_paths(i) = pa1.addOneToN_Mapping(this.symOutput(1), Array(arr_0, arr_1) , pa2)
-          i = i+1     
-     /**
-     * 
-     * 
-     * Add constraints for similar key of both branches of the path
-     * 
-     * */
-        }
+        linked_paths(i) = pa1.addOneToN_Mapping(this.symOutput(1), Array(arr_0, arr_1), pa2)
+        i = i + 1
+        /**
+        *
+        *
+        * TODO: Add constraints for similar key of both branches of the path
+        *
+        * */
       }
+    }
     val product =
       new Array[PathEffect](linked_paths.size * udfSymbolicResult.numOfPaths)
     i = 0
-    for (pa <- linked_paths){    
-        for (udfPath <- udfSymbolicResult.paths) {
+    for (pa <- linked_paths) {
+      for (udfPath <- udfSymbolicResult.paths) {
         //udf -> (x2, x3) / rdd -> (x0, x1) => link -> (x2 = x1)
-          val link: Tuple2[Array[SymVar], Array[SymVar]] =
-            if (this.symOutput != null)
-              new Tuple2(udfSymbolicResult.symInput.asInstanceOf[Array[SymVar]],
-                       Array(symarray))
-            else null
+        val link: Tuple2[Array[SymVar], Array[SymVar]] =
+          if (this.symOutput != null)
+            new Tuple2(udfSymbolicResult.symInput.asInstanceOf[Array[SymVar]], Array(symarray))
+          else null
 
         product(i) = udfPath.conjunctPathEffect(pa, link)
-      //    product(i) =
-      //    product(i).addOneToN_Mapping(this.symOutput(1), Array(arr_0, arr_1))
+        //    product(i) =
+        //    product(i).addOneToN_Mapping(this.symOutput(1), Array(arr_0, arr_1))
         i += 1
-          }
-       }
+      }
+    }
     val input =
       if (this.symInput.length == 0) udfSymbolicResult.symInput
       else this.symInput
-    val finalSymOutput = Array(this.symOutput(0)) ++ udfSymbolicResult.symOutput    
+    val finalSymOutput = Array(this.symOutput(0)) ++ udfSymbolicResult.symOutput
 
-    new SymbolicResult(this.state,
-                       product,
-                       this.terminating,
-                       input,
-                       finalSymOutput)
+    new SymbolicResult(this.state, product, this.terminating, input, finalSymOutput)
   }
 
+  /**
+    *
+    * FlatMap
+    * @param udfSymbolicResult symbolic execution output of a Udf
+    * @result the combined SymbolicResult object
+    *
+    *
+    * **/
+  def flatMap(udfSymbolicResult: SymbolicResult): SymbolicResult = {
+
+    val product =
+      new Array[PathEffect](paths.size * udfSymbolicResult.numOfPaths)
+    val product_terminating =
+      ArrayBuffer.fill((paths.size * udfSymbolicResult.numOfTerminating) + numOfTerminating)(new TerminatingPath(new Constraint()))
+    var i = 0
+    var j = 0;
+    var terminatingPaths = new ArrayBuffer[TerminatingPath]()
+    if (this.terminating != null) {
+      for (tp <- this.terminating) {
+        product_terminating(j) = tp
+        j += 1
+      }
+
+    }
+
+    for (pa <- this.paths) {
+      for (udfPath <- udfSymbolicResult.paths) {
+        //udf -> (x2, x3) / rdd -> (x0, x1) => link -> (x2 = x1)
+        val link: Tuple2[Array[SymVar], Array[SymVar]] =
+          if (this.symOutput != null)
+            new Tuple2(udfSymbolicResult.symInput.asInstanceOf[Array[SymVar]], this.symOutput.asInstanceOf[Array[SymVar]])
+          else null
+
+        product(i) = udfPath.conjunctPathEffect(pa, link)
+        i += 1
+      }
+    }
+
+    for (pa <- this.paths) {
+      for (udfPath <- udfSymbolicResult.terminating) {
+        //udf -> (x2, x3) / rdd -> (x0, x1) => link -> (x2 = x1)
+        val link: Tuple2[Array[SymVar], Array[SymVar]] =
+          if (this.symOutput != null)
+            new Tuple2(udfSymbolicResult.symInput.asInstanceOf[Array[SymVar]], this.symOutput.asInstanceOf[Array[SymVar]])
+          else null
+
+        product_terminating(j) = udfPath.conjunctPathEffect(pa, link)
+        j += 1
+      }
+    }
+
+    val input =
+      if (this.symInput.length == 0) udfSymbolicResult.symInput
+      else this.symInput
+
+    /*assert({
+        udfSymbolicResult.symOutput(0).isInstanceOf[SymArray]
+      || udfSymbolicResult.symOutput(0).isInstanceOf[StringOp]
+
+    }, "Output of flatmap's udf is not an array")
+     */
+
+    val output_paths =
+      new Array[PathEffect](paths.size * Runner.loop_bound)
+    i = 0
+    for (pa <- product) {
+      // Fixed upper bound on the array -- Hard coded as K=2
+      output_paths(i) = pa.indexOutputArrayForFlatMap(udfSymbolicResult.symOutput(0).name, 0)
+      i = i + 1
+      output_paths(i) = pa.indexOutputArrayForFlatMap(udfSymbolicResult.symOutput(0).name, 1)
+      i = i + 1
+    }
+
+    new SymbolicResult(this.state, output_paths, product_terminating, input, udfSymbolicResult.symOutput)
+
+  }
+
+  /**
+    *
+    * Filter
+    * @param udfSymbolicResult symbolic execution output of a Udf
+    * @result the combined SymbolicResult object
+    *
+    *
+    * **/
   def filter(udfSymbolicResult: SymbolicResult): SymbolicResult = {
     val product = new ArrayBuffer[PathEffect]()
     val terminatingPaths = new ArrayBuffer[TerminatingPath]()
@@ -419,8 +496,7 @@ class SymbolicResult(ss: SymbolicState,
           //udf -> (x2, x3) / rdd -> (x0, x1) => link -> (x2 = x1)
           val link: Tuple2[Array[SymVar], Array[SymVar]] =
             if (this.symOutput != null)
-              new Tuple2(udfSymbolicResult.symInput.asInstanceOf[Array[SymVar]],
-                         this.symOutput.asInstanceOf[Array[SymVar]])
+              new Tuple2(udfSymbolicResult.symInput.asInstanceOf[Array[SymVar]], this.symOutput.asInstanceOf[Array[SymVar]])
             else null
 
           val conjuncted = udfTerminating.conjunctPathEffect(pa, link)
@@ -433,8 +509,7 @@ class SymbolicResult(ss: SymbolicState,
           //udf -> (x2, x3) / rdd -> (x0, x1) => link -> (x2 = x1)
           val link: Tuple2[Array[SymVar], Array[SymVar]] =
             if (this.symOutput != null)
-              new Tuple2(udfSymbolicResult.symInput.asInstanceOf[Array[SymVar]],
-                         this.symOutput.asInstanceOf[Array[SymVar]])
+              new Tuple2(udfSymbolicResult.symInput.asInstanceOf[Array[SymVar]], this.symOutput.asInstanceOf[Array[SymVar]])
             else null
           product += removedEffect.conjunctPathEffect(pa, link)
         }
@@ -446,24 +521,32 @@ class SymbolicResult(ss: SymbolicState,
       else this.symInput
     //udf symOutput is dis-regarded as it is either false or true
     //and since filter is side-effect free symInput is considered as output of whole
-    new SymbolicResult(this.state,
-                       product.toArray,
-                       terminatingPaths,
-                       input,
-                       udfSymbolicResult.symInput)
+    new SymbolicResult(this.state, product.toArray, terminatingPaths, input, udfSymbolicResult.symInput)
   }
 
+  /**
+    *
+    * Join
+    * @param secondRDD another SymbolicResult
+    * @result the joined SymbolicResult object
+    *
+    *
+    * **/
   def join(secondRDD: SymbolicResult): SymbolicResult = {
     JoinSymbolicResult.apply(this.state, this, secondRDD)
 
   }
 
+  /**
+    *
+    * groupByKey
+    *
+    * **/
   // We need to spawn new branch to link the input of this operation to the output
   // E.g Input  : V -->  Output : [V1 ,V2] Such that V1 ==V, and V2 ==V
   def groupByKey(): SymbolicResult = {
-    assert(this.symOutput.length >= 2,
-           "GroupByKey is not Applicable, Effect of previous is not tuple")
-    val product = new Array[PathEffect](paths.size*paths.size)
+    assert(this.symOutput.length >= 2, "GroupByKey is not Applicable, Effect of previous is not tuple")
+    val product = new Array[PathEffect](paths.size * paths.size)
     var i = 0
     var arr_name = ss.getFreshName
     var arr_type = this.symOutput(1).actualType
@@ -473,34 +556,27 @@ class SymbolicResult(ss: SymbolicState,
       case Numeric(t) =>
         CollectionNumeric(t)
       case _ =>
-        throw new UnsupportedOperationException(
-          "Not Supported Type " + arr_type.toString())
+        throw new UnsupportedOperationException("Not Supported Type " + arr_type.toString())
     }
     val symarray = new SymArray(type_name, arr_name)
-    
-          val arr_op_non = new SymArrayOp(type_name, ArrayOp.withName("select")) ///*** TODO: Only supporting Arrays of Integers
-      val arr_0 = new ArrayExpr(symarray,
-                                arr_op_non,
-                                Array(new ConcreteValue(Numeric(_Int), "0")))
-      val arr_1 = new ArrayExpr(symarray,
-                                arr_op_non,
-                                Array(new ConcreteValue(Numeric(_Int), "1")))
+
+    val arr_op_non = new SymArrayOp(type_name, ArrayOp.withName("select")) ///*** TODO: Only supporting Arrays of Integers
+    val arr_0 =
+      new ArrayExpr(symarray, arr_op_non, Array(new ConcreteValue(Numeric(_Int), "0")))
+    val arr_1 =
+      new ArrayExpr(symarray, arr_op_non, Array(new ConcreteValue(Numeric(_Int), "1")))
     for (pa1 <- this.paths) {
       for (pa2 <- this.paths) {
-      //(x0, x1) -> (x2, [x3,x4] )  => link -> (x0 = x2) && (x1 = x3 , x4 = x1)
-      //TODO: *****THIS IS WHERE WE NEED TO SPAWN A NEW LINK TO CONSTRUCT 1-N MAPPING BETWEEN INPUT AND OUTPUT
-      product(i) = pa1.addOneToN_Mapping(this.symOutput(1), Array(arr_0, arr_1) , pa2)
-      //*******
-      i += 1
-        }
-     }
+        //(x0, x1) -> (x2, [x3,x4] )  => link -> (x0 = x2) && (x1 = x3 , x4 = x1)
+        //TODO: *****THIS IS WHERE WE NEED TO SPAWN A NEW LINK TO CONSTRUCT 1-N MAPPING BETWEEN INPUT AND OUTPUT
+        product(i) = pa1.addOneToN_Mapping(this.symOutput(1), Array(arr_0, arr_1), pa2)
+        //*******
+        i += 1
+      }
+    }
     val input = this.symOutput
     val finalSymOutput = Array(this.symOutput(0)) ++ Array(symarray)
-    new SymbolicResult(this.state,
-                       product,
-                       this.terminating,
-                       input,
-                       finalSymOutput)
+    new SymbolicResult(this.state, product, this.terminating, input, finalSymOutput)
   }
 
   // override def equals(other: Any): Boolean = {

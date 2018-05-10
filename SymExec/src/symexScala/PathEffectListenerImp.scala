@@ -34,9 +34,7 @@ import gov.nasa.jpf.symbc.PathEffectListener
 import scala.collection.mutable.HashSet
 import gov.nasa.jpf.symbc.arrays.ArrayExpression
 
-class NotSupportedRightNow(message: String, cause: Throwable = null)
-    extends RuntimeException("This is not supported right now: " + message,
-                             cause) {}
+class NotSupportedRightNow(message: String, cause: Throwable = null) extends RuntimeException("This is not supported right now: " + message, cause) {}
 
 class PathEffectListenerImp extends PathEffectListener {
 
@@ -46,8 +44,7 @@ class PathEffectListenerImp extends PathEffectListener {
   def convertRealExpression(lr: RealExpression): Expr = {
     lr match {
       case r: BinaryRealExpression => {
-        val left
-          : Expr = convertExpressionToExpr(r.getLeft()) //RealExpression -> Expr
+        val left: Expr = convertExpressionToExpr(r.getLeft()) //RealExpression -> Expr
         val right: Expr = convertExpressionToExpr(r.getRight()) //RealExpression -> Expr
 
         var opStr = r.getOp().toString().replaceAll("\\s", "")
@@ -67,8 +64,7 @@ class PathEffectListenerImp extends PathEffectListener {
     }
   }
 
-  def convertIntegerExpression(li: IntegerExpression,
-                               isString: Boolean = false): Expr = {
+  def convertIntegerExpression(li: IntegerExpression, isString: Boolean = false): Expr = {
     li match {
       case i: BinaryLinearIntegerExpression => {
         val left: Expr = convertExpressionToExpr(i.getLeft()) //IntegerExpression -> Expr
@@ -79,9 +75,7 @@ class PathEffectListenerImp extends PathEffectListener {
           throw new NotSupportedRightNow(opStr)
 
         if (opStr == "/" && !right.isInstanceOf[ConcreteValue]) {
-          val t = new Clause(right,
-                             ComparisonOp.Equality,
-                             new ConcreteValue(Numeric(_Int), "0"))
+          val t = new Clause(right, ComparisonOp.Equality, new ConcreteValue(Numeric(_Int), "0"))
           terminating.add(new TerminatingPath(new Constraint(Array(t))))
         }
         val op = new SymOp(Numeric(_Int), ArithmeticOp.withName(opStr))
@@ -119,17 +113,14 @@ class PathEffectListenerImp extends PathEffectListener {
         new StringExpr(symstring, op, Array[Expr]())
 
       case i: BinaryNonLinearIntegerExpression => {
-        val left
-          : Expr = convertExpressionToExpr(i.left) //IntegerExpression -> Expr
+        val left: Expr = convertExpressionToExpr(i.left) //IntegerExpression -> Expr
         val right: Expr = convertExpressionToExpr(i.right) //IntegerExpression -> Expr
         var opStr = i.op.toString().replaceAll("\\s", "")
         if (opStr != "+" && opStr != "-" && opStr != "*" && opStr != "/")
           throw new NotSupportedRightNow(opStr)
         val op = new SymOp(Numeric(_Int), ArithmeticOp.withName(opStr))
         if (opStr == "/") {
-          val t = new Clause(right,
-                             ComparisonOp.Equality,
-                             new ConcreteValue(Numeric(_Int), "0"))
+          val t = new Clause(right, ComparisonOp.Equality, new ConcreteValue(Numeric(_Int), "0"))
           terminating.add(new TerminatingPath(new Constraint(Array(t))))
         }
         new NonTerminal(left, op, right)
@@ -216,9 +207,8 @@ class PathEffectListenerImp extends PathEffectListener {
     //addInArgsMap(name + convertIntegerExpression(i) , name)
     // terminating path added   --- Check the ArrayINdexOut Of Bound exception
     val arr_type = getArrayType(ar)
-    val symarray = new SymArray(
-      CollectionNumeric(NumericUnderlyingType.withName(arr_type)),
-      name)
+    val symarray =
+      new SymArray(CollectionNumeric(NumericUnderlyingType.withName(arr_type)), name)
     val arr_op = new SymArrayOp(Numeric(_Int), ArrayOp.withName("length"))
     val arr_expr = new ArrayExpr(symarray, arr_op, Array())
     val t = new Clause(arr_expr, ComparisonOp.LessThanOrEq, indexexpr)
@@ -226,10 +216,9 @@ class PathEffectListenerImp extends PathEffectListener {
     //TODO: Uncomment this line to catch out of bound exception
 
     //non terminating
-    val arr_op_non = new SymArrayOp(
-      Numeric(NumericUnderlyingType.withName(arr_type)),
-      ArrayOp
-        .withName("select")) ///*** TODO: Only supporting Arrays of Integers
+    val arr_op_non = new SymArrayOp(Numeric(NumericUnderlyingType.withName(arr_type)),
+                                    ArrayOp
+                                      .withName("select")) ///*** TODO: Only supporting Arrays of Integers
     new ArrayExpr(symarray, arr_op_non, Array(indexexpr))
     /**
     * The select array operation or array expression needs to be evaluated recursively.
@@ -287,15 +276,13 @@ class PathEffectListenerImp extends PathEffectListener {
         var oper: SymStringOp = null;
         try {
           oper = new SymStringOp(NonNumeric(_String), StringOp.withName(opStr))
-          if (oper.op == StringOp.Splitn && !split_symstr.contains(
-                stringsym.toString())) {
+          if (oper.op == StringOp.Splitn && !split_symstr
+                .contains(stringsym.toString())) {
             var index = pars(0)
-            val t1 = new Clause(index,
-                                ComparisonOp.GreaterThan,
-                                new ConcreteValue(Numeric(_Int), "0"))
-            val t2 = new Clause(stringsym,
-                                ComparisonOp.Equals,
-                                new ConcreteValue(NonNumeric(_String), ""))
+            val t1 =
+              new Clause(index, ComparisonOp.GreaterThan, new ConcreteValue(Numeric(_Int), "0"))
+            val t2 =
+              new Clause(stringsym, ComparisonOp.Equals, new ConcreteValue(NonNumeric(_String), ""))
             split_symstr.add(stringsym.toString())
             terminating.add(new TerminatingPath(new Constraint(Array(t1, t2))))
           }
@@ -335,8 +322,7 @@ class PathEffectListenerImp extends PathEffectListener {
     }
   }
 
-  def convertConstraintToClause(
-      cons: gov.nasa.jpf.symbc.numeric.Constraint): Clause = {
+  def convertConstraintToClause(cons: gov.nasa.jpf.symbc.numeric.Constraint): Clause = {
     val left: Expr = convertExpressionToExpr(cons.getLeft())
     val right: Expr = convertExpressionToExpr(cons.getRight())
 
@@ -347,8 +333,7 @@ class PathEffectListenerImp extends PathEffectListener {
     new Clause(left, comp, right)
   }
 
-  def convertConstraintToClause(
-      cons: gov.nasa.jpf.symbc.string.StringConstraint): Clause = {
+  def convertConstraintToClause(cons: gov.nasa.jpf.symbc.string.StringConstraint): Clause = {
     if (cons.getLeft != null) {
       val left: Expr = convertExpressionToExpr(cons.getLeft())
       val right: Expr = convertExpressionToExpr(cons.getRight())
@@ -389,8 +374,7 @@ class PathEffectListenerImp extends PathEffectListener {
     new Constraint(clauses.toArray) // ++ clses)
   }
 
-  def convertPathCondition(pc: PathCondition,
-                           udfFileName: String): Constraint = {
+  def convertPathCondition(pc: PathCondition, udfFileName: String): Constraint = {
     val clauses: ArrayBuffer[Clause] = new ArrayBuffer[Clause]()
     var current = pc.header //: gov.nasa.jpf.symbc.numeric.Constraint
     val s_constraints = convertPathCondition(pc.spc)
@@ -412,8 +396,7 @@ class PathEffectListenerImp extends PathEffectListener {
   /*
         assuming first input argument is our record (which also has the same type as return variable)
    */
-  def convertAll(symState: SymbolicState,
-                 udfFileName: String): SymbolicResult = {
+  def convertAll(symState: SymbolicState, udfFileName: String): SymbolicResult = {
     val pathVector: Vector[Pair[PathCondition, java.util.List[Expression]]] =
       super.getListOfPairs()
     val argsInfo: Vector[Pair[String, String]] = super.getArgsInfo()
@@ -427,22 +410,20 @@ class PathEffectListenerImp extends PathEffectListener {
         (Array(freshVar), symState.getFreshSymVar(argsInfo.get(0)._2))
       } else if (argsInfo.size == 2) {
         val freshVar: SymVar = symState.getFreshSymVar(argsInfo.get(0)._2)
-        var f1 = new SymVar(SymbolicState.getVType(argsInfo.get(0)._2),
-                            freshVar.getName + "_1")
-        var f2 = new SymVar(SymbolicState.getVType(argsInfo.get(1)._2),
-                            freshVar.getName + "_2")
+        var f1 =
+          new SymVar(SymbolicState.getVType(argsInfo.get(0)._2), freshVar.getName + "_1")
+        var f2 =
+          new SymVar(SymbolicState.getVType(argsInfo.get(1)._2), freshVar.getName + "_2")
         argsMap += (argsInfo.get(0)._1 -> f1)
         argsMap += (argsInfo.get(1)._1 -> f2)
 
         (Array(f1, f2), symState.getFreshSymVar(argsInfo.get(0)._2))
       } else if (argsInfo.size == 3) {
         val freshVar: SymVar = symState.getFreshSymVar(argsInfo.get(0)._2)
-        var f1 = new SymVar(SymbolicState.getVType(argsInfo.get(0)._2),
-                            freshVar.getName + "_1")
-        var f2 = new SymVar(SymbolicState.getVType(argsInfo.get(1)._2),
-                            freshVar.getName + "_2_1")
-        var f3 = new SymVar(SymbolicState.getVType(argsInfo.get(2)._2),
-                            freshVar.getName + "_2_2")
+        var f1 =
+          new SymVar(SymbolicState.getVType(argsInfo.get(0)._2), freshVar.getName + "_1")
+        var f2 = new SymVar(SymbolicState.getVType(argsInfo.get(1)._2), freshVar.getName + "_2_1")
+        var f3 = new SymVar(SymbolicState.getVType(argsInfo.get(2)._2), freshVar.getName + "_2_2")
         argsMap += (argsInfo.get(0)._1 -> f1)
         argsMap += (argsInfo.get(1)._1 -> f2)
         argsMap += (argsInfo.get(2)._1 -> f3)
@@ -460,29 +441,20 @@ class PathEffectListenerImp extends PathEffectListener {
     var outputV: Array[SymVar] = new Array[SymVar](pathVector.get(0)._2.size())
     for (i <- 0 until pathVector.size) {
       if (pathVector.get(i)._2.size() == 2) { // for tuple
-        val effectFromSPF1: Expr = convertExpressionToExpr(
-          pathVector.get(i)._2.get(0))
-        val effectFromSPF2: Expr = convertExpressionToExpr(
-          pathVector.get(i)._2.get(1))
+        val effectFromSPF1: Expr = convertExpressionToExpr(pathVector.get(i)._2.get(0))
+        val effectFromSPF2: Expr = convertExpressionToExpr(pathVector.get(i)._2.get(1))
         val effectBuffer = new ArrayBuffer[Tuple2[SymVar, Expr]]()
-        outputV(0) =
-          new SymVar(effectFromSPF1.actualType, outputVar.getName + "_1")
-        outputV(1) =
-          new SymVar(effectFromSPF2.actualType, outputVar.getName + "_2")
+        outputV(0) = new SymVar(effectFromSPF1.actualType, outputVar.getName + "_1")
+        outputV(1) = new SymVar(effectFromSPF2.actualType, outputVar.getName + "_2")
         effectBuffer += new Tuple2(outputV(0), effectFromSPF1)
         effectBuffer += new Tuple2(outputV(1), effectFromSPF2)
-        allPathEffects(i) = new PathEffect(
-          convertPathCondition(pathVector.get(i)._1, udfFileName),
-          effectBuffer)
+        allPathEffects(i) = new PathEffect(convertPathCondition(pathVector.get(i)._1, udfFileName), effectBuffer)
       } else {
-        val effectFromSPF: Expr = convertExpressionToExpr(
-          pathVector.get(i)._2.get(0))
+        val effectFromSPF: Expr = convertExpressionToExpr(pathVector.get(i)._2.get(0))
         val effectBuffer = new ArrayBuffer[Tuple2[SymVar, Expr]]()
         outputV(0) = new SymVar(effectFromSPF.actualType, outputVar.getName)
         effectBuffer += new Tuple2(outputV(0), effectFromSPF)
-        allPathEffects(i) = new PathEffect(
-          convertPathCondition(pathVector.get(i)._1, udfFileName),
-          effectBuffer)
+        allPathEffects(i) = new PathEffect(convertPathCondition(pathVector.get(i)._1, udfFileName), effectBuffer)
       }
 
     }

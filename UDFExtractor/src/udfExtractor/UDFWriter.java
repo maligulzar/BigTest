@@ -90,7 +90,8 @@ public class UDFWriter {
             visitor.setTargetJPF(wrapper_name);
             target_func = wrapper_name;
             method_call = "int[] arr = " + argsToMain + ";\n       " + target_func + "(arr);\n";
-        } else if (filename.startsWith("flatMap")) {
+        }
+        /*else if (filename.startsWith("flatMap")) {
             wrapper_name = "applyFlatmap";
             String retType = getReturnType(target_func);
             if(retType.endsWith("[]")) retType = retType.replace("[]", "");
@@ -100,7 +101,7 @@ public class UDFWriter {
             visitor.setTargetJPF(wrapper_name);
             target_func = wrapper_name;
             method_call =  target_func + "("+argsToMain+");\n";
-        }
+        }*/
 
         String skeleton =
                 "public class " + filename.replace(".java", "") + " { \n" +
@@ -325,6 +326,7 @@ public class UDFWriter {
             return p.toString();
         }
     }
+    
 
     String replaceTuple2(String s) {
         return "String sa,sb;\n" +

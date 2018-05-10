@@ -6,8 +6,7 @@ import NumericUnderlyingType._
 /* **NOTE**
  I am assuming that we HAVE ALREADY REPLACED A.Key or B.key (rhs of predicate) with the existential var in (rest: Constraint)
  */
-class ExistentialConstraint(existentialVar: SymVar, rest: Array[Clause])
-    extends Constraint(rest) {
+class ExistentialConstraint(existentialVar: SymVar, rest: Array[Clause]) extends Constraint(rest) {
 
   //similar to conjunctWith
   def addCluase(op: ComparisonOp, keySet: SymVar) = {

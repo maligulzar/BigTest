@@ -71,8 +71,7 @@ class Constraint(c: Array[Clause]) {
     if (idx == clauses.length - 1) {
       clauses(idx).toZ3Query(initials)
     } else {
-      s""" (and ${clauses(idx).toZ3Query(initials)} ${andClauses(idx + 1,
-                                                                 initials)} )"""
+      s""" (and ${clauses(idx).toZ3Query(initials)} ${andClauses(idx + 1, initials)} )"""
     }
   }
 
@@ -154,9 +153,9 @@ class UniaryClause(left: Expr, op: UniaryOp) extends Clause(left, null, null) {
     var leftRes = leftExpr.checkValidity(ss)
     leftRes
   }
-  
-   override def addSuffix(sfx: String): Clause = {
-      new UniaryClause(left.addSuffix(sfx), op)
+
+  override def addSuffix(sfx: String): Clause = {
+    new UniaryClause(left.addSuffix(sfx), op)
   }
 }
 class Clause(left: Expr, op: ComparisonOp = null, right: Expr = null) {
@@ -233,9 +232,7 @@ class Clause(left: Expr, op: ComparisonOp = null, right: Expr = null) {
   }
   def replace(thisVar: SymVar, other: SymVar): Clause = {
     if (rightExpr != null)
-      new Clause(leftExpr.replace(thisVar, other),
-                 compOp,
-                 rightExpr.replace(thisVar, other))
+      new Clause(leftExpr.replace(thisVar, other), compOp, rightExpr.replace(thisVar, other))
     else new Clause(leftExpr.replace(thisVar, other))
   }
 

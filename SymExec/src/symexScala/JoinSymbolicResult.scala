@@ -4,30 +4,19 @@ import scala.collection.mutable.ArrayBuffer
 import java.util.HashSet
 import ComparisonOp._
 
-class UnexpectedInputType(message: String, cause: Throwable = null)
-    extends RuntimeException(message, cause) {}
+class UnexpectedInputType(message: String, cause: Throwable = null) extends RuntimeException(message, cause) {}
 
-class JoinSymbolicResult(ss: SymbolicState,
-                         nonTerminatingPaths: Array[PathEffect],
-                         terminatingPaths: ArrayBuffer[TerminatingPath] = null,
-                         iVar: Array[SymVar],
-                         oVar: Array[SymVar])
-    extends SymbolicResult(ss,
-                           nonTerminatingPaths,
-                           terminatingPaths,
-                           iVar,
-                           oVar) {
+class JoinSymbolicResult(ss: SymbolicState, nonTerminatingPaths: Array[PathEffect], terminatingPaths: ArrayBuffer[TerminatingPath] = null, iVar: Array[SymVar], oVar: Array[SymVar])
+    extends SymbolicResult(ss, nonTerminatingPaths, terminatingPaths, iVar, oVar) {
 
   // var joined: Boolean = j
 
   def getPartial(pc: String, constName: String): String = {
     val x0 = pc.indexOf("x0")
-    val partial1 = pc.substring(x0 - 4, x0) + constName + pc.substring(x0 + 2,
-                                                                       x0 + 6)
+    val partial1 = pc.substring(x0 - 4, x0) + constName + pc.substring(x0 + 2, x0 + 6)
 
     val x2 = pc.indexOf("x2")
-    val partial2 = pc.substring(x2 - 4, x2) + constName + pc.substring(x2 + 2,
-                                                                       x2 + 7)
+    val partial2 = pc.substring(x2 - 4, x2) + constName + pc.substring(x2 + 2, x2 + 7)
     s"""(assert (and ${partial1} ${partial2}))
         |""".stripMargin
   }
@@ -121,9 +110,7 @@ class JoinSymbolicResult(ss: SymbolicState,
 }
 
 object JoinSymbolicResult {
-  def apply(ss: SymbolicState,
-            rddA: SymbolicResult,
-            rddB: SymbolicResult): JoinSymbolicResult = {
+  def apply(ss: SymbolicState, rddA: SymbolicResult, rddB: SymbolicResult): JoinSymbolicResult = {
     //Makes sure that A and B both have a more than one element as their symOutput
     require(rddA.symOutput.size > 1 && rddB.symOutput.size > 1)
 
@@ -173,12 +160,8 @@ object JoinSymbolicResult {
       // existA_NotB.addCluase(ComparisonOp.isIn, keyA)
       // existA_NotB.addCluase(ComparisonOp.isNotIn, keyB)
 
-      val t1 = new Constraint(
-        product(i).pathConstraint.clauses ++ Array(
-          new Clause(keyA, ComparisonOp.Inequality, keyB)))
-      val t2 = new Constraint(
-        product(i).pathConstraint.clauses ++ Array(
-          new Clause(keyA, ComparisonOp.Equality, keyB)))
+      val t1 = new Constraint(product(i).pathConstraint.clauses ++ Array(new Clause(keyA, ComparisonOp.Inequality, keyB)))
+      val t2 = new Constraint(product(i).pathConstraint.clauses ++ Array(new Clause(keyA, ComparisonOp.Equality, keyB)))
       product(i).pathConstraint = t2
 
       terminatingPaths += new TerminatingPath(t1, new ArrayBuffer())

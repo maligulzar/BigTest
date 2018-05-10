@@ -28,7 +28,7 @@ object StringOp extends Enumeration {
   val ToInt = Value("VALUEOF")
   val Splitn = Value("splitn")
   val Concat = Value("concat")
-
+  val Split = Value("split")
 }
 
 import ArithmeticOp._
@@ -84,6 +84,8 @@ case class SymStringOp(atype: VType, op: StringOp) /*extends Terminal*/ {
         "splitn"
       case Concat =>
         "str.++"
+      case Split =>
+        "str.split"
       case _ =>
         throw new NotSupportedRightNow("String Operator not supported")
     }
@@ -200,8 +202,7 @@ case class NonTerminal(left: Expr, middle: SymOp, right: Expr) extends Expr {
 
   //check validity of this partial expression before proceeding
   assert(left != null && right != null)
-  assert(
-    op.actualType == leftExpr.actualType && op.actualType == rightExpr.actualType)
+  assert(op.actualType == leftExpr.actualType && op.actualType == rightExpr.actualType)
   var actualType = op.actualType
 
   override def toString(): String = {
@@ -209,9 +210,7 @@ case class NonTerminal(left: Expr, middle: SymOp, right: Expr) extends Expr {
   }
 
   override def applyEffect(x: SymVar, effect: Expr): Expr = {
-    new NonTerminal(left.applyEffect(x, effect),
-                    op,
-                    right.applyEffect(x, effect))
+    new NonTerminal(left.applyEffect(x, effect), op, right.applyEffect(x, effect))
   }
 
   override def checkValidity(ss: SymbolicState): Boolean = {
@@ -220,8 +219,8 @@ case class NonTerminal(left: Expr, middle: SymOp, right: Expr) extends Expr {
 
   override def toZ3Query(initials: Z3QueryState): String = {
     // left.toString + " " + op.toString + " " + right.toString
-    s"""(${op.toString}  ${leftExpr.toZ3Query(initials)} ${rightExpr.toZ3Query(
-      initials)} )"""
+    s"""(${op.toString}  ${leftExpr.toZ3Query(initials)} ${rightExpr
+      .toZ3Query(initials)} )"""
     //"FIX NON TERMINAL Z3 QUERY"
 
   }
@@ -230,17 +229,14 @@ case class NonTerminal(left: Expr, middle: SymOp, right: Expr) extends Expr {
     new NonTerminal(left.deepCopy, middle, right.deepCopy)
   }
   override def replace(thisVar: SymVar, other: SymVar): NonTerminal = {
-    new NonTerminal(left.replace(thisVar, other),
-                    middle,
-                    right.replace(thisVar, other))
+    new NonTerminal(left.replace(thisVar, other), middle, right.replace(thisVar, other))
   }
   override def addSuffix(sfx: String) = {
     new NonTerminal(left.addSuffix(sfx), middle, right.addSuffix(sfx))
   }
 }
 
-case class StringExpr(obj: Expr, op: SymStringOp, opr: Array[Expr])
-    extends Expr {
+case class StringExpr(obj: Expr, op: SymStringOp, opr: Array[Expr]) extends Expr {
 
   //check validity of this partial expression before proceeding
   assert(obj != null)
@@ -257,19 +253,13 @@ case class StringExpr(obj: Expr, op: SymStringOp, opr: Array[Expr])
   }
 
   override def applyEffect(x: SymVar, effect: Expr): Expr = {
-    new StringExpr(obj.applyEffect(x, effect),
-                   op,
-                   opr.map(s => s.applyEffect(x, effect)))
+    new StringExpr(obj.applyEffect(x, effect), op, opr.map(s => s.applyEffect(x, effect)))
   }
 
   override def checkValidity(ss: SymbolicState): Boolean = {
     obj.checkValidity(ss) //&& rightExpr.checkValidity(ss)
   }
-  def addStringToStringArray(initials: Z3QueryState,
-                             name: String,
-                             idx: Int,
-                             del: String,
-                             new_name: String) {
+  def addStringToStringArray(initials: Z3QueryState, name: String, idx: Int, del: String, new_name: String) {
     val arr_str = initials.split.getOrElse(name, SplitHandler(Array(), del))
     if (arr_str.str_arr.length <= idx) {
       val temp_arr = new Array[String](idx + 1)
@@ -313,9 +303,7 @@ case class StringExpr(obj: Expr, op: SymStringOp, opr: Array[Expr])
     new StringExpr(obj.deepCopy, op, opr.clone())
   }
   override def replace(thisVar: SymVar, other: SymVar): StringExpr = {
-    new StringExpr(obj.replace(thisVar, other),
-                   op,
-                   opr.map(_.replace(thisVar, other)))
+    new StringExpr(obj.replace(thisVar, other), op, opr.map(_.replace(thisVar, other)))
   }
   override def addSuffix(sfx: String) = {
     new StringExpr(obj.addSuffix(sfx), op, opr.map(_.addSuffix(sfx)))
@@ -326,6 +314,7 @@ case class ArrayExpr(obj: Expr, op: SymArrayOp, opr: Array[Expr]) extends Expr {
 
   //check validity of this partial expression before proceeding
   assert(obj != null)
+  assert(obj.isInstanceOf[SymArray], "Array operation on a non-array object")
   // assert(op.actualType == obj.actualType )//&& op.actualType == rightExpr.actualType)
   var actualType = op.actualType
 
@@ -339,9 +328,7 @@ case class ArrayExpr(obj: Expr, op: SymArrayOp, opr: Array[Expr]) extends Expr {
   }
 
   override def applyEffect(x: SymVar, effect: Expr): Expr = {
-    new ArrayExpr(obj.applyEffect(x, effect),
-                  op,
-                  opr.map(s => s.applyEffect(x, effect)))
+    new ArrayExpr(obj.applyEffect(x, effect), op, opr.map(s => s.applyEffect(x, effect)))
   }
 
   override def checkValidity(ss: SymbolicState): Boolean = {
@@ -359,9 +346,7 @@ case class ArrayExpr(obj: Expr, op: SymArrayOp, opr: Array[Expr]) extends Expr {
     new ArrayExpr(obj.deepCopy, op, opr.clone())
   }
   override def replace(thisVar: SymVar, other: SymVar): ArrayExpr = {
-    new ArrayExpr(obj.replace(thisVar, other),
-                  op,
-                  opr.map(_.replace(thisVar, other)))
+    new ArrayExpr(obj.replace(thisVar, other), op, opr.map(_.replace(thisVar, other)))
   }
   override def addSuffix(sfx: String) = {
     new ArrayExpr(obj.addSuffix(sfx), op, opr.map(_.addSuffix(sfx)))

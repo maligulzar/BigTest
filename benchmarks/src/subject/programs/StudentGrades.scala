@@ -13,12 +13,13 @@ object StudentGrades {
     conf.setAppName("Weather")
     val sc = new SparkContext(conf)
     sc.textFile("/Users/malig/workspace/up_jpf/benchmarks/src/datasets/student.csv")
-      .map { s =>
-        val arr = s.split(":")
-        (arr(0), arr(1))
+      .flatMap{ line =>
+        val arr = line.split(",")
+        arr
       }
-      .flatMap { s =>
-        s._2.split(",").map(v => (s._1, Integer.parseInt(v)))
+      .map{  s =>
+        val a = s.split(":")
+        (a(0) , a(1).toInt)
       }
       .map { a =>
         if (a._2 > 40)

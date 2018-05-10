@@ -28,8 +28,9 @@ class PathEffect(pc: Constraint, udfEffect: ArrayBuffer[Tuple2[SymVar, Expr]]) {
     "path constraint: {" + pathConstraint.toString + "}\t effect: {" + eString + "} ---------"
   }
 
-  def addEffect(_var: SymVar, updatedExpr: Expr) = {
+  def addEffect(_var: SymVar, updatedExpr: Expr): PathEffect = {
     effects += new Tuple2(_var, updatedExpr)
+    this
   }
 
   def getEffectZ3Query(initial: Z3QueryState): String = {
@@ -143,17 +144,14 @@ class PathEffect(pc: Constraint, udfEffect: ArrayBuffer[Tuple2[SymVar, Expr]]) {
     if (other != null && other.isInstanceOf[PathEffect]) {
       val casted = other.asInstanceOf[PathEffect]
       casted.pathConstraint.equals(this.pathConstraint) && casted.effects
-        .corresponds(this.effects)((a, b) =>
-          a._1.equals(b._1) && a._2.equals(b._2))
+        .corresponds(this.effects)((a, b) => a._1.equals(b._1) && a._2.equals(b._2))
     } else false
   }
 
   /*
         conjuncts this(udf) PathEffect with already-existing rdd PathEffect
    */
-  def conjunctPathEffect(
-      rddPE: PathEffect,
-      link: Tuple2[Array[SymVar], Array[SymVar]] = null): PathEffect = {
+  def conjunctPathEffect(rddPE: PathEffect, link: Tuple2[Array[SymVar], Array[SymVar]] = null): PathEffect = {
     val newEffects = new ArrayBuffer[Tuple2[SymVar, Expr]]()
     rddPE.effects.copyToBuffer(newEffects)
 
@@ -174,11 +172,38 @@ class PathEffect(pc: Constraint, udfEffect: ArrayBuffer[Tuple2[SymVar, Expr]]) {
     newPathEffect
   }
 
-  def addOneToN_Mapping(link: SymVar, arr: Array[Expr] , pa2:PathEffect): PathEffect = {
+  def indexOutputArrayForFlatMap(output_name: String, indx: Int): PathEffect = {
+    var j = 0
+    val newEffects = new ArrayBuffer[Tuple2[SymVar, Expr]]()
+    var ret: Tuple2[SymVar, Expr] = null
+    for (e <- effects) {
+      if (e._1.name.equals(output_name)) {
+        e._2 match {
+          case StringExpr(_, op, _) =>
+            if (op.op == StringOp.Split) {
+              val str_op = e._2.asInstanceOf[StringExpr]
+              newEffects.append(
+                  (e._1, new StringExpr(str_op.obj, new SymStringOp(op.actualType, StringOp.Splitn), Array(new ConcreteValue(Numeric(NumericUnderlyingType._Int), indx + "")) ++ str_op.opr)))
+            } else {
+              newEffects.append(e)
+            }
+          case _ =>
+            println("Not a string expr")
+            newEffects.append(e)
+        }
+      } else {
+        newEffects.append(e)
+      }
+    }
+    new PathEffect(pathConstraint, newEffects)
+
+  }
+
+  def addOneToN_Mapping(link: SymVar, arr: Array[Expr], pa2: PathEffect): PathEffect = {
     val newEffects = new ArrayBuffer[Tuple2[SymVar, Expr]]()
     if (link != null) {
       for (i <- 0 to arr.length - 1) {
-        newEffects += new Tuple2(link.addSuffix("P" + (i+1)), arr(i))
+        newEffects += new Tuple2(link.addSuffix("P" + (i + 1)), arr(i))
       }
     }
 
@@ -254,17 +279,14 @@ class PathEffect(pc: Constraint, udfEffect: ArrayBuffer[Tuple2[SymVar, Expr]]) {
 
 }
 
-case class TerminatingPath(c: Constraint, u: ArrayBuffer[Tuple2[SymVar, Expr]])
-    extends PathEffect(c, u) {
+case class TerminatingPath(c: Constraint, u: ArrayBuffer[Tuple2[SymVar, Expr]]) extends PathEffect(c, u) {
   def this(c: Constraint) {
     this(c, new ArrayBuffer[Tuple2[SymVar, Expr]]()) //no effects on variables
   }
   /*
         conjuncts this(udf) PathEffect with already-existing rdd PathEffect
    */
-  override def conjunctPathEffect(rddPE: PathEffect,
-                                  link: Tuple2[Array[SymVar], Array[SymVar]] =
-                                    null): TerminatingPath = {
+  override def conjunctPathEffect(rddPE: PathEffect, link: Tuple2[Array[SymVar], Array[SymVar]] = null): TerminatingPath = {
     val newEffects = new ArrayBuffer[Tuple2[SymVar, Expr]]()
     rddPE.effects.copyToBuffer(newEffects)
     if (link != null) {
@@ -289,9 +311,7 @@ case class TerminatingPath(c: Constraint, u: ArrayBuffer[Tuple2[SymVar, Expr]])
 
 }
 
-case class Z3QueryState(init: HashSet[(String, VType)],
-                        split: HashMap[String, SplitHandler],
-                        replacements: HashMap[String, String]) {
+case class Z3QueryState(init: HashSet[(String, VType)], split: HashMap[String, SplitHandler], replacements: HashMap[String, String]) {
 
   def addtoInit(a: (String, VType)) {
     val itr = init.iterator()

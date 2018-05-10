@@ -39,8 +39,7 @@ class SymVar(atype: VType, var name: String) extends Terminal {
   }
 }
 
-case class SymArray(atype: VType, var name_arr: String)
-    extends SymVar(atype, name_arr) {
+case class SymArray(atype: VType, var name_arr: String) extends SymVar(atype, name_arr) {
   actualType = atype
 
   override def toZ3Query(initials: Z3QueryState): String = {

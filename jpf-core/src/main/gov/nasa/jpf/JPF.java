@@ -220,7 +220,7 @@ public class JPF implements Runnable {
 			jpf.run();
 			 udfResult  = jpf.pfl.convertAll(state,"");
 			 System.out.println(node.getOperatorName()+"\n"+udfResult.toString());
-				
+			 
 			 return results[0].reduceByKey(udfResult);
 	
 		case "join" :
@@ -233,6 +233,14 @@ public class JPF implements Runnable {
 			 System.out.println(node.getOperatorName()+"\n"+udfResult.toString());
 				
 			return udfResult;
+		case "flatMap": 
+			 args_new[0] = modelDir + node.getOperatorName() + ".jpf";		
+			 conf1 = createConfig(args_new);
+			 jpf = new JPF(conf1);
+			jpf.run();
+			 udfResult  = jpf.pfl.convertAll(state,"");
+			 System.out.println(node.getOperatorName()+"\n"+udfResult.toString());
+			return  results[0].flatMap(udfResult);
 		
 		default: 
 			throw new RuntimeException("This data flow operation is yet not supported! :" +node.getOperatorName().replaceAll("[0-9]",""));
