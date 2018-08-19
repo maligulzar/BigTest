@@ -58,7 +58,18 @@ object FindSalarySum {
   *
   *
   *
-  *sc.textFile("hdfs://scai01.cs.ucla.edu:9000/clash/datasets/bigsift/income/*").map{ line => if (line.substring(0, 1).equals("$")) { var i = line.substring(1); i } else {line}}.map(p => Integer.parseInt(p)).filter( r => r < 300).reduce(_+_)
+  *
+  val text = sc.textFile("hdfs://scai01.cs.ucla.edu:9000/clash/datasets/bigsift/income/*").sample(false, 0.001)
+text.cache()
+  text.count()
+text.map{ line => if (line.substring(0, 1).equals("$")) { var i = line.substring(1); i } else {line}}.map(p => Integer.parseInt(p)).filter( r => r < 300).reduce(_+_)
+
+  text.map{ line => if (line.substring(0, 1).equals("$")) { var i = line.substring(1); i } else {line}}.map(p => Integer.parseInt(p)).filter( r => r >= 300).count()
+
+  text.filter{ line => line.substring(0, 1).equals("$")}.count()
+
+
+  text.filter{ line => !line.substring(0, 1).equals("$")}.count()
   * *
   *
   *
@@ -74,4 +85,29 @@ object FindSalarySum {
   *
   *
   */ */
+
+
+/**
+  *
+  *
+        .map {
+          line =>
+            if (line.substring(0, 1).equals("$")) {
+              var i = line.substring(1, 6)
+              i
+            } else {
+              line
+            }
+          }
+          .map(p => Integer.parseInt(p))
+          .filter(r => r < 300)
+          .reduce(_ + _)
+
+filter2 > 1
+map3> "1"
+map4 > "123"
+reduce1> {1,2,3,4}
+DAG >reduce1-filter2:filter2-map3:map3-map4
+K_BOUND >5
+  */
 

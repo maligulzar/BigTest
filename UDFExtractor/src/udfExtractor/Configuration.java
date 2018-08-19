@@ -27,7 +27,7 @@ public class Configuration extends Logging  {
     static ArrayList<String> spark_ops = new ArrayList<>(Arrays.asList(arr));
     static HashMap<String, String> map_args = new HashMap<>();
     static JPFDAGNode program_dag = null;
-    
+    static int K_BOUND = 2;
     
 
     //// TODO: 9/14/17 Populate the input arguments to each of the udfs
@@ -116,9 +116,10 @@ public class Configuration extends Logging  {
                 				String[] parents = edges[i].split("-")[1].split(",");
                 				dag_map.put(edges[i].split("-")[0] , parents);
                 			}
-                		
                 			program_dag = JPFDAGNode.generateJPFDAGNode(dag_map , edges[0].split("-")[0]);
-                			
+                		//Read Bound values from the configuration file. 
+                		}else if(arr[0].startsWith("K_BOUND")){ 
+                			K_BOUND = Integer.parseInt(arr[1]); 
                 		}else {
                 			Configuration.map_args.put(arr[0].trim(), arr[1].trim());
                         logdebug("Adding1 input arguments : " + arr[0].trim() + " --> " + arr[1].trim());

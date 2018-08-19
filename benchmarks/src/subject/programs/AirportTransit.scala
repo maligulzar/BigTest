@@ -81,7 +81,10 @@ object AirportTransit {
 
 /*
 *
- sc.textFile("hdfs://scai01.cs.ucla.edu:9000/clash/datasets/bigsift/airport").map { s =>
+ val text = sc.textFile("hdfs://scai01.cs.ucla.edu:9000/clash/datasets/bigsift/airport").sample(false, 1)
+ text.cache()
+ text.count()
+ text.map { s =>
       def getDiff(arr: String, dep: String): Int = {
        val arr_min = Integer.parseInt(arr.split(":")(0)) * 60 + Integer.parseInt(arr.split(":")(1))
         val dep_min = Integer.parseInt(dep.split(":")(0)) * 60 + Integer.parseInt(dep.split(":")(1))
@@ -101,6 +104,46 @@ object AirportTransit {
 
 
 
+       text.filter { s =>
+      def getDiff(arr: String, dep: String): Boolean = {
+       val arr_min = Integer.parseInt(arr.split(":")(0)) * 60 + Integer.parseInt(arr.split(":")(1))
+        val dep_min = Integer.parseInt(dep.split(":")(0)) * 60 + Integer.parseInt(dep.split(":")(1))
+        dep_min - arr_min < 0
+      }
+      val tokens = s.split(",")
+      val arrival_hr = tokens(2).split(":")(0)
+     getDiff(tokens(2), tokens(3))
+     }.count()
+
+            text.filter { s =>
+      def getDiff(arr: String, dep: String): Boolean = {
+       val arr_min = Integer.parseInt(arr.split(":")(0)) * 60 + Integer.parseInt(arr.split(":")(1))
+        val dep_min = Integer.parseInt(dep.split(":")(0)) * 60 + Integer.parseInt(dep.split(":")(1))
+        dep_min - arr_min >=0
+      }
+      val tokens = s.split(",")
+      val arrival_hr = tokens(2).split(":")(0)
+     getDiff(tokens(2), tokens(3))
+     }.count()
+
+
+      text.map { s =>
+      def getDiff(arr: String, dep: String): Int = {
+       val arr_min = Integer.parseInt(arr.split(":")(0)) * 60 + Integer.parseInt(arr.split(":")(1))
+        val dep_min = Integer.parseInt(dep.split(":")(0)) * 60 + Integer.parseInt(dep.split(":")(1))
+        if(dep_min - arr_min < 0){
+          return 24*60 + dep_min - arr_min
+        }
+        return dep_min - arr_min
+      }
+      val tokens = s.split(",")
+      val arrival_hr = tokens(2).split(":")(0)
+      val diff = getDiff(tokens(2), tokens(3))
+      val airport = tokens(4)
+      (airport+ arrival_hr, diff)}.filter { v =>
+      val t1  = v._1
+      val t2 = v._2
+      t2 > 45}.count()
 
 
 * */

@@ -21,6 +21,7 @@ class NotFoundPathCondition(message: String, cause: Throwable = null) extends Ru
 class SymbolicResult(ss: SymbolicState, nonT: Array[PathEffect], t: ArrayBuffer[TerminatingPath] = null, iVar: Array[SymVar] = Array(), oVar: Array[SymVar] = Array(), j: Boolean = false) {
   var Z3DIR: String = "/Users/amytis/Projects/z3-master"
   var SOLVER: String = "Z3"
+  var LOOP_BOUND: Int  = 2
   val state: SymbolicState = ss
   val paths: Array[PathEffect] = nonT
   val terminating: ArrayBuffer[TerminatingPath] = t
@@ -37,6 +38,7 @@ class SymbolicResult(ss: SymbolicState, nonT: Array[PathEffect], t: ArrayBuffer[
   def setZ3Dir(path: String) {
     Z3DIR = path
   }
+ 
   def setSolver(path: String) {
     SOLVER = path
   }
@@ -68,7 +70,7 @@ class SymbolicResult(ss: SymbolicState, nonT: Array[PathEffect], t: ArrayBuffer[
     }
   }
 
-  def runZ3Command(filename: String, Z3dir: String, args: Array[String] = Array()): String = {
+  def runZ3Command(filename: String, Z3dir: String, args: Array[String] = Array() , log :Boolean = false): String = {
     // build the system command we want to run
     var s = ""
     if (SOLVER.equals("CVC4")) {
@@ -95,9 +97,12 @@ class SymbolicResult(ss: SymbolicState, nonT: Array[PathEffect], t: ArrayBuffer[
       val stderr: java.lang.StringBuilder =
         commandExecutor.getStandardErrorFromCommand
       println("********** Satisfying Assigments **********************************************")
-      println(stdout.toString)
+      val str_lines = stdout.toString.split("\n").filter(p => p.contains("line"))
+      if(str_lines.size > 0 )
+      println(str_lines.reduce(_+"\n"+_))
+      
       println("*******************************************************************************")
-
+      
       println("\n" + stderr.toString)
       return stdout.toString()
     } catch {
@@ -107,23 +112,31 @@ class SymbolicResult(ss: SymbolicState, nonT: Array[PathEffect], t: ArrayBuffer[
     }
     return "";
   }
+  
 
-  def solveWithZ3(): Unit = {
+  def solveWithZ3(log: Boolean = false): Unit = {
     var first = ""
     var second = ""
     if (joined == false) {
       println("Non - Terminating")
+      var i = 0
       for (path <- paths) {
+       
         var str = path.toZ3Query();
         if (SOLVER.equals("CVC4")) {
           str = str + "\n(check-sat)\n(get-model)"
         }
-        var filename = "/tmp/" + path.hashCode();
+        var filename = "/tmp/" + path.hashCode()+".bt";
         writeTempSMTFile(filename, str);
-        println(path.toString)
-        println("Z3Query:\n" + str)
+        if(log) 
+        {  println(path.toString)
+          println("Z3Query:\n" + str)
+        }
         println("------------------------")
-        runZ3Command(filename, Z3DIR);
+        println("Paths :  " + i)
+        println(path)
+        i = i+1
+        runZ3Command(filename, Z3DIR , log=log);
         println("------------------------")
 
       }
@@ -135,9 +148,14 @@ class SymbolicResult(ss: SymbolicState, nonT: Array[PathEffect], t: ArrayBuffer[
           str = str + "\n(check-sat)\n(get-model)"
         }
         writeTempSMTFile(filename, str);
-        println(path.toString)
-        println("Z3Query:\n" + str)
+        if(log) 
+        {  println(path.toString)
+          println("Z3Query:\n" + str)
+        }
         println("------------------------")
+        println("Paths :  " + i)
+          println(path)
+        i = i+1
         runZ3Command(filename, Z3DIR);
         println("------------------------")
 
@@ -286,20 +304,26 @@ class SymbolicResult(ss: SymbolicState, nonT: Array[PathEffect], t: ArrayBuffer[
     }
     val symarray = new SymArray(type_name, arr_name)
     val arr_op_non = new SymArrayOp(type_name, ArrayOp.withName("select")) ///*** TODO: Only supporting Arrays of Integers
-    val arr_0 =
-      new ArrayExpr(symarray, arr_op_non, Array(new ConcreteValue(Numeric(_Int), "0")))
-    val arr_1 =
-      new ArrayExpr(symarray, arr_op_non, Array(new ConcreteValue(Numeric(_Int), "1")))
-
-    var i = 0
-    val linked_paths = new Array[PathEffect](paths.size * paths.size)
-
-    for (pa1 <- this.paths) {
-      for (pa2 <- this.paths) {
-        linked_paths(i) = pa1.addOneToN_Mapping(this.symOutput(1), Array(arr_0, arr_1), pa2)
-        i = i + 1
-      }
+    
+    
+        // implementing the dynamic loop bound. 
+    val symbolic_array: Array[Expr] = new Array[Expr](Runner.loop_bound())
+ 
+    for (a <- 0 to Runner.loop_bound()-1){
+      symbolic_array(a)  = new ArrayExpr(symarray, arr_op_non, Array(new ConcreteValue(Numeric(_Int), a.toString())))      
     }
+    var i = 0
+    val linked_paths = new Array[PathEffect](Math.pow(paths.size , Runner.loop_bound()).toInt)
+
+    // Perform Cartesian product of the paths K times.
+    var cartesian_paths  = crossArrays[PathEffect](Runner.loop_bound(), this.paths)
+  
+    for (paths_array <- cartesian_paths){
+        linked_paths(i) = addOneToN_Mapping(this.symOutput(0), symbolic_array, paths_array)
+        i = i + 1
+        // TODO: Add constraints for similar key of both branches of the path
+    }
+  
     val product =
       new Array[PathEffect](linked_paths.size * udfSymbolicResult.numOfPaths)
     i = 0
@@ -323,6 +347,57 @@ class SymbolicResult(ss: SymbolicState, nonT: Array[PathEffect], t: ArrayBuffer[
     new SymbolicResult(this.state, product, this.terminating, input, udfSymbolicResult.symOutput)
   }
 
+  /****
+   * Cartesian Product of the same array K times.
+   * @param k times the array should be cartesian product
+   * @param arr Array to be cartesian product
+   * @result the cartesian product of the array with itself K times
+   * 
+   */
+    def crossArrays[T](k : Int , arr:Array[T]): Array[ArrayBuffer[T]] = {
+      if(k == 1)
+      {
+        var matrix = new Array[ArrayBuffer[T]](arr.length)
+        for(a <- 0 to arr.length-1){
+          matrix(a) = ArrayBuffer(arr(a))
+        }
+        return matrix;
+      }
+     else {
+        for { x <- arr; y <- crossArrays(k-1, arr) } yield {y.append(x);y}
+      }
+    }
+    
+    
+    /**
+     * Re construct  paths and path constraints and effects after the loop unrolling 
+     * @param link the input upstream Symbolic variable
+     * @param arr the symbolic array of symbolic input
+     * @param pa_array the paths from upstream operator
+     * @result the re-named path constraints linked to the input 
+     * **/
+   def addOneToN_Mapping(link: SymVar, arr: Array[Expr], pa_array: ArrayBuffer[PathEffect]): PathEffect = {
+    val newEffects = new ArrayBuffer[Tuple2[SymVar, Expr]]()
+    if (link != null) {
+      for (i <- 0 to arr.length - 1) {
+        newEffects += new Tuple2(link.addSuffix("P" + (i + 1)), arr(i))
+      }
+    }
+    var i = 1
+    var clauses: Array[Clause] = Array()
+    for(pa <- pa_array){
+      for(e <- pa.effects){
+        val newRHS: Expr = e._2.addSuffix("P" + i)
+        val newLHS = e._1.addSuffix("P" + i)
+        newEffects += new Tuple2(newLHS, newRHS)     
+      }
+      clauses  = clauses ++ pa.pathConstraint.addSuffix("P"+i).clauses
+      i = i + 1 
+    }
+    new PathEffect(new Constraint(clauses), newEffects)
+  }
+    
+    
   /**
     *
     * ReduceByKey
@@ -347,28 +422,40 @@ class SymbolicResult(ss: SymbolicState, nonT: Array[PathEffect], t: ArrayBuffer[
       case _ =>
         throw new UnsupportedOperationException("Not Supported Type " + arr_type.toString())
     }
+    // implementing the dynamic loop bound. 
+    val symbolic_array: Array[Expr] = new Array[Expr](Runner.loop_bound())
+    
     val symarray = new SymArray(type_name, arr_name)
     val arr_op_non = new SymArrayOp(type_name, ArrayOp.withName("select")) ///*** TODO: Only supporting Arrays of Integers
-    val arr_0 =
-      new ArrayExpr(symarray, arr_op_non, Array(new ConcreteValue(Numeric(_Int), "0")))
-    val arr_1 =
-      new ArrayExpr(symarray, arr_op_non, Array(new ConcreteValue(Numeric(_Int), "1")))
 
+    for (a <- 0 to Runner.loop_bound()-1){
+      symbolic_array(a)  = new ArrayExpr(symarray, arr_op_non, Array(new ConcreteValue(Numeric(_Int), a.toString())))      
+    }
     var i = 0
-    val linked_paths = new Array[PathEffect](paths.size * paths.size)
+    val linked_paths = new Array[PathEffect](Math.pow(paths.size , Runner.loop_bound()).toInt)
 
+    // Perform Cartesian product of the paths K times.
+    var cartesian_paths  = crossArrays[PathEffect](Runner.loop_bound(), this.paths)
+  
+    for (paths_array <- cartesian_paths){
+        linked_paths(i) = addOneToN_Mapping(this.symOutput(1), symbolic_array, paths_array)
+        i = i + 1
+        // TODO: Add constraints for similar key of both branches of the path
+    }
+    /*
     for (pa1 <- this.paths) {
       for (pa2 <- this.paths) {
-        linked_paths(i) = pa1.addOneToN_Mapping(this.symOutput(1), Array(arr_0, arr_1), pa2)
+        linked_paths(i) = pa1.addOneToN_Mapping(this.symOutput(1), symbolic_array, pa2)
         i = i + 1
         /**
-        *
-        *
         * TODO: Add constraints for similar key of both branches of the path
-        *
         * */
       }
     }
+    * */
+
+    
+    
     val product =
       new Array[PathEffect](linked_paths.size * udfSymbolicResult.numOfPaths)
     i = 0
@@ -403,7 +490,8 @@ class SymbolicResult(ss: SymbolicState, nonT: Array[PathEffect], t: ArrayBuffer[
     *
     * **/
   def flatMap(udfSymbolicResult: SymbolicResult): SymbolicResult = {
-
+  //  println("******************************** EDITS MADE *********")
+    
     val product =
       new Array[PathEffect](paths.size * udfSymbolicResult.numOfPaths)
     val product_terminating =
@@ -460,11 +548,14 @@ class SymbolicResult(ss: SymbolicState, nonT: Array[PathEffect], t: ArrayBuffer[
       new Array[PathEffect](paths.size * Runner.loop_bound)
     i = 0
     for (pa <- product) {
-      // Fixed upper bound on the array -- Hard coded as K=2
-      output_paths(i) = pa.indexOutputArrayForFlatMap(udfSymbolicResult.symOutput(0).name, 0)
-      i = i + 1
-      output_paths(i) = pa.indexOutputArrayForFlatMap(udfSymbolicResult.symOutput(0).name, 1)
-      i = i + 1
+      // Fixed upper bound on the array -- Hard coded as K=2   -- Deprecated
+      // Dynamic Upper Bound is implemented -- -8/18/2018
+      for (a <- 1 to Runner.loop_bound){
+        output_paths(i) = pa.indexOutputArrayForFlatMap(udfSymbolicResult.symOutput(0).name, (a-1))
+        i = i + 1
+//        output_paths(i) = pa.indexOutputArrayForFlatMap(udfSymbolicResult.symOutput(0).name, 1)
+//        i = i + 1 
+      }
     }
 
     new SymbolicResult(this.state, output_paths, product_terminating, input, udfSymbolicResult.symOutput)

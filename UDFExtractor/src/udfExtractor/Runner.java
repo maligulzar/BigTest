@@ -9,7 +9,9 @@ import java.util.List;
 public class Runner extends Logging {
 
     private static UDFDecompilerAndExtractor udf_ex = null;
-   public static int loop_bound = 2;
+    public static int loop_bound() {
+ 	   return Configuration.K_BOUND;   
+    }
     public static void main(String[] args) {
         String test_name = "Test2";
         if(args.length >= 1) {

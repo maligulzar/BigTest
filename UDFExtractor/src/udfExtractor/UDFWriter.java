@@ -82,7 +82,7 @@ public class UDFWriter {
             wrapper_name = "applyReduce";
             wrapper_func_body = "static int " + wrapper_name + "( int[] a) {\n" +
                     "   int s = a[0];\n" +
-                    "   for(int i = 1 ; i < " + Runner.loop_bound + " ; i++){\n" + //// This is where we set the upper bound for the loop in reduce.
+                    "   for(int i = 1 ; i < " + Runner.loop_bound() + " ; i++){\n" + //// This is where we set the upper bound for the loop in reduce.
                     "       s = " + target_func + "( s , a[i] );\n" +
                     "   }\n" +
                     "   return s;\n" +

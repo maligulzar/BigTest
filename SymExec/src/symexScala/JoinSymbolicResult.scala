@@ -21,7 +21,7 @@ class JoinSymbolicResult(ss: SymbolicState, nonTerminatingPaths: Array[PathEffec
         |""".stripMargin
   }
 
-  override def solveWithZ3() = {
+  override def solveWithZ3(log : Boolean = false) = {
 //        var hashCode: Int = 0
 //        var first = ""
 //        var second = ""
@@ -164,7 +164,7 @@ object JoinSymbolicResult {
       val t2 = new Constraint(product(i).pathConstraint.clauses ++ Array(new Clause(keyA, ComparisonOp.Equality, keyB)))
       product(i).pathConstraint = t2
 
-      terminatingPaths += new TerminatingPath(t1, new ArrayBuffer())
+      terminatingPaths += new TerminatingPath(t1, product(i).effects)
 
       //Case 3: Terminating
       // val c3 = new SymVar(keyA.actualType, ss.getFreshName)
@@ -174,7 +174,7 @@ object JoinSymbolicResult {
       //   existNotA_B.addCluase(ComparisonOp.isNotIn, keyA)
       //  existNotA_B.addCluase(ComparisonOp.isIn, keyB)
 
-      terminatingPaths += new TerminatingPath(t1, new ArrayBuffer())
+      terminatingPaths += new TerminatingPath(t1, product(i).effects)
     }
 
     // var result = ""

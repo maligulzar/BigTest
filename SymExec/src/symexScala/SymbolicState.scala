@@ -21,7 +21,11 @@ class SymbolicState() {
 
   val symbolicEnv: Map[String, SymbolicVarDef] = Map[String, SymbolicVarDef]()
   var index: Int = -1
+  var loop_bound = 2
 
+  def setLoopBound(bound : Int) {
+    loop_bound = bound;
+  }
   /*
     def updateVarInEnv(name: String, vt: VType, newSymValue: Expr) = {
         var varDef = symbolicEnv.getOrElse(name, null)

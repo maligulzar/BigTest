@@ -76,7 +76,7 @@ object SymbolicEngine {
       println(currentPaths)
     }
     currentPaths.Z3DIR = "/Users/malig/workspace/git/Test-Minimization-in-Big-Data/z3-master"
-    currentPaths.solveWithZ3
+    currentPaths.solveWithZ3()
     currentPaths
   }
 
