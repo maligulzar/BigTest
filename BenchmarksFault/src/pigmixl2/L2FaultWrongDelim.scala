@@ -1,0 +1,43 @@
+package pigmixl2
+
+import org.apache.spark.{SparkConf, SparkContext}
+
+/**
+  * Created by malig on 5/15/18.
+  */
+
+object L2FaultWrongDelim {
+
+  def main(args: Array[String]) {
+    val conf = new SparkConf()
+    conf.setMaster("local[*]")
+    conf.setAppName("CommuteTime")
+
+    val data1 = Array(", , , , , , ",
+      "",
+      "",
+      "A, , , , , , ",
+      "A, , , , , , "
+    )
+    val data2 =
+      Array("","","","","")
+
+    val startTime = System.currentTimeMillis();
+    val sc = new SparkContext(conf)
+    for (i <- 0 to data1.length - 1) {
+      try {
+        val pageViews = sc.parallelize(Array(data1(i)))
+        val powerUsers = sc.parallelize(Array(data2(i)))
+        val A = pageViews.map(x => (x.split(":")(0), x.split(",")(6))) // Injecting fault by using a wrong delimiter ==> should lead to crash
+        val alpha = powerUsers.map(x => x.split(",")(0))
+        val beta = alpha.map(x => (x, 1))
+        val C = A.join(beta).map(x => (x._1, x._2._1))
+        C.collect.foreach(println)
+      } catch {
+        case e: Exception =>
+          e.printStackTrace()
+      }
+    }
+    println("Time: " + (System.currentTimeMillis() - startTime))
+  }
+}

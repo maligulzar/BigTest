@@ -1,4 +1,4 @@
-package subject.programs
+package airporttransit
 
 import org.apache.spark.{SparkConf, SparkContext}
 

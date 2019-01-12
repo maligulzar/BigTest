@@ -1,4 +1,4 @@
-package subject.programs
+package gradeanalysis
 
 import org.apache.spark.{SparkConf, SparkContext}
 

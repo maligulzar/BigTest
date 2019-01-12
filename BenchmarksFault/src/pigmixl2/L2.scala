@@ -1,12 +1,10 @@
-package subject.programs
+package pigmixl2
+
+import org.apache.spark.{SparkConf, SparkContext}
 
 /**
   * Created by malig on 5/15/18.
   */
-
-import org.apache.spark.SparkContext._
-
-import org.apache.spark.{SparkConf, SparkContext}
 
 object L2 {
   def main(args: Array[String]) {

@@ -1,4 +1,4 @@
-package subject.programs
+package commutetype
 
 import org.apache.spark.{SparkConf, SparkContext}
 
@@ -73,6 +73,10 @@ object CommuteType {
     }
 
     println("Time: " + (System.currentTimeMillis() - startTime))
+
+  }
+}
+
 //    val trips = sc
 //      .textFile(
 //        "/Users/malig/workspace/up_jpf/benchmarks/src/datasets/trips/*")
@@ -104,8 +108,6 @@ object CommuteType {
 //      .collect
 //      .foreach(println)
 
-  }
-}
 
 /**
   *
