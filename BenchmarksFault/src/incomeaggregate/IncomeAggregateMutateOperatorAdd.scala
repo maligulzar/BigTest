@@ -1,5 +1,6 @@
 package incomeaggregate
 
+import org.apache.spark.rdd.RDD
 import org.apache.spark.{SparkConf, SparkContext}
 
 /**
@@ -26,7 +27,7 @@ object IncomeAggregateMutateOperatorAdd {
         val sum = lines.map {
           line =>
             if (line.substring(0, 1).equals("$")) {
-              var i = line.substring(1, 6)
+              var i = line.substring(1)
               i
             } else {
               line
@@ -46,4 +47,20 @@ object IncomeAggregateMutateOperatorAdd {
     println("Time: " + (System.currentTimeMillis() - startTime))
   }
 
+  def execute(input1: RDD[String]): String = {
+    val sum = input1.map {
+      line =>
+        if (line.substring(0, 1).equals("$")) {
+          var i = line.substring(1)
+          i
+        } else {
+          line
+        }
+    }
+      .map(p => Integer.parseInt(p))
+      .filter(r => r < 300)
+      .reduce(_ - _) // Injecting fault by mutating + with - ==> Should produce wrong output
+      .toString
+    sum
+  }
 }

@@ -1,11 +1,13 @@
 package pigmixl2
 
+import org.apache.spark.rdd.RDD
 import org.apache.spark.{SparkConf, SparkContext}
+import utils.SparkRDDGenerator
 
 /**
   * Created by malig on 5/15/18.
   */
-object L2FaultSwapKV {
+object L2FaultSwapKV extends SparkRDDGenerator{
 
   def main(args: Array[String]) {
     val conf = new SparkConf()
@@ -38,6 +40,14 @@ object L2FaultSwapKV {
       }
     }
     println("Time: " + (System.currentTimeMillis() - startTime))
+  }
+  override def execute(input1: RDD[String], input2: RDD[String]): RDD[String] = {
+    val pageViews = input1
+    val powerUsers = input2
+    val A = pageViews.map(x => (x.split(",")(6), x.split(",")(0)))  // injecting fault by swapping the KV pair ==> should lead to wrong output
+    val alpha = powerUsers.map(x => x.split(",")(0))
+    val beta = alpha.map(x => (x, 1))
+  A.join(beta).map(x => x._1 + "," + x._2._1)
   }
 
 }

@@ -1,11 +1,13 @@
 package gradeanalysis
 
+import org.apache.spark.rdd.RDD
 import org.apache.spark.{SparkConf, SparkContext}
+import utils.SparkRDDGenerator
 
 /**
   * Created by malig on 1/11/19.
   */
-object StudentGradesFaultWrongPredicate {
+object StudentGradesFaultWrongPredicate extends SparkRDDGenerator{
 
   def main(args: Array[String]): Unit = {
     val conf = new SparkConf()
@@ -47,5 +49,22 @@ object StudentGradesFaultWrongPredicate {
 
     println("Time: " + (System.currentTimeMillis() - startTime))
   }
-
+  override def execute(input1: RDD[String], input2: RDD[String]): RDD[String] = {
+    input1.flatMap(l => l.split("\n")).flatMap{ line =>
+      val arr = line.split(",")
+      arr
+    }
+      .map{  s =>
+        val a = s.split(":")
+        (a(0) , a(1).toInt)
+      }
+      .map { a =>
+        if (a._2 >= 0)  // Injecting fault by using wrong predicate ==> should lead to wrong output
+          (a._1 + " Pass", 1)
+        else
+          (a._1 + " Fail", 1)
+      }
+      .reduceByKey(_ + _)
+      .filter(v => v._2 > 1).map(m => m._1 +","+ m._2)
+  }
 }

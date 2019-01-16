@@ -1,5 +1,6 @@
 package incomeaggregate
 
+import org.apache.spark.rdd.RDD
 import org.apache.spark.{SparkConf, SparkContext}
 
 /**
@@ -26,7 +27,7 @@ object IncomeAggregateFaultWrongOffsets {
         val sum = lines.map {
           line =>
             if (line.substring(0, 1).equals("$")) {
-              var i = line.substring(0, 6)   // Injecting fault by using the wrong offsets ==> should lead to crash
+              var i = line.substring(0)   // Injecting fault by using the wrong offsets ==> should lead to crash
               i
             } else {
               line
@@ -45,5 +46,22 @@ object IncomeAggregateFaultWrongOffsets {
     }
     println("Time: " + (System.currentTimeMillis() - startTime))
   }
+
+  def execute(input1: RDD[String]): String = {
+    val sum = input1.map {
+      line =>
+        if (line.substring(0, 1).equals("$")) {
+          var i = line.substring(0)   // Injecting fault by using the wrong offsets ==> should lead to crash
+          i
+        } else {
+          line
+        }
+    }
+      .map(p => Integer.parseInt(p))
+      .filter(r => r < 300)
+      .reduce(_ + _).toString
+    sum
+  }
+
 
 }

@@ -1,12 +1,14 @@
 package pigmixl2
 
+import org.apache.spark.rdd.RDD
 import org.apache.spark.{SparkConf, SparkContext}
+import utils.SparkRDDGenerator
 
 /**
   * Created by malig on 5/15/18.
   */
 
-object L2FaultWrongJoin {
+object L2FaultWrongJoin extends SparkRDDGenerator{
   def main(args: Array[String]) {
     val conf = new SparkConf()
     conf.setMaster("local[*]")
@@ -39,4 +41,13 @@ object L2FaultWrongJoin {
     }
     println("Time: " + (System.currentTimeMillis() - startTime))
   }
+
+  override def execute(input1: RDD[String], input2: RDD[String]): RDD[String] = {
+    val pageViews = input1
+    val powerUsers = input2
+    val A = pageViews.map(x => (x.split(",")(0), x.split(",")(6)))
+    val alpha = powerUsers.map(x => x.split(",")(0))
+    val beta = alpha.map(x => (x, 1))
+    A.leftOuterJoin(beta).map(x => x._1 + "," + x._2._1) //injecting fault by using a wrong type of join ==> Should lead to wrong output
+ }
 }

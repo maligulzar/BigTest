@@ -1,11 +1,13 @@
 package incomeaggregate
 
+import org.apache.spark.rdd.RDD
 import org.apache.spark.{SparkConf, SparkContext}
+import utils.SparkRDDGenerator
 
 /**
   * Created by malig on 3/27/18.
   */
-object IncomeAggregate {
+object IncomeAggregate  {
   def main(args: Array[String]): Unit = {
     val conf = new SparkConf()
     conf.setMaster("local[*]")
@@ -24,8 +26,8 @@ object IncomeAggregate {
         val lines = sc.parallelize(Array(data1(i)))
         val sum = lines.map {
           line =>
-            if (line.substring(0, 1).equals("$")) {
-              var i = line.substring(1, 6)
+            if (line.substring(0,1).equals("$")) {
+              var i = line.substring(1)
               i
             } else {
               line
@@ -43,6 +45,22 @@ object IncomeAggregate {
 
     }
     println("Time: " + (System.currentTimeMillis() - startTime))
+  }
+
+   def execute(input1: RDD[String]): String = {
+    val sum = input1.map {
+      line =>
+        if (line.substring(0,1).equals("$")) {
+          var i = line.substring(1)
+          i
+        } else {
+          line
+        }
+    }
+      .map(p => Integer.parseInt(p))
+      .filter(r => r < 300)
+      .reduce(_ + _).toString
+    sum
   }
 }
 

@@ -1,12 +1,14 @@
 package pigmixl2
 
+import org.apache.spark.rdd.RDD
 import org.apache.spark.{SparkConf, SparkContext}
+import utils.SparkRDDGenerator
 
 /**
   * Created by malig on 5/15/18.
   */
 
-object L2 {
+object L2 extends SparkRDDGenerator {
   def main(args: Array[String]) {
     val conf = new SparkConf()
     conf.setMaster("local[*]")
@@ -19,7 +21,7 @@ object L2 {
       "A, , , , , , "
     )
     val data2 =
-      Array("","","","","")
+      Array("", "", "", "", "")
 
     val startTime = System.currentTimeMillis();
     val sc = new SparkContext(conf)
@@ -39,8 +41,16 @@ object L2 {
     }
     println("Time: " + (System.currentTimeMillis() - startTime))
   }
-}
 
+  override def execute(input1: RDD[String], input2: RDD[String]): RDD[String] = {
+    val pageViews = input1
+    val powerUsers = input2
+    val A = pageViews.map(x => (x.split(",")(0), x.split(",")(6)))
+    val alpha = powerUsers.map(x => x.split(",")(0))
+    val beta = alpha.map(x => (x, 1))
+  A.join(beta).map(x => x._1 + "," + x._2._1)
+  }
+}
 /**
 val logFile = "hdfs://scai01.cs.ucla.edu:9000/clash/datasets/bigsift/"
     val page = logFile + "page_views"
