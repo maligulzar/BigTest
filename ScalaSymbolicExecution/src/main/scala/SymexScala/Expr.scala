@@ -1,5 +1,6 @@
 package SymexScala
 
+import java.util
 import java.util.HashSet
 
 import NumericUnderlyingType._
@@ -22,6 +23,7 @@ abstract class Expr {
     def applyEffect(x: SymVar, effect: Expr): Expr
     def checkValidity(ss: SymbolicState): Boolean
     def toZ3Query(initials :HashSet[(String , VType)] ): String
+    def toPythonExpr(initials :HashSet[(String , VType)] ): String
     def deepCopy: Expr
 
 }
@@ -49,10 +51,27 @@ case class SymVar(atype: VType, name: String) extends SymRDD {
     }
 
     override def toZ3Query(initials: HashSet[(String , VType)]): String = {
-        initials.add((name , actualType))
+        addToInitials(initials)
         name
     }
-
+    
+    /**
+     * Converts the current symbolic variable to a variable reference of the same name. This is
+     * equivalent to calling toString.
+     * @param initials tracking set of input variables expected to be already declared. The
+     *                 current symbolic variable is added to this set.
+     * @return
+     */
+    override def toPythonExpr(initials: HashSet[(String , VType)]): String = {
+        // TODO: Check for variable naming requirements in Python that do not align with Scala
+        addToInitials(initials)
+        name
+    }
+    
+    private def addToInitials(initials: util.HashSet[(String, VType)]) = {
+        initials.add((name, actualType))
+    }
+    
     override def deepCopy: SymVar = {
         new SymVar(actualType, name)
     }
@@ -83,6 +102,9 @@ case class SymTuple(ttype: Tuple, name: String) extends SymRDD {
     }
 
     def toZ3Query(initials :HashSet[(String , VType)] ): String = {""}
+    
+    override def toPythonExpr(initials: util.HashSet[(String, VType)]): String =
+        throw new NotImplementedError("Python expr for Tuples is not yet supported")
 
     override def deepCopy: SymTuple = {
         new SymTuple(actualType, name)
@@ -157,6 +179,10 @@ case class ConcreteValue(atype: VType, value: String) extends Expr {
     override def toZ3Query(initials :HashSet[(String , VType)]): String = {
         value.toString
     }
+    
+    override def toPythonExpr(initials: util.HashSet[(String, VType)]): String = {
+        actualType.toConcretePythonExpr(value)
+    }
 
     override def deepCopy: ConcreteValue = {
         new ConcreteValue(actualType, value)
@@ -193,6 +219,13 @@ case class NonTerminal(left: Expr, middle: SymOp, right: Expr) extends Expr {
         s"""(${op.toString}  ${leftExpr.toZ3Query(initials)} ${rightExpr.toZ3Query(initials)} )"""
         //"FIX NON TERMINAL Z3 QUERY"
 
+    }
+    
+    override def toPythonExpr(initials: util.HashSet[(String, VType)]): String = {
+        // infix notation is used in Python
+        // potential refactor: infix vs prefix (z3) and conversion function to standardize
+        // toZ3Query and toPythonExpr functions.
+        s"""(${leftExpr.toPythonExpr(initials)} ${op.toString()} ${rightExpr.toPythonExpr(initials)})"""
     }
 
     override def deepCopy(): NonTerminal = {
