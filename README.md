@@ -42,14 +42,14 @@
             Jar file name: jpf-core/lib/sym.jar
   
   
-  #Run: 
+  # Run: 
         Configurations -> Java Applications -> run-JPF-symbc (change VM argument for java lib path)
         Uncomment Test2.scala (from SymExec)
         may need to re-export symex + udfextractor (uncomment the examples dir if so)
             do this for both jpf-core and jpf-symbc
         Update JPF.java (jpf-core)
         ignore warnings when launching
-TODO along the way: find and replace "up_jpf" -> "Test-..."
+### TODO along the way: find and replace "up_jpf" -> "Test-..."
     also check for malig on path
         Gulzar: Configuration and SystemCommandHandler
     also check for amytis (Shagha)
