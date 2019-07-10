@@ -11,6 +11,12 @@
 * **jpf-core and jpf-symbc** --> *Contains custom version of JPF and SPF*
 * **fse_bigtest_2019.pdf** --> *The final version BigTest paper*
 
+### Running benchmarks on pre-generated Test using BigTest:
+ - Run TestSuiteRunner.scala under BenchmarkFault with dependency on Spark 2.1.0
+ - To run applciations on original dataset, orignal datasets can be acquired from [PUMA](https://engineering.purdue.edu/~puma/datasets.htm) and data generation [scripts](https://github.com/maligulzar/BigTest/tree/JPF-integrated/BenchmarksFault/src/datagen) 
+ 
+ # Run End-to-End BigTest 
+ 
 ## Download latest version of Scala-IDE (this was tested on eclipse 4.7.1)
     Import 4 projects (jpf-core, jpf-symbc, udfextractor, symexScala) into eclipse using Java/Scala project (use source as working directory). Eclipse might not load the libraries under /lib folder. If that happens, manually load the jars using Eclipse project preferences menue. 
     At the end of this step, you should have 4 projects loaded into Eclipse. These steps are explained individual below. 
@@ -75,7 +81,3 @@
     - also check for amytis
     - SymbolicResult: line 74ish, replace with your cvc4 binary
     - SymbolicResult: change Z3DIR to z3 directory
-
-### Running benchmarks on pre-generated Test using BigTest:
- - Run TestSuiteRunner.scala under BenchmarkFault with dependency on Spark 2.1.0
- - To run applciations on original dataset, orignal datasets can be acquired from [PUMA](https://engineering.purdue.edu/~puma/datasets.htm) and data generation scripts 
