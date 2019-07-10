@@ -1,0 +1,684 @@
+====================================================== snapshot #2
+thread java.lang.Thread:{id:0,name:main,status:RUNNING,priority:5,isDaemon:false,lockCount:0,suspendCount:0}
+  call stack:
+	at reduceByKey2.applyReduce(reduceByKey2.java:9)
+	at reduceByKey2.main(reduceByKey2.java:4)
+
+New sym int [I@15b[0] min=-2147483648, max=2147483647
+### PCs: total:9 sat:9 unsat:0
+
+string analysis: SPC # = 0
+NPC constraint # = 2
+CONST_0 >= [I@15b_length &&
+[I@15b_length >= CONST_0
+-----Z3-----
+
+-----------------
+
+string analysis: SPC # = 0
+NPC constraint # = 2
+CONST_0 >= [I@15b_length[-9223372036854775808] &&
+[I@15b_length[-9223372036854775808] >= CONST_0
+-----Z3-----
+
+-----------------
+
+Property Violated: PC is constraint # = 2
+CONST_0 >= [I@15b_length[-9223372036854775808] &&
+[I@15b_length[-9223372036854775808] >= CONST_0
+Property Violated: result is  "java.lang.ArrayIndexOutOfBoundsException: index greater than array bounds..."
+****************************
+string analysis: SPC # = 0
+NPC constraint # = 2
+CONST_0 >= [I@15b_length[-9223372036854775808] &&
+[I@15b_length[-9223372036854775808] >= CONST_0
+-----Z3-----
+
+-----------------
+
+Property Violated: PC is constraint # = 2
+CONST_0 >= [I@15b_length[-9223372036854775808] &&
+[I@15b_length[-9223372036854775808] >= CONST_0
+Property Violated: result is  "java.lang.ArrayIndexOutOfBoundsException: index greater than array bounds..."
+****************************
+
+====================================================== error 3
+gov.nasa.jpf.vm.NoUncaughtExceptionsProperty
+java.lang.ArrayIndexOutOfBoundsException: index greater than array bounds
+	at reduceByKey2.applyReduce(reduceByKey2.java:7)
+	at reduceByKey2.main(reduceByKey2.java:4)
+
+
+====================================================== snapshot #3
+thread java.lang.Thread:{id:0,name:main,status:RUNNING,priority:5,isDaemon:false,lockCount:0,suspendCount:0}
+  call stack:
+	at reduceByKey2.applyReduce(reduceByKey2.java:7)
+	at reduceByKey2.main(reduceByKey2.java:4)
+
+New sym int [I@15b[0] min=-2147483648, max=2147483647
+### PCs: total:10 sat:10 unsat:0
+
+string analysis: SPC # = 0
+NPC constraint # = 2
+CONST_0 < CONST_0 &&
+[I@15b_length >= CONST_0
+-----Z3-----
+
+-----------------
+
+string analysis: SPC # = 0
+NPC constraint # = 2
+CONST_0 < CONST_0 &&
+[I@15b_length[-9223372036854775808] >= CONST_0
+-----Z3-----
+
+-----------------
+
+Property Violated: PC is constraint # = 2
+CONST_0 < CONST_0 &&
+[I@15b_length[-9223372036854775808] >= CONST_0
+Property Violated: result is  "java.lang.ArrayIndexOutOfBoundsException: index smaller than array bounds..."
+****************************
+string analysis: SPC # = 0
+NPC constraint # = 2
+CONST_0 < CONST_0 &&
+[I@15b_length[-9223372036854775808] >= CONST_0
+-----Z3-----
+
+-----------------
+
+Property Violated: PC is constraint # = 2
+CONST_0 < CONST_0 &&
+[I@15b_length[-9223372036854775808] >= CONST_0
+Property Violated: result is  "java.lang.ArrayIndexOutOfBoundsException: index smaller than array bounds..."
+****************************
+
+====================================================== error 4
+gov.nasa.jpf.vm.NoUncaughtExceptionsProperty
+java.lang.ArrayIndexOutOfBoundsException: index smaller than array bounds
+	at reduceByKey2.applyReduce(reduceByKey2.java:7)
+	at reduceByKey2.main(reduceByKey2.java:4)
+
+
+====================================================== snapshot #4
+thread java.lang.Thread:{id:0,name:main,status:RUNNING,priority:5,isDaemon:false,lockCount:0,suspendCount:0}
+  call stack:
+	at reduceByKey2.applyReduce(reduceByKey2.java:7)
+	at reduceByKey2.main(reduceByKey2.java:4)
+
+
+====================================================== results
+error #1: gov.nasa.jpf.vm.NoUncaughtExceptionsProperty "java.lang.ArrayIndexOutOfBoundsException: index gr..."
+error #2: gov.nasa.jpf.vm.NoUncaughtExceptionsProperty "java.lang.ArrayIndexOutOfBoundsException: index sm..."
+error #3: gov.nasa.jpf.vm.NoUncaughtExceptionsProperty "java.lang.ArrayIndexOutOfBoundsException: index gr..."
+error #4: gov.nasa.jpf.vm.NoUncaughtExceptionsProperty "java.lang.ArrayIndexOutOfBoundsException: index sm..."
+
+====================================================== statistics
+elapsed time:       00:00:00
+states:             new=8,visited=0,backtracked=8,end=1
+search:             maxDepth=4,constraints=0
+choice generators:  thread=1 (signal=0,lock=1,sharedRef=0,threadApi=0,reschedule=0), data=3
+heap:               new=423,released=12,maxLive=345,gcCycles=3
+instructions:       3152
+max memory:         245MB
+loaded code:        classes=65,methods=1313
+
+====================================================== search finished: 7/10/19 8:24 AM
+------>1 1
+getting terminating path constraints
+reduceByKey2
+Set of Constraints for this dataset V:
+Non-terminating:
+path constraint: {a select 1 = [I@15b[1] && 1 >= 0 && 1 < [I@15b_length && a select 0 = [I@15b[0] && 0 >= 0 && 0 < [I@15b_length && [I@15b_length >= 0 && a = x6}	 effect: {x7 = [I@15b[1] + [I@15b[0]} ---------
+terminating:
+
+Running Symbolic PathFinder ...
+symbolic.dp=no_solver
+symbolic.string_dp_timeout_ms=3000
+symbolic.string_dp=none
+symbolic.max_pc_length=2147483647
+symbolic.max_pc_msec=0
+symbolic.bvlength=32
+symbolic.min_int=-2147483648
+symbolic.min_long=-9223372036854775808
+symbolic.min_short=-32768
+symbolic.min_byte=-128
+symbolic.min_char=0
+symbolic.max_int=2147483647
+symbolic.max_long=9223372036854775807
+symbolic.max_short=32767
+symbolic.max_byte=127
+symbolic.max_char=65535
+symbolic.min_double=4.9E-324
+symbolic.max_double=1.7976931348623157E308
+JavaPathfinder core system v8.0 (rev ${version}) - (C) 2005-2014 United States Government. All rights reserved.
+
+
+====================================================== system under test
+filter1.main()
+
+====================================================== search started: 7/10/19 8:24 AM
+New sym int v_t1_5_SYMSTRING.length min=-2147483648, max=2147483647
+New sym int v_t2_6_SYMINT min=-2147483648, max=2147483647
+Static method
+Static method
+### PCs: total:11 sat:11 unsat:0
+
+string analysis: SPC # = 0
+NPC constraint # = 1
+v_t2_6_SYMINT <= CONST_40
+-----Z3-----
+
+-----------------
+
+### PCs: total:12 sat:12 unsat:0
+
+string analysis: SPC # = 0
+NPC constraint # = 1
+v_t2_6_SYMINT > CONST_40
+-----Z3-----
+
+-----------------
+
+string analysis: SPC # = 0
+NPC constraint # = 1
+v_t2_6_SYMINT[-9223372036854775808] > CONST_40
+-----Z3-----
+
+-----------------
+
+java.lang.String
+int
+constraint # = 1
+v_t2_6_SYMINT[-9223372036854775808] > CONST_40 --B- CONST_1
+string analysis: SPC # = 0
+NPC constraint # = 1
+v_t2_6_SYMINT[-9223372036854775808] > CONST_40
+-----Z3-----
+
+-----------------
+
+java.lang.String
+int
+constraint # = 1
+v_t2_6_SYMINT[-9223372036854775808] > CONST_40 --B- CONST_1
+string analysis: SPC # = 0
+NPC constraint # = 1
+v_t2_6_SYMINT[-9223372036854775808] <= CONST_40
+-----Z3-----
+
+-----------------
+
+constraint # = 1
+v_t2_6_SYMINT[-9223372036854775808] <= CONST_40 --B- CONST_0
+string analysis: SPC # = 0
+NPC constraint # = 1
+v_t2_6_SYMINT[-9223372036854775808] <= CONST_40
+-----Z3-----
+
+-----------------
+
+constraint # = 1
+v_t2_6_SYMINT[-9223372036854775808] <= CONST_40 --B- CONST_0
+
+====================================================== results
+no errors detected
+
+====================================================== statistics
+elapsed time:       00:00:00
+states:             new=4,visited=0,backtracked=4,end=2
+search:             maxDepth=3,constraints=0
+choice generators:  thread=1 (signal=0,lock=1,sharedRef=0,threadApi=0,reschedule=0), data=2
+heap:               new=348,released=20,maxLive=346,gcCycles=3
+instructions:       3121
+max memory:         164MB
+loaded code:        classes=60,methods=1279
+
+====================================================== search finished: 7/10/19 8:24 AM
+------>2 2
+getting terminating path constraints
+filter1
+Set of Constraints for this dataset V:
+Non-terminating:
+path constraint: {v_t2 > 40 && v_t2 = x9_2 && v_t1 = x9_1}	 effect: {x10 = 1} ---------
+path constraint: {v_t2 <= 40 && v_t2 = x9_2 && v_t1 = x9_1}	 effect: {x10 = 0} ---------
+terminating:
+
+Final Constraints
+Set of Constraints for this dataset V:
+Non-terminating:
+path constraint: {line_P1 = x0_P1 && l_P1 splitn 1 : isinteger && l_P1 = x2_P1 && a_t2_P1 <= 40 && a_t1_P1 = x4_1_P1 && a_t2_P1 = x4_2_P1 && line_P2 = x0_P2 && l_P2 splitn 1 : isinteger && l_P2 = x2_P2 && a_t2_P2 <= 40 && a_t1_P2 = x4_1_P2 && a_t2_P2 = x4_2_P2 && a select 1 = [I@15b[1] && 1 >= 0 && 1 < [I@15b_length && a select 0 = [I@15b[0] && 0 >= 0 && 0 < [I@15b_length && [I@15b_length >= 0 && a = x6 && v_t2 > 40 && v_t2 = x9_2 && v_t1 = x9_1}	 effect: {x5_2_P1 = x8 select 0, x5_2_P2 = x8 select 1, x1_P1 = line_P1 splitn 0 ,, x2_P1 = x1_P1, x3_1_P1 = l_P1 splitn 0 :, x3_2_P1 = l_P1 splitn 1 : str.to.int , x4_1_P1 = x3_1_P1, x4_2_P1 = x3_2_P1, x5_1_P1 = a_t1_P1 str.++  Fail, x5_2_P1 = 1, x1_P2 = line_P2 splitn 0 ,, x2_P2 = x1_P2, x3_1_P2 = l_P2 splitn 0 :, x3_2_P2 = l_P2 splitn 1 : str.to.int , x4_1_P2 = x3_1_P2, x4_2_P2 = x3_2_P2, x5_1_P2 = a_t1_P2 str.++  Fail, x5_2_P2 = 1, x6 = x8, x7 = [I@15b[1] + [I@15b[0], x9_1 = x5_1, x9_2 = x7} ---------
+path constraint: {line_P1 = x0_P1 && l_P1 splitn 1 : isinteger && l_P1 = x2_P1 && a_t2_P1 > 40 && a_t1_P1 = x4_1_P1 && a_t2_P1 = x4_2_P1 && line_P2 = x0_P2 && l_P2 splitn 1 : isinteger && l_P2 = x2_P2 && a_t2_P2 <= 40 && a_t1_P2 = x4_1_P2 && a_t2_P2 = x4_2_P2 && a select 1 = [I@15b[1] && 1 >= 0 && 1 < [I@15b_length && a select 0 = [I@15b[0] && 0 >= 0 && 0 < [I@15b_length && [I@15b_length >= 0 && a = x6 && v_t2 > 40 && v_t2 = x9_2 && v_t1 = x9_1}	 effect: {x5_2_P1 = x8 select 0, x5_2_P2 = x8 select 1, x1_P1 = line_P1 splitn 0 ,, x2_P1 = x1_P1, x3_1_P1 = l_P1 splitn 0 :, x3_2_P1 = l_P1 splitn 1 : str.to.int , x4_1_P1 = x3_1_P1, x4_2_P1 = x3_2_P1, x5_1_P1 = a_t1_P1 str.++  Pass, x5_2_P1 = 1, x1_P2 = line_P2 splitn 0 ,, x2_P2 = x1_P2, x3_1_P2 = l_P2 splitn 0 :, x3_2_P2 = l_P2 splitn 1 : str.to.int , x4_1_P2 = x3_1_P2, x4_2_P2 = x3_2_P2, x5_1_P2 = a_t1_P2 str.++  Fail, x5_2_P2 = 1, x6 = x8, x7 = [I@15b[1] + [I@15b[0], x9_1 = x5_1, x9_2 = x7} ---------
+path constraint: {line_P1 = x0_P1 && l_P1 splitn 1 : isinteger && l_P1 = x2_P1 && a_t2_P1 <= 40 && a_t1_P1 = x4_1_P1 && a_t2_P1 = x4_2_P1 && line_P2 = x0_P2 && l_P2 splitn 1 : isinteger && l_P2 = x2_P2 && a_t2_P2 <= 40 && a_t1_P2 = x4_1_P2 && a_t2_P2 = x4_2_P2 && a select 1 = [I@15b[1] && 1 >= 0 && 1 < [I@15b_length && a select 0 = [I@15b[0] && 0 >= 0 && 0 < [I@15b_length && [I@15b_length >= 0 && a = x6 && v_t2 > 40 && v_t2 = x9_2 && v_t1 = x9_1}	 effect: {x5_2_P1 = x8 select 0, x5_2_P2 = x8 select 1, x1_P1 = line_P1 splitn 1 ,, x2_P1 = x1_P1, x3_1_P1 = l_P1 splitn 0 :, x3_2_P1 = l_P1 splitn 1 : str.to.int , x4_1_P1 = x3_1_P1, x4_2_P1 = x3_2_P1, x5_1_P1 = a_t1_P1 str.++  Fail, x5_2_P1 = 1, x1_P2 = line_P2 splitn 0 ,, x2_P2 = x1_P2, x3_1_P2 = l_P2 splitn 0 :, x3_2_P2 = l_P2 splitn 1 : str.to.int , x4_1_P2 = x3_1_P2, x4_2_P2 = x3_2_P2, x5_1_P2 = a_t1_P2 str.++  Fail, x5_2_P2 = 1, x6 = x8, x7 = [I@15b[1] + [I@15b[0], x9_1 = x5_1, x9_2 = x7} ---------
+path constraint: {line_P1 = x0_P1 && l_P1 splitn 1 : isinteger && l_P1 = x2_P1 && a_t2_P1 > 40 && a_t1_P1 = x4_1_P1 && a_t2_P1 = x4_2_P1 && line_P2 = x0_P2 && l_P2 splitn 1 : isinteger && l_P2 = x2_P2 && a_t2_P2 <= 40 && a_t1_P2 = x4_1_P2 && a_t2_P2 = x4_2_P2 && a select 1 = [I@15b[1] && 1 >= 0 && 1 < [I@15b_length && a select 0 = [I@15b[0] && 0 >= 0 && 0 < [I@15b_length && [I@15b_length >= 0 && a = x6 && v_t2 > 40 && v_t2 = x9_2 && v_t1 = x9_1}	 effect: {x5_2_P1 = x8 select 0, x5_2_P2 = x8 select 1, x1_P1 = line_P1 splitn 1 ,, x2_P1 = x1_P1, x3_1_P1 = l_P1 splitn 0 :, x3_2_P1 = l_P1 splitn 1 : str.to.int , x4_1_P1 = x3_1_P1, x4_2_P1 = x3_2_P1, x5_1_P1 = a_t1_P1 str.++  Pass, x5_2_P1 = 1, x1_P2 = line_P2 splitn 0 ,, x2_P2 = x1_P2, x3_1_P2 = l_P2 splitn 0 :, x3_2_P2 = l_P2 splitn 1 : str.to.int , x4_1_P2 = x3_1_P2, x4_2_P2 = x3_2_P2, x5_1_P2 = a_t1_P2 str.++  Fail, x5_2_P2 = 1, x6 = x8, x7 = [I@15b[1] + [I@15b[0], x9_1 = x5_1, x9_2 = x7} ---------
+path constraint: {line_P1 = x0_P1 && l_P1 splitn 1 : isinteger && l_P1 = x2_P1 && a_t2_P1 <= 40 && a_t1_P1 = x4_1_P1 && a_t2_P1 = x4_2_P1 && line_P2 = x0_P2 && l_P2 splitn 1 : isinteger && l_P2 = x2_P2 && a_t2_P2 > 40 && a_t1_P2 = x4_1_P2 && a_t2_P2 = x4_2_P2 && a select 1 = [I@15b[1] && 1 >= 0 && 1 < [I@15b_length && a select 0 = [I@15b[0] && 0 >= 0 && 0 < [I@15b_length && [I@15b_length >= 0 && a = x6 && v_t2 > 40 && v_t2 = x9_2 && v_t1 = x9_1}	 effect: {x5_2_P1 = x8 select 0, x5_2_P2 = x8 select 1, x1_P1 = line_P1 splitn 0 ,, x2_P1 = x1_P1, x3_1_P1 = l_P1 splitn 0 :, x3_2_P1 = l_P1 splitn 1 : str.to.int , x4_1_P1 = x3_1_P1, x4_2_P1 = x3_2_P1, x5_1_P1 = a_t1_P1 str.++  Fail, x5_2_P1 = 1, x1_P2 = line_P2 splitn 0 ,, x2_P2 = x1_P2, x3_1_P2 = l_P2 splitn 0 :, x3_2_P2 = l_P2 splitn 1 : str.to.int , x4_1_P2 = x3_1_P2, x4_2_P2 = x3_2_P2, x5_1_P2 = a_t1_P2 str.++  Pass, x5_2_P2 = 1, x6 = x8, x7 = [I@15b[1] + [I@15b[0], x9_1 = x5_1, x9_2 = x7} ---------
+path constraint: {line_P1 = x0_P1 && l_P1 splitn 1 : isinteger && l_P1 = x2_P1 && a_t2_P1 > 40 && a_t1_P1 = x4_1_P1 && a_t2_P1 = x4_2_P1 && line_P2 = x0_P2 && l_P2 splitn 1 : isinteger && l_P2 = x2_P2 && a_t2_P2 > 40 && a_t1_P2 = x4_1_P2 && a_t2_P2 = x4_2_P2 && a select 1 = [I@15b[1] && 1 >= 0 && 1 < [I@15b_length && a select 0 = [I@15b[0] && 0 >= 0 && 0 < [I@15b_length && [I@15b_length >= 0 && a = x6 && v_t2 > 40 && v_t2 = x9_2 && v_t1 = x9_1}	 effect: {x5_2_P1 = x8 select 0, x5_2_P2 = x8 select 1, x1_P1 = line_P1 splitn 0 ,, x2_P1 = x1_P1, x3_1_P1 = l_P1 splitn 0 :, x3_2_P1 = l_P1 splitn 1 : str.to.int , x4_1_P1 = x3_1_P1, x4_2_P1 = x3_2_P1, x5_1_P1 = a_t1_P1 str.++  Pass, x5_2_P1 = 1, x1_P2 = line_P2 splitn 0 ,, x2_P2 = x1_P2, x3_1_P2 = l_P2 splitn 0 :, x3_2_P2 = l_P2 splitn 1 : str.to.int , x4_1_P2 = x3_1_P2, x4_2_P2 = x3_2_P2, x5_1_P2 = a_t1_P2 str.++  Pass, x5_2_P2 = 1, x6 = x8, x7 = [I@15b[1] + [I@15b[0], x9_1 = x5_1, x9_2 = x7} ---------
+path constraint: {line_P1 = x0_P1 && l_P1 splitn 1 : isinteger && l_P1 = x2_P1 && a_t2_P1 <= 40 && a_t1_P1 = x4_1_P1 && a_t2_P1 = x4_2_P1 && line_P2 = x0_P2 && l_P2 splitn 1 : isinteger && l_P2 = x2_P2 && a_t2_P2 > 40 && a_t1_P2 = x4_1_P2 && a_t2_P2 = x4_2_P2 && a select 1 = [I@15b[1] && 1 >= 0 && 1 < [I@15b_length && a select 0 = [I@15b[0] && 0 >= 0 && 0 < [I@15b_length && [I@15b_length >= 0 && a = x6 && v_t2 > 40 && v_t2 = x9_2 && v_t1 = x9_1}	 effect: {x5_2_P1 = x8 select 0, x5_2_P2 = x8 select 1, x1_P1 = line_P1 splitn 1 ,, x2_P1 = x1_P1, x3_1_P1 = l_P1 splitn 0 :, x3_2_P1 = l_P1 splitn 1 : str.to.int , x4_1_P1 = x3_1_P1, x4_2_P1 = x3_2_P1, x5_1_P1 = a_t1_P1 str.++  Fail, x5_2_P1 = 1, x1_P2 = line_P2 splitn 0 ,, x2_P2 = x1_P2, x3_1_P2 = l_P2 splitn 0 :, x3_2_P2 = l_P2 splitn 1 : str.to.int , x4_1_P2 = x3_1_P2, x4_2_P2 = x3_2_P2, x5_1_P2 = a_t1_P2 str.++  Pass, x5_2_P2 = 1, x6 = x8, x7 = [I@15b[1] + [I@15b[0], x9_1 = x5_1, x9_2 = x7} ---------
+path constraint: {line_P1 = x0_P1 && l_P1 splitn 1 : isinteger && l_P1 = x2_P1 && a_t2_P1 > 40 && a_t1_P1 = x4_1_P1 && a_t2_P1 = x4_2_P1 && line_P2 = x0_P2 && l_P2 splitn 1 : isinteger && l_P2 = x2_P2 && a_t2_P2 > 40 && a_t1_P2 = x4_1_P2 && a_t2_P2 = x4_2_P2 && a select 1 = [I@15b[1] && 1 >= 0 && 1 < [I@15b_length && a select 0 = [I@15b[0] && 0 >= 0 && 0 < [I@15b_length && [I@15b_length >= 0 && a = x6 && v_t2 > 40 && v_t2 = x9_2 && v_t1 = x9_1}	 effect: {x5_2_P1 = x8 select 0, x5_2_P2 = x8 select 1, x1_P1 = line_P1 splitn 1 ,, x2_P1 = x1_P1, x3_1_P1 = l_P1 splitn 0 :, x3_2_P1 = l_P1 splitn 1 : str.to.int , x4_1_P1 = x3_1_P1, x4_2_P1 = x3_2_P1, x5_1_P1 = a_t1_P1 str.++  Pass, x5_2_P1 = 1, x1_P2 = line_P2 splitn 0 ,, x2_P2 = x1_P2, x3_1_P2 = l_P2 splitn 0 :, x3_2_P2 = l_P2 splitn 1 : str.to.int , x4_1_P2 = x3_1_P2, x4_2_P2 = x3_2_P2, x5_1_P2 = a_t1_P2 str.++  Pass, x5_2_P2 = 1, x6 = x8, x7 = [I@15b[1] + [I@15b[0], x9_1 = x5_1, x9_2 = x7} ---------
+path constraint: {line_P1 = x0_P1 && l_P1 splitn 1 : isinteger && l_P1 = x2_P1 && a_t2_P1 <= 40 && a_t1_P1 = x4_1_P1 && a_t2_P1 = x4_2_P1 && line_P2 = x0_P2 && l_P2 splitn 1 : isinteger && l_P2 = x2_P2 && a_t2_P2 <= 40 && a_t1_P2 = x4_1_P2 && a_t2_P2 = x4_2_P2 && a select 1 = [I@15b[1] && 1 >= 0 && 1 < [I@15b_length && a select 0 = [I@15b[0] && 0 >= 0 && 0 < [I@15b_length && [I@15b_length >= 0 && a = x6 && v_t2 > 40 && v_t2 = x9_2 && v_t1 = x9_1}	 effect: {x5_2_P1 = x8 select 0, x5_2_P2 = x8 select 1, x1_P1 = line_P1 splitn 0 ,, x2_P1 = x1_P1, x3_1_P1 = l_P1 splitn 0 :, x3_2_P1 = l_P1 splitn 1 : str.to.int , x4_1_P1 = x3_1_P1, x4_2_P1 = x3_2_P1, x5_1_P1 = a_t1_P1 str.++  Fail, x5_2_P1 = 1, x1_P2 = line_P2 splitn 1 ,, x2_P2 = x1_P2, x3_1_P2 = l_P2 splitn 0 :, x3_2_P2 = l_P2 splitn 1 : str.to.int , x4_1_P2 = x3_1_P2, x4_2_P2 = x3_2_P2, x5_1_P2 = a_t1_P2 str.++  Fail, x5_2_P2 = 1, x6 = x8, x7 = [I@15b[1] + [I@15b[0], x9_1 = x5_1, x9_2 = x7} ---------
+path constraint: {line_P1 = x0_P1 && l_P1 splitn 1 : isinteger && l_P1 = x2_P1 && a_t2_P1 > 40 && a_t1_P1 = x4_1_P1 && a_t2_P1 = x4_2_P1 && line_P2 = x0_P2 && l_P2 splitn 1 : isinteger && l_P2 = x2_P2 && a_t2_P2 <= 40 && a_t1_P2 = x4_1_P2 && a_t2_P2 = x4_2_P2 && a select 1 = [I@15b[1] && 1 >= 0 && 1 < [I@15b_length && a select 0 = [I@15b[0] && 0 >= 0 && 0 < [I@15b_length && [I@15b_length >= 0 && a = x6 && v_t2 > 40 && v_t2 = x9_2 && v_t1 = x9_1}	 effect: {x5_2_P1 = x8 select 0, x5_2_P2 = x8 select 1, x1_P1 = line_P1 splitn 0 ,, x2_P1 = x1_P1, x3_1_P1 = l_P1 splitn 0 :, x3_2_P1 = l_P1 splitn 1 : str.to.int , x4_1_P1 = x3_1_P1, x4_2_P1 = x3_2_P1, x5_1_P1 = a_t1_P1 str.++  Pass, x5_2_P1 = 1, x1_P2 = line_P2 splitn 1 ,, x2_P2 = x1_P2, x3_1_P2 = l_P2 splitn 0 :, x3_2_P2 = l_P2 splitn 1 : str.to.int , x4_1_P2 = x3_1_P2, x4_2_P2 = x3_2_P2, x5_1_P2 = a_t1_P2 str.++  Fail, x5_2_P2 = 1, x6 = x8, x7 = [I@15b[1] + [I@15b[0], x9_1 = x5_1, x9_2 = x7} ---------
+path constraint: {line_P1 = x0_P1 && l_P1 splitn 1 : isinteger && l_P1 = x2_P1 && a_t2_P1 <= 40 && a_t1_P1 = x4_1_P1 && a_t2_P1 = x4_2_P1 && line_P2 = x0_P2 && l_P2 splitn 1 : isinteger && l_P2 = x2_P2 && a_t2_P2 <= 40 && a_t1_P2 = x4_1_P2 && a_t2_P2 = x4_2_P2 && a select 1 = [I@15b[1] && 1 >= 0 && 1 < [I@15b_length && a select 0 = [I@15b[0] && 0 >= 0 && 0 < [I@15b_length && [I@15b_length >= 0 && a = x6 && v_t2 > 40 && v_t2 = x9_2 && v_t1 = x9_1}	 effect: {x5_2_P1 = x8 select 0, x5_2_P2 = x8 select 1, x1_P1 = line_P1 splitn 1 ,, x2_P1 = x1_P1, x3_1_P1 = l_P1 splitn 0 :, x3_2_P1 = l_P1 splitn 1 : str.to.int , x4_1_P1 = x3_1_P1, x4_2_P1 = x3_2_P1, x5_1_P1 = a_t1_P1 str.++  Fail, x5_2_P1 = 1, x1_P2 = line_P2 splitn 1 ,, x2_P2 = x1_P2, x3_1_P2 = l_P2 splitn 0 :, x3_2_P2 = l_P2 splitn 1 : str.to.int , x4_1_P2 = x3_1_P2, x4_2_P2 = x3_2_P2, x5_1_P2 = a_t1_P2 str.++  Fail, x5_2_P2 = 1, x6 = x8, x7 = [I@15b[1] + [I@15b[0], x9_1 = x5_1, x9_2 = x7} ---------
+path constraint: {line_P1 = x0_P1 && l_P1 splitn 1 : isinteger && l_P1 = x2_P1 && a_t2_P1 > 40 && a_t1_P1 = x4_1_P1 && a_t2_P1 = x4_2_P1 && line_P2 = x0_P2 && l_P2 splitn 1 : isinteger && l_P2 = x2_P2 && a_t2_P2 <= 40 && a_t1_P2 = x4_1_P2 && a_t2_P2 = x4_2_P2 && a select 1 = [I@15b[1] && 1 >= 0 && 1 < [I@15b_length && a select 0 = [I@15b[0] && 0 >= 0 && 0 < [I@15b_length && [I@15b_length >= 0 && a = x6 && v_t2 > 40 && v_t2 = x9_2 && v_t1 = x9_1}	 effect: {x5_2_P1 = x8 select 0, x5_2_P2 = x8 select 1, x1_P1 = line_P1 splitn 1 ,, x2_P1 = x1_P1, x3_1_P1 = l_P1 splitn 0 :, x3_2_P1 = l_P1 splitn 1 : str.to.int , x4_1_P1 = x3_1_P1, x4_2_P1 = x3_2_P1, x5_1_P1 = a_t1_P1 str.++  Pass, x5_2_P1 = 1, x1_P2 = line_P2 splitn 1 ,, x2_P2 = x1_P2, x3_1_P2 = l_P2 splitn 0 :, x3_2_P2 = l_P2 splitn 1 : str.to.int , x4_1_P2 = x3_1_P2, x4_2_P2 = x3_2_P2, x5_1_P2 = a_t1_P2 str.++  Fail, x5_2_P2 = 1, x6 = x8, x7 = [I@15b[1] + [I@15b[0], x9_1 = x5_1, x9_2 = x7} ---------
+path constraint: {line_P1 = x0_P1 && l_P1 splitn 1 : isinteger && l_P1 = x2_P1 && a_t2_P1 <= 40 && a_t1_P1 = x4_1_P1 && a_t2_P1 = x4_2_P1 && line_P2 = x0_P2 && l_P2 splitn 1 : isinteger && l_P2 = x2_P2 && a_t2_P2 > 40 && a_t1_P2 = x4_1_P2 && a_t2_P2 = x4_2_P2 && a select 1 = [I@15b[1] && 1 >= 0 && 1 < [I@15b_length && a select 0 = [I@15b[0] && 0 >= 0 && 0 < [I@15b_length && [I@15b_length >= 0 && a = x6 && v_t2 > 40 && v_t2 = x9_2 && v_t1 = x9_1}	 effect: {x5_2_P1 = x8 select 0, x5_2_P2 = x8 select 1, x1_P1 = line_P1 splitn 0 ,, x2_P1 = x1_P1, x3_1_P1 = l_P1 splitn 0 :, x3_2_P1 = l_P1 splitn 1 : str.to.int , x4_1_P1 = x3_1_P1, x4_2_P1 = x3_2_P1, x5_1_P1 = a_t1_P1 str.++  Fail, x5_2_P1 = 1, x1_P2 = line_P2 splitn 1 ,, x2_P2 = x1_P2, x3_1_P2 = l_P2 splitn 0 :, x3_2_P2 = l_P2 splitn 1 : str.to.int , x4_1_P2 = x3_1_P2, x4_2_P2 = x3_2_P2, x5_1_P2 = a_t1_P2 str.++  Pass, x5_2_P2 = 1, x6 = x8, x7 = [I@15b[1] + [I@15b[0], x9_1 = x5_1, x9_2 = x7} ---------
+path constraint: {line_P1 = x0_P1 && l_P1 splitn 1 : isinteger && l_P1 = x2_P1 && a_t2_P1 > 40 && a_t1_P1 = x4_1_P1 && a_t2_P1 = x4_2_P1 && line_P2 = x0_P2 && l_P2 splitn 1 : isinteger && l_P2 = x2_P2 && a_t2_P2 > 40 && a_t1_P2 = x4_1_P2 && a_t2_P2 = x4_2_P2 && a select 1 = [I@15b[1] && 1 >= 0 && 1 < [I@15b_length && a select 0 = [I@15b[0] && 0 >= 0 && 0 < [I@15b_length && [I@15b_length >= 0 && a = x6 && v_t2 > 40 && v_t2 = x9_2 && v_t1 = x9_1}	 effect: {x5_2_P1 = x8 select 0, x5_2_P2 = x8 select 1, x1_P1 = line_P1 splitn 0 ,, x2_P1 = x1_P1, x3_1_P1 = l_P1 splitn 0 :, x3_2_P1 = l_P1 splitn 1 : str.to.int , x4_1_P1 = x3_1_P1, x4_2_P1 = x3_2_P1, x5_1_P1 = a_t1_P1 str.++  Pass, x5_2_P1 = 1, x1_P2 = line_P2 splitn 1 ,, x2_P2 = x1_P2, x3_1_P2 = l_P2 splitn 0 :, x3_2_P2 = l_P2 splitn 1 : str.to.int , x4_1_P2 = x3_1_P2, x4_2_P2 = x3_2_P2, x5_1_P2 = a_t1_P2 str.++  Pass, x5_2_P2 = 1, x6 = x8, x7 = [I@15b[1] + [I@15b[0], x9_1 = x5_1, x9_2 = x7} ---------
+path constraint: {line_P1 = x0_P1 && l_P1 splitn 1 : isinteger && l_P1 = x2_P1 && a_t2_P1 <= 40 && a_t1_P1 = x4_1_P1 && a_t2_P1 = x4_2_P1 && line_P2 = x0_P2 && l_P2 splitn 1 : isinteger && l_P2 = x2_P2 && a_t2_P2 > 40 && a_t1_P2 = x4_1_P2 && a_t2_P2 = x4_2_P2 && a select 1 = [I@15b[1] && 1 >= 0 && 1 < [I@15b_length && a select 0 = [I@15b[0] && 0 >= 0 && 0 < [I@15b_length && [I@15b_length >= 0 && a = x6 && v_t2 > 40 && v_t2 = x9_2 && v_t1 = x9_1}	 effect: {x5_2_P1 = x8 select 0, x5_2_P2 = x8 select 1, x1_P1 = line_P1 splitn 1 ,, x2_P1 = x1_P1, x3_1_P1 = l_P1 splitn 0 :, x3_2_P1 = l_P1 splitn 1 : str.to.int , x4_1_P1 = x3_1_P1, x4_2_P1 = x3_2_P1, x5_1_P1 = a_t1_P1 str.++  Fail, x5_2_P1 = 1, x1_P2 = line_P2 splitn 1 ,, x2_P2 = x1_P2, x3_1_P2 = l_P2 splitn 0 :, x3_2_P2 = l_P2 splitn 1 : str.to.int , x4_1_P2 = x3_1_P2, x4_2_P2 = x3_2_P2, x5_1_P2 = a_t1_P2 str.++  Pass, x5_2_P2 = 1, x6 = x8, x7 = [I@15b[1] + [I@15b[0], x9_1 = x5_1, x9_2 = x7} ---------
+path constraint: {line_P1 = x0_P1 && l_P1 splitn 1 : isinteger && l_P1 = x2_P1 && a_t2_P1 > 40 && a_t1_P1 = x4_1_P1 && a_t2_P1 = x4_2_P1 && line_P2 = x0_P2 && l_P2 splitn 1 : isinteger && l_P2 = x2_P2 && a_t2_P2 > 40 && a_t1_P2 = x4_1_P2 && a_t2_P2 = x4_2_P2 && a select 1 = [I@15b[1] && 1 >= 0 && 1 < [I@15b_length && a select 0 = [I@15b[0] && 0 >= 0 && 0 < [I@15b_length && [I@15b_length >= 0 && a = x6 && v_t2 > 40 && v_t2 = x9_2 && v_t1 = x9_1}	 effect: {x5_2_P1 = x8 select 0, x5_2_P2 = x8 select 1, x1_P1 = line_P1 splitn 1 ,, x2_P1 = x1_P1, x3_1_P1 = l_P1 splitn 0 :, x3_2_P1 = l_P1 splitn 1 : str.to.int , x4_1_P1 = x3_1_P1, x4_2_P1 = x3_2_P1, x5_1_P1 = a_t1_P1 str.++  Pass, x5_2_P1 = 1, x1_P2 = line_P2 splitn 1 ,, x2_P2 = x1_P2, x3_1_P2 = l_P2 splitn 0 :, x3_2_P2 = l_P2 splitn 1 : str.to.int , x4_1_P2 = x3_1_P2, x4_2_P2 = x3_2_P2, x5_1_P2 = a_t1_P2 str.++  Pass, x5_2_P2 = 1, x6 = x8, x7 = [I@15b[1] + [I@15b[0], x9_1 = x5_1, x9_2 = x7} ---------
+terminating:
+path constraint: {l splitn 1 : notinteger && line = x0}	 effect: {x1 = line splitn 0 ,, x2 = x1} ---------
+path constraint: {0 > 0 && l equals  && line = x0}	 effect: {x1 = line splitn 0 ,, x2 = x1} ---------
+path constraint: {l splitn 1 : notinteger && line = x0}	 effect: {x1 = line splitn 1 ,, x2 = x1} ---------
+path constraint: {0 > 0 && l equals  && line = x0}	 effect: {x1 = line splitn 1 ,, x2 = x1} ---------
+path constraint: {v_t2 <= 40 && v_t2 = x9_2 && v_t1 = x9_1 && line_P1 = x0_P1 && l_P1 splitn 1 : isinteger && l_P1 = x2_P1 && a_t2_P1 <= 40 && a_t1_P1 = x4_1_P1 && a_t2_P1 = x4_2_P1 && line_P2 = x0_P2 && l_P2 splitn 1 : isinteger && l_P2 = x2_P2 && a_t2_P2 <= 40 && a_t1_P2 = x4_1_P2 && a_t2_P2 = x4_2_P2 && a select 1 = [I@15b[1] && 1 >= 0 && 1 < [I@15b_length && a select 0 = [I@15b[0] && 0 >= 0 && 0 < [I@15b_length && [I@15b_length >= 0 && a = x6}	 effect: {x5_2_P1 = x8 select 0, x5_2_P2 = x8 select 1, x1_P1 = line_P1 splitn 0 ,, x2_P1 = x1_P1, x3_1_P1 = l_P1 splitn 0 :, x3_2_P1 = l_P1 splitn 1 : str.to.int , x4_1_P1 = x3_1_P1, x4_2_P1 = x3_2_P1, x5_1_P1 = a_t1_P1 str.++  Fail, x5_2_P1 = 1, x1_P2 = line_P2 splitn 0 ,, x2_P2 = x1_P2, x3_1_P2 = l_P2 splitn 0 :, x3_2_P2 = l_P2 splitn 1 : str.to.int , x4_1_P2 = x3_1_P2, x4_2_P2 = x3_2_P2, x5_1_P2 = a_t1_P2 str.++  Fail, x5_2_P2 = 1, x6 = x8, x7 = [I@15b[1] + [I@15b[0], x9_1 = x5_1, x9_2 = x7} ---------
+path constraint: {v_t2 <= 40 && v_t2 = x9_2 && v_t1 = x9_1 && line_P1 = x0_P1 && l_P1 splitn 1 : isinteger && l_P1 = x2_P1 && a_t2_P1 > 40 && a_t1_P1 = x4_1_P1 && a_t2_P1 = x4_2_P1 && line_P2 = x0_P2 && l_P2 splitn 1 : isinteger && l_P2 = x2_P2 && a_t2_P2 <= 40 && a_t1_P2 = x4_1_P2 && a_t2_P2 = x4_2_P2 && a select 1 = [I@15b[1] && 1 >= 0 && 1 < [I@15b_length && a select 0 = [I@15b[0] && 0 >= 0 && 0 < [I@15b_length && [I@15b_length >= 0 && a = x6}	 effect: {x5_2_P1 = x8 select 0, x5_2_P2 = x8 select 1, x1_P1 = line_P1 splitn 0 ,, x2_P1 = x1_P1, x3_1_P1 = l_P1 splitn 0 :, x3_2_P1 = l_P1 splitn 1 : str.to.int , x4_1_P1 = x3_1_P1, x4_2_P1 = x3_2_P1, x5_1_P1 = a_t1_P1 str.++  Pass, x5_2_P1 = 1, x1_P2 = line_P2 splitn 0 ,, x2_P2 = x1_P2, x3_1_P2 = l_P2 splitn 0 :, x3_2_P2 = l_P2 splitn 1 : str.to.int , x4_1_P2 = x3_1_P2, x4_2_P2 = x3_2_P2, x5_1_P2 = a_t1_P2 str.++  Fail, x5_2_P2 = 1, x6 = x8, x7 = [I@15b[1] + [I@15b[0], x9_1 = x5_1, x9_2 = x7} ---------
+path constraint: {v_t2 <= 40 && v_t2 = x9_2 && v_t1 = x9_1 && line_P1 = x0_P1 && l_P1 splitn 1 : isinteger && l_P1 = x2_P1 && a_t2_P1 <= 40 && a_t1_P1 = x4_1_P1 && a_t2_P1 = x4_2_P1 && line_P2 = x0_P2 && l_P2 splitn 1 : isinteger && l_P2 = x2_P2 && a_t2_P2 <= 40 && a_t1_P2 = x4_1_P2 && a_t2_P2 = x4_2_P2 && a select 1 = [I@15b[1] && 1 >= 0 && 1 < [I@15b_length && a select 0 = [I@15b[0] && 0 >= 0 && 0 < [I@15b_length && [I@15b_length >= 0 && a = x6}	 effect: {x5_2_P1 = x8 select 0, x5_2_P2 = x8 select 1, x1_P1 = line_P1 splitn 1 ,, x2_P1 = x1_P1, x3_1_P1 = l_P1 splitn 0 :, x3_2_P1 = l_P1 splitn 1 : str.to.int , x4_1_P1 = x3_1_P1, x4_2_P1 = x3_2_P1, x5_1_P1 = a_t1_P1 str.++  Fail, x5_2_P1 = 1, x1_P2 = line_P2 splitn 0 ,, x2_P2 = x1_P2, x3_1_P2 = l_P2 splitn 0 :, x3_2_P2 = l_P2 splitn 1 : str.to.int , x4_1_P2 = x3_1_P2, x4_2_P2 = x3_2_P2, x5_1_P2 = a_t1_P2 str.++  Fail, x5_2_P2 = 1, x6 = x8, x7 = [I@15b[1] + [I@15b[0], x9_1 = x5_1, x9_2 = x7} ---------
+path constraint: {v_t2 <= 40 && v_t2 = x9_2 && v_t1 = x9_1 && line_P1 = x0_P1 && l_P1 splitn 1 : isinteger && l_P1 = x2_P1 && a_t2_P1 > 40 && a_t1_P1 = x4_1_P1 && a_t2_P1 = x4_2_P1 && line_P2 = x0_P2 && l_P2 splitn 1 : isinteger && l_P2 = x2_P2 && a_t2_P2 <= 40 && a_t1_P2 = x4_1_P2 && a_t2_P2 = x4_2_P2 && a select 1 = [I@15b[1] && 1 >= 0 && 1 < [I@15b_length && a select 0 = [I@15b[0] && 0 >= 0 && 0 < [I@15b_length && [I@15b_length >= 0 && a = x6}	 effect: {x5_2_P1 = x8 select 0, x5_2_P2 = x8 select 1, x1_P1 = line_P1 splitn 1 ,, x2_P1 = x1_P1, x3_1_P1 = l_P1 splitn 0 :, x3_2_P1 = l_P1 splitn 1 : str.to.int , x4_1_P1 = x3_1_P1, x4_2_P1 = x3_2_P1, x5_1_P1 = a_t1_P1 str.++  Pass, x5_2_P1 = 1, x1_P2 = line_P2 splitn 0 ,, x2_P2 = x1_P2, x3_1_P2 = l_P2 splitn 0 :, x3_2_P2 = l_P2 splitn 1 : str.to.int , x4_1_P2 = x3_1_P2, x4_2_P2 = x3_2_P2, x5_1_P2 = a_t1_P2 str.++  Fail, x5_2_P2 = 1, x6 = x8, x7 = [I@15b[1] + [I@15b[0], x9_1 = x5_1, x9_2 = x7} ---------
+path constraint: {v_t2 <= 40 && v_t2 = x9_2 && v_t1 = x9_1 && line_P1 = x0_P1 && l_P1 splitn 1 : isinteger && l_P1 = x2_P1 && a_t2_P1 <= 40 && a_t1_P1 = x4_1_P1 && a_t2_P1 = x4_2_P1 && line_P2 = x0_P2 && l_P2 splitn 1 : isinteger && l_P2 = x2_P2 && a_t2_P2 > 40 && a_t1_P2 = x4_1_P2 && a_t2_P2 = x4_2_P2 && a select 1 = [I@15b[1] && 1 >= 0 && 1 < [I@15b_length && a select 0 = [I@15b[0] && 0 >= 0 && 0 < [I@15b_length && [I@15b_length >= 0 && a = x6}	 effect: {x5_2_P1 = x8 select 0, x5_2_P2 = x8 select 1, x1_P1 = line_P1 splitn 0 ,, x2_P1 = x1_P1, x3_1_P1 = l_P1 splitn 0 :, x3_2_P1 = l_P1 splitn 1 : str.to.int , x4_1_P1 = x3_1_P1, x4_2_P1 = x3_2_P1, x5_1_P1 = a_t1_P1 str.++  Fail, x5_2_P1 = 1, x1_P2 = line_P2 splitn 0 ,, x2_P2 = x1_P2, x3_1_P2 = l_P2 splitn 0 :, x3_2_P2 = l_P2 splitn 1 : str.to.int , x4_1_P2 = x3_1_P2, x4_2_P2 = x3_2_P2, x5_1_P2 = a_t1_P2 str.++  Pass, x5_2_P2 = 1, x6 = x8, x7 = [I@15b[1] + [I@15b[0], x9_1 = x5_1, x9_2 = x7} ---------
+path constraint: {v_t2 <= 40 && v_t2 = x9_2 && v_t1 = x9_1 && line_P1 = x0_P1 && l_P1 splitn 1 : isinteger && l_P1 = x2_P1 && a_t2_P1 > 40 && a_t1_P1 = x4_1_P1 && a_t2_P1 = x4_2_P1 && line_P2 = x0_P2 && l_P2 splitn 1 : isinteger && l_P2 = x2_P2 && a_t2_P2 > 40 && a_t1_P2 = x4_1_P2 && a_t2_P2 = x4_2_P2 && a select 1 = [I@15b[1] && 1 >= 0 && 1 < [I@15b_length && a select 0 = [I@15b[0] && 0 >= 0 && 0 < [I@15b_length && [I@15b_length >= 0 && a = x6}	 effect: {x5_2_P1 = x8 select 0, x5_2_P2 = x8 select 1, x1_P1 = line_P1 splitn 0 ,, x2_P1 = x1_P1, x3_1_P1 = l_P1 splitn 0 :, x3_2_P1 = l_P1 splitn 1 : str.to.int , x4_1_P1 = x3_1_P1, x4_2_P1 = x3_2_P1, x5_1_P1 = a_t1_P1 str.++  Pass, x5_2_P1 = 1, x1_P2 = line_P2 splitn 0 ,, x2_P2 = x1_P2, x3_1_P2 = l_P2 splitn 0 :, x3_2_P2 = l_P2 splitn 1 : str.to.int , x4_1_P2 = x3_1_P2, x4_2_P2 = x3_2_P2, x5_1_P2 = a_t1_P2 str.++  Pass, x5_2_P2 = 1, x6 = x8, x7 = [I@15b[1] + [I@15b[0], x9_1 = x5_1, x9_2 = x7} ---------
+path constraint: {v_t2 <= 40 && v_t2 = x9_2 && v_t1 = x9_1 && line_P1 = x0_P1 && l_P1 splitn 1 : isinteger && l_P1 = x2_P1 && a_t2_P1 <= 40 && a_t1_P1 = x4_1_P1 && a_t2_P1 = x4_2_P1 && line_P2 = x0_P2 && l_P2 splitn 1 : isinteger && l_P2 = x2_P2 && a_t2_P2 > 40 && a_t1_P2 = x4_1_P2 && a_t2_P2 = x4_2_P2 && a select 1 = [I@15b[1] && 1 >= 0 && 1 < [I@15b_length && a select 0 = [I@15b[0] && 0 >= 0 && 0 < [I@15b_length && [I@15b_length >= 0 && a = x6}	 effect: {x5_2_P1 = x8 select 0, x5_2_P2 = x8 select 1, x1_P1 = line_P1 splitn 1 ,, x2_P1 = x1_P1, x3_1_P1 = l_P1 splitn 0 :, x3_2_P1 = l_P1 splitn 1 : str.to.int , x4_1_P1 = x3_1_P1, x4_2_P1 = x3_2_P1, x5_1_P1 = a_t1_P1 str.++  Fail, x5_2_P1 = 1, x1_P2 = line_P2 splitn 0 ,, x2_P2 = x1_P2, x3_1_P2 = l_P2 splitn 0 :, x3_2_P2 = l_P2 splitn 1 : str.to.int , x4_1_P2 = x3_1_P2, x4_2_P2 = x3_2_P2, x5_1_P2 = a_t1_P2 str.++  Pass, x5_2_P2 = 1, x6 = x8, x7 = [I@15b[1] + [I@15b[0], x9_1 = x5_1, x9_2 = x7} ---------
+path constraint: {v_t2 <= 40 && v_t2 = x9_2 && v_t1 = x9_1 && line_P1 = x0_P1 && l_P1 splitn 1 : isinteger && l_P1 = x2_P1 && a_t2_P1 > 40 && a_t1_P1 = x4_1_P1 && a_t2_P1 = x4_2_P1 && line_P2 = x0_P2 && l_P2 splitn 1 : isinteger && l_P2 = x2_P2 && a_t2_P2 > 40 && a_t1_P2 = x4_1_P2 && a_t2_P2 = x4_2_P2 && a select 1 = [I@15b[1] && 1 >= 0 && 1 < [I@15b_length && a select 0 = [I@15b[0] && 0 >= 0 && 0 < [I@15b_length && [I@15b_length >= 0 && a = x6}	 effect: {x5_2_P1 = x8 select 0, x5_2_P2 = x8 select 1, x1_P1 = line_P1 splitn 1 ,, x2_P1 = x1_P1, x3_1_P1 = l_P1 splitn 0 :, x3_2_P1 = l_P1 splitn 1 : str.to.int , x4_1_P1 = x3_1_P1, x4_2_P1 = x3_2_P1, x5_1_P1 = a_t1_P1 str.++  Pass, x5_2_P1 = 1, x1_P2 = line_P2 splitn 0 ,, x2_P2 = x1_P2, x3_1_P2 = l_P2 splitn 0 :, x3_2_P2 = l_P2 splitn 1 : str.to.int , x4_1_P2 = x3_1_P2, x4_2_P2 = x3_2_P2, x5_1_P2 = a_t1_P2 str.++  Pass, x5_2_P2 = 1, x6 = x8, x7 = [I@15b[1] + [I@15b[0], x9_1 = x5_1, x9_2 = x7} ---------
+path constraint: {v_t2 <= 40 && v_t2 = x9_2 && v_t1 = x9_1 && line_P1 = x0_P1 && l_P1 splitn 1 : isinteger && l_P1 = x2_P1 && a_t2_P1 <= 40 && a_t1_P1 = x4_1_P1 && a_t2_P1 = x4_2_P1 && line_P2 = x0_P2 && l_P2 splitn 1 : isinteger && l_P2 = x2_P2 && a_t2_P2 <= 40 && a_t1_P2 = x4_1_P2 && a_t2_P2 = x4_2_P2 && a select 1 = [I@15b[1] && 1 >= 0 && 1 < [I@15b_length && a select 0 = [I@15b[0] && 0 >= 0 && 0 < [I@15b_length && [I@15b_length >= 0 && a = x6}	 effect: {x5_2_P1 = x8 select 0, x5_2_P2 = x8 select 1, x1_P1 = line_P1 splitn 0 ,, x2_P1 = x1_P1, x3_1_P1 = l_P1 splitn 0 :, x3_2_P1 = l_P1 splitn 1 : str.to.int , x4_1_P1 = x3_1_P1, x4_2_P1 = x3_2_P1, x5_1_P1 = a_t1_P1 str.++  Fail, x5_2_P1 = 1, x1_P2 = line_P2 splitn 1 ,, x2_P2 = x1_P2, x3_1_P2 = l_P2 splitn 0 :, x3_2_P2 = l_P2 splitn 1 : str.to.int , x4_1_P2 = x3_1_P2, x4_2_P2 = x3_2_P2, x5_1_P2 = a_t1_P2 str.++  Fail, x5_2_P2 = 1, x6 = x8, x7 = [I@15b[1] + [I@15b[0], x9_1 = x5_1, x9_2 = x7} ---------
+path constraint: {v_t2 <= 40 && v_t2 = x9_2 && v_t1 = x9_1 && line_P1 = x0_P1 && l_P1 splitn 1 : isinteger && l_P1 = x2_P1 && a_t2_P1 > 40 && a_t1_P1 = x4_1_P1 && a_t2_P1 = x4_2_P1 && line_P2 = x0_P2 && l_P2 splitn 1 : isinteger && l_P2 = x2_P2 && a_t2_P2 <= 40 && a_t1_P2 = x4_1_P2 && a_t2_P2 = x4_2_P2 && a select 1 = [I@15b[1] && 1 >= 0 && 1 < [I@15b_length && a select 0 = [I@15b[0] && 0 >= 0 && 0 < [I@15b_length && [I@15b_length >= 0 && a = x6}	 effect: {x5_2_P1 = x8 select 0, x5_2_P2 = x8 select 1, x1_P1 = line_P1 splitn 0 ,, x2_P1 = x1_P1, x3_1_P1 = l_P1 splitn 0 :, x3_2_P1 = l_P1 splitn 1 : str.to.int , x4_1_P1 = x3_1_P1, x4_2_P1 = x3_2_P1, x5_1_P1 = a_t1_P1 str.++  Pass, x5_2_P1 = 1, x1_P2 = line_P2 splitn 1 ,, x2_P2 = x1_P2, x3_1_P2 = l_P2 splitn 0 :, x3_2_P2 = l_P2 splitn 1 : str.to.int , x4_1_P2 = x3_1_P2, x4_2_P2 = x3_2_P2, x5_1_P2 = a_t1_P2 str.++  Fail, x5_2_P2 = 1, x6 = x8, x7 = [I@15b[1] + [I@15b[0], x9_1 = x5_1, x9_2 = x7} ---------
+path constraint: {v_t2 <= 40 && v_t2 = x9_2 && v_t1 = x9_1 && line_P1 = x0_P1 && l_P1 splitn 1 : isinteger && l_P1 = x2_P1 && a_t2_P1 <= 40 && a_t1_P1 = x4_1_P1 && a_t2_P1 = x4_2_P1 && line_P2 = x0_P2 && l_P2 splitn 1 : isinteger && l_P2 = x2_P2 && a_t2_P2 <= 40 && a_t1_P2 = x4_1_P2 && a_t2_P2 = x4_2_P2 && a select 1 = [I@15b[1] && 1 >= 0 && 1 < [I@15b_length && a select 0 = [I@15b[0] && 0 >= 0 && 0 < [I@15b_length && [I@15b_length >= 0 && a = x6}	 effect: {x5_2_P1 = x8 select 0, x5_2_P2 = x8 select 1, x1_P1 = line_P1 splitn 1 ,, x2_P1 = x1_P1, x3_1_P1 = l_P1 splitn 0 :, x3_2_P1 = l_P1 splitn 1 : str.to.int , x4_1_P1 = x3_1_P1, x4_2_P1 = x3_2_P1, x5_1_P1 = a_t1_P1 str.++  Fail, x5_2_P1 = 1, x1_P2 = line_P2 splitn 1 ,, x2_P2 = x1_P2, x3_1_P2 = l_P2 splitn 0 :, x3_2_P2 = l_P2 splitn 1 : str.to.int , x4_1_P2 = x3_1_P2, x4_2_P2 = x3_2_P2, x5_1_P2 = a_t1_P2 str.++  Fail, x5_2_P2 = 1, x6 = x8, x7 = [I@15b[1] + [I@15b[0], x9_1 = x5_1, x9_2 = x7} ---------
+path constraint: {v_t2 <= 40 && v_t2 = x9_2 && v_t1 = x9_1 && line_P1 = x0_P1 && l_P1 splitn 1 : isinteger && l_P1 = x2_P1 && a_t2_P1 > 40 && a_t1_P1 = x4_1_P1 && a_t2_P1 = x4_2_P1 && line_P2 = x0_P2 && l_P2 splitn 1 : isinteger && l_P2 = x2_P2 && a_t2_P2 <= 40 && a_t1_P2 = x4_1_P2 && a_t2_P2 = x4_2_P2 && a select 1 = [I@15b[1] && 1 >= 0 && 1 < [I@15b_length && a select 0 = [I@15b[0] && 0 >= 0 && 0 < [I@15b_length && [I@15b_length >= 0 && a = x6}	 effect: {x5_2_P1 = x8 select 0, x5_2_P2 = x8 select 1, x1_P1 = line_P1 splitn 1 ,, x2_P1 = x1_P1, x3_1_P1 = l_P1 splitn 0 :, x3_2_P1 = l_P1 splitn 1 : str.to.int , x4_1_P1 = x3_1_P1, x4_2_P1 = x3_2_P1, x5_1_P1 = a_t1_P1 str.++  Pass, x5_2_P1 = 1, x1_P2 = line_P2 splitn 1 ,, x2_P2 = x1_P2, x3_1_P2 = l_P2 splitn 0 :, x3_2_P2 = l_P2 splitn 1 : str.to.int , x4_1_P2 = x3_1_P2, x4_2_P2 = x3_2_P2, x5_1_P2 = a_t1_P2 str.++  Fail, x5_2_P2 = 1, x6 = x8, x7 = [I@15b[1] + [I@15b[0], x9_1 = x5_1, x9_2 = x7} ---------
+path constraint: {v_t2 <= 40 && v_t2 = x9_2 && v_t1 = x9_1 && line_P1 = x0_P1 && l_P1 splitn 1 : isinteger && l_P1 = x2_P1 && a_t2_P1 <= 40 && a_t1_P1 = x4_1_P1 && a_t2_P1 = x4_2_P1 && line_P2 = x0_P2 && l_P2 splitn 1 : isinteger && l_P2 = x2_P2 && a_t2_P2 > 40 && a_t1_P2 = x4_1_P2 && a_t2_P2 = x4_2_P2 && a select 1 = [I@15b[1] && 1 >= 0 && 1 < [I@15b_length && a select 0 = [I@15b[0] && 0 >= 0 && 0 < [I@15b_length && [I@15b_length >= 0 && a = x6}	 effect: {x5_2_P1 = x8 select 0, x5_2_P2 = x8 select 1, x1_P1 = line_P1 splitn 0 ,, x2_P1 = x1_P1, x3_1_P1 = l_P1 splitn 0 :, x3_2_P1 = l_P1 splitn 1 : str.to.int , x4_1_P1 = x3_1_P1, x4_2_P1 = x3_2_P1, x5_1_P1 = a_t1_P1 str.++  Fail, x5_2_P1 = 1, x1_P2 = line_P2 splitn 1 ,, x2_P2 = x1_P2, x3_1_P2 = l_P2 splitn 0 :, x3_2_P2 = l_P2 splitn 1 : str.to.int , x4_1_P2 = x3_1_P2, x4_2_P2 = x3_2_P2, x5_1_P2 = a_t1_P2 str.++  Pass, x5_2_P2 = 1, x6 = x8, x7 = [I@15b[1] + [I@15b[0], x9_1 = x5_1, x9_2 = x7} ---------
+path constraint: {v_t2 <= 40 && v_t2 = x9_2 && v_t1 = x9_1 && line_P1 = x0_P1 && l_P1 splitn 1 : isinteger && l_P1 = x2_P1 && a_t2_P1 > 40 && a_t1_P1 = x4_1_P1 && a_t2_P1 = x4_2_P1 && line_P2 = x0_P2 && l_P2 splitn 1 : isinteger && l_P2 = x2_P2 && a_t2_P2 > 40 && a_t1_P2 = x4_1_P2 && a_t2_P2 = x4_2_P2 && a select 1 = [I@15b[1] && 1 >= 0 && 1 < [I@15b_length && a select 0 = [I@15b[0] && 0 >= 0 && 0 < [I@15b_length && [I@15b_length >= 0 && a = x6}	 effect: {x5_2_P1 = x8 select 0, x5_2_P2 = x8 select 1, x1_P1 = line_P1 splitn 0 ,, x2_P1 = x1_P1, x3_1_P1 = l_P1 splitn 0 :, x3_2_P1 = l_P1 splitn 1 : str.to.int , x4_1_P1 = x3_1_P1, x4_2_P1 = x3_2_P1, x5_1_P1 = a_t1_P1 str.++  Pass, x5_2_P1 = 1, x1_P2 = line_P2 splitn 1 ,, x2_P2 = x1_P2, x3_1_P2 = l_P2 splitn 0 :, x3_2_P2 = l_P2 splitn 1 : str.to.int , x4_1_P2 = x3_1_P2, x4_2_P2 = x3_2_P2, x5_1_P2 = a_t1_P2 str.++  Pass, x5_2_P2 = 1, x6 = x8, x7 = [I@15b[1] + [I@15b[0], x9_1 = x5_1, x9_2 = x7} ---------
+path constraint: {v_t2 <= 40 && v_t2 = x9_2 && v_t1 = x9_1 && line_P1 = x0_P1 && l_P1 splitn 1 : isinteger && l_P1 = x2_P1 && a_t2_P1 <= 40 && a_t1_P1 = x4_1_P1 && a_t2_P1 = x4_2_P1 && line_P2 = x0_P2 && l_P2 splitn 1 : isinteger && l_P2 = x2_P2 && a_t2_P2 > 40 && a_t1_P2 = x4_1_P2 && a_t2_P2 = x4_2_P2 && a select 1 = [I@15b[1] && 1 >= 0 && 1 < [I@15b_length && a select 0 = [I@15b[0] && 0 >= 0 && 0 < [I@15b_length && [I@15b_length >= 0 && a = x6}	 effect: {x5_2_P1 = x8 select 0, x5_2_P2 = x8 select 1, x1_P1 = line_P1 splitn 1 ,, x2_P1 = x1_P1, x3_1_P1 = l_P1 splitn 0 :, x3_2_P1 = l_P1 splitn 1 : str.to.int , x4_1_P1 = x3_1_P1, x4_2_P1 = x3_2_P1, x5_1_P1 = a_t1_P1 str.++  Fail, x5_2_P1 = 1, x1_P2 = line_P2 splitn 1 ,, x2_P2 = x1_P2, x3_1_P2 = l_P2 splitn 0 :, x3_2_P2 = l_P2 splitn 1 : str.to.int , x4_1_P2 = x3_1_P2, x4_2_P2 = x3_2_P2, x5_1_P2 = a_t1_P2 str.++  Pass, x5_2_P2 = 1, x6 = x8, x7 = [I@15b[1] + [I@15b[0], x9_1 = x5_1, x9_2 = x7} ---------
+path constraint: {v_t2 <= 40 && v_t2 = x9_2 && v_t1 = x9_1 && line_P1 = x0_P1 && l_P1 splitn 1 : isinteger && l_P1 = x2_P1 && a_t2_P1 > 40 && a_t1_P1 = x4_1_P1 && a_t2_P1 = x4_2_P1 && line_P2 = x0_P2 && l_P2 splitn 1 : isinteger && l_P2 = x2_P2 && a_t2_P2 > 40 && a_t1_P2 = x4_1_P2 && a_t2_P2 = x4_2_P2 && a select 1 = [I@15b[1] && 1 >= 0 && 1 < [I@15b_length && a select 0 = [I@15b[0] && 0 >= 0 && 0 < [I@15b_length && [I@15b_length >= 0 && a = x6}	 effect: {x5_2_P1 = x8 select 0, x5_2_P2 = x8 select 1, x1_P1 = line_P1 splitn 1 ,, x2_P1 = x1_P1, x3_1_P1 = l_P1 splitn 0 :, x3_2_P1 = l_P1 splitn 1 : str.to.int , x4_1_P1 = x3_1_P1, x4_2_P1 = x3_2_P1, x5_1_P1 = a_t1_P1 str.++  Pass, x5_2_P1 = 1, x1_P2 = line_P2 splitn 1 ,, x2_P2 = x1_P2, x3_1_P2 = l_P2 splitn 0 :, x3_2_P2 = l_P2 splitn 1 : str.to.int , x4_1_P2 = x3_1_P2, x4_2_P2 = x3_2_P2, x5_1_P2 = a_t1_P2 str.++  Pass, x5_2_P2 = 1, x6 = x8, x7 = [I@15b[1] + [I@15b[0], x9_1 = x5_1, x9_2 = x7} ---------
+
+Non - Terminating
+------------------------
+Paths :  0
+path constraint: {line_P1 = x0_P1 && l_P1 splitn 1 : isinteger && l_P1 = x2_P1 && a_t2_P1 <= 40 && a_t1_P1 = x4_1_P1 && a_t2_P1 = x4_2_P1 && line_P2 = x0_P2 && l_P2 splitn 1 : isinteger && l_P2 = x2_P2 && a_t2_P2 <= 40 && a_t1_P2 = x4_1_P2 && a_t2_P2 = x4_2_P2 && a select 1 = [I@15b[1] && 1 >= 0 && 1 < [I@15b_length && a select 0 = [I@15b[0] && 0 >= 0 && 0 < [I@15b_length && [I@15b_length >= 0 && a = x6 && v_t2 > 40 && v_t2 = x9_2 && v_t1 = x9_1}	 effect: {x5_2_P1 = x8 select 0, x5_2_P2 = x8 select 1, x1_P1 = line_P1 splitn 0 ,, x2_P1 = x1_P1, x3_1_P1 = l_P1 splitn 0 :, x3_2_P1 = l_P1 splitn 1 : str.to.int , x4_1_P1 = x3_1_P1, x4_2_P1 = x3_2_P1, x5_1_P1 = a_t1_P1 str.++  Fail, x5_2_P1 = 1, x1_P2 = line_P2 splitn 0 ,, x2_P2 = x1_P2, x3_1_P2 = l_P2 splitn 0 :, x3_2_P2 = l_P2 splitn 1 : str.to.int , x4_1_P2 = x3_1_P2, x4_2_P2 = x3_2_P2, x5_1_P2 = a_t1_P2 str.++  Fail, x5_2_P2 = 1, x6 = x8, x7 = [I@15b[1] + [I@15b[0], x9_1 = x5_1, x9_2 = x7} ---------
+run z3 for file /Users/malig/Downloads/cvc4-1.5/builds/x86_64-apple-darwin16.7.0/production/bin/cvc4 --strings-exp --lang smt2 < /tmp/1342346098.bt
+********** Satisfying Assigments **********************************************
+*******************************************************************************
+
+
+------------------------
+------------------------
+Paths :  1
+path constraint: {line_P1 = x0_P1 && l_P1 splitn 1 : isinteger && l_P1 = x2_P1 && a_t2_P1 > 40 && a_t1_P1 = x4_1_P1 && a_t2_P1 = x4_2_P1 && line_P2 = x0_P2 && l_P2 splitn 1 : isinteger && l_P2 = x2_P2 && a_t2_P2 <= 40 && a_t1_P2 = x4_1_P2 && a_t2_P2 = x4_2_P2 && a select 1 = [I@15b[1] && 1 >= 0 && 1 < [I@15b_length && a select 0 = [I@15b[0] && 0 >= 0 && 0 < [I@15b_length && [I@15b_length >= 0 && a = x6 && v_t2 > 40 && v_t2 = x9_2 && v_t1 = x9_1}	 effect: {x5_2_P1 = x8 select 0, x5_2_P2 = x8 select 1, x1_P1 = line_P1 splitn 0 ,, x2_P1 = x1_P1, x3_1_P1 = l_P1 splitn 0 :, x3_2_P1 = l_P1 splitn 1 : str.to.int , x4_1_P1 = x3_1_P1, x4_2_P1 = x3_2_P1, x5_1_P1 = a_t1_P1 str.++  Pass, x5_2_P1 = 1, x1_P2 = line_P2 splitn 0 ,, x2_P2 = x1_P2, x3_1_P2 = l_P2 splitn 0 :, x3_2_P2 = l_P2 splitn 1 : str.to.int , x4_1_P2 = x3_1_P2, x4_2_P2 = x3_2_P2, x5_1_P2 = a_t1_P2 str.++  Fail, x5_2_P2 = 1, x6 = x8, x7 = [I@15b[1] + [I@15b[0], x9_1 = x5_1, x9_2 = x7} ---------
+run z3 for file /Users/malig/Downloads/cvc4-1.5/builds/x86_64-apple-darwin16.7.0/production/bin/cvc4 --strings-exp --lang smt2 < /tmp/1345900725.bt
+********** Satisfying Assigments **********************************************
+*******************************************************************************
+
+
+------------------------
+------------------------
+Paths :  2
+path constraint: {line_P1 = x0_P1 && l_P1 splitn 1 : isinteger && l_P1 = x2_P1 && a_t2_P1 <= 40 && a_t1_P1 = x4_1_P1 && a_t2_P1 = x4_2_P1 && line_P2 = x0_P2 && l_P2 splitn 1 : isinteger && l_P2 = x2_P2 && a_t2_P2 <= 40 && a_t1_P2 = x4_1_P2 && a_t2_P2 = x4_2_P2 && a select 1 = [I@15b[1] && 1 >= 0 && 1 < [I@15b_length && a select 0 = [I@15b[0] && 0 >= 0 && 0 < [I@15b_length && [I@15b_length >= 0 && a = x6 && v_t2 > 40 && v_t2 = x9_2 && v_t1 = x9_1}	 effect: {x5_2_P1 = x8 select 0, x5_2_P2 = x8 select 1, x1_P1 = line_P1 splitn 1 ,, x2_P1 = x1_P1, x3_1_P1 = l_P1 splitn 0 :, x3_2_P1 = l_P1 splitn 1 : str.to.int , x4_1_P1 = x3_1_P1, x4_2_P1 = x3_2_P1, x5_1_P1 = a_t1_P1 str.++  Fail, x5_2_P1 = 1, x1_P2 = line_P2 splitn 0 ,, x2_P2 = x1_P2, x3_1_P2 = l_P2 splitn 0 :, x3_2_P2 = l_P2 splitn 1 : str.to.int , x4_1_P2 = x3_1_P2, x4_2_P2 = x3_2_P2, x5_1_P2 = a_t1_P2 str.++  Fail, x5_2_P2 = 1, x6 = x8, x7 = [I@15b[1] + [I@15b[0], x9_1 = x5_1, x9_2 = x7} ---------
+run z3 for file /Users/malig/Downloads/cvc4-1.5/builds/x86_64-apple-darwin16.7.0/production/bin/cvc4 --strings-exp --lang smt2 < /tmp/839998248.bt
+********** Satisfying Assigments **********************************************
+*******************************************************************************
+
+
+------------------------
+------------------------
+Paths :  3
+path constraint: {line_P1 = x0_P1 && l_P1 splitn 1 : isinteger && l_P1 = x2_P1 && a_t2_P1 > 40 && a_t1_P1 = x4_1_P1 && a_t2_P1 = x4_2_P1 && line_P2 = x0_P2 && l_P2 splitn 1 : isinteger && l_P2 = x2_P2 && a_t2_P2 <= 40 && a_t1_P2 = x4_1_P2 && a_t2_P2 = x4_2_P2 && a select 1 = [I@15b[1] && 1 >= 0 && 1 < [I@15b_length && a select 0 = [I@15b[0] && 0 >= 0 && 0 < [I@15b_length && [I@15b_length >= 0 && a = x6 && v_t2 > 40 && v_t2 = x9_2 && v_t1 = x9_1}	 effect: {x5_2_P1 = x8 select 0, x5_2_P2 = x8 select 1, x1_P1 = line_P1 splitn 1 ,, x2_P1 = x1_P1, x3_1_P1 = l_P1 splitn 0 :, x3_2_P1 = l_P1 splitn 1 : str.to.int , x4_1_P1 = x3_1_P1, x4_2_P1 = x3_2_P1, x5_1_P1 = a_t1_P1 str.++  Pass, x5_2_P1 = 1, x1_P2 = line_P2 splitn 0 ,, x2_P2 = x1_P2, x3_1_P2 = l_P2 splitn 0 :, x3_2_P2 = l_P2 splitn 1 : str.to.int , x4_1_P2 = x3_1_P2, x4_2_P2 = x3_2_P2, x5_1_P2 = a_t1_P2 str.++  Fail, x5_2_P2 = 1, x6 = x8, x7 = [I@15b[1] + [I@15b[0], x9_1 = x5_1, x9_2 = x7} ---------
+run z3 for file /Users/malig/Downloads/cvc4-1.5/builds/x86_64-apple-darwin16.7.0/production/bin/cvc4 --strings-exp --lang smt2 < /tmp/718571091.bt
+********** Satisfying Assigments **********************************************
+*******************************************************************************
+
+
+------------------------
+------------------------
+Paths :  4
+path constraint: {line_P1 = x0_P1 && l_P1 splitn 1 : isinteger && l_P1 = x2_P1 && a_t2_P1 <= 40 && a_t1_P1 = x4_1_P1 && a_t2_P1 = x4_2_P1 && line_P2 = x0_P2 && l_P2 splitn 1 : isinteger && l_P2 = x2_P2 && a_t2_P2 > 40 && a_t1_P2 = x4_1_P2 && a_t2_P2 = x4_2_P2 && a select 1 = [I@15b[1] && 1 >= 0 && 1 < [I@15b_length && a select 0 = [I@15b[0] && 0 >= 0 && 0 < [I@15b_length && [I@15b_length >= 0 && a = x6 && v_t2 > 40 && v_t2 = x9_2 && v_t1 = x9_1}	 effect: {x5_2_P1 = x8 select 0, x5_2_P2 = x8 select 1, x1_P1 = line_P1 splitn 0 ,, x2_P1 = x1_P1, x3_1_P1 = l_P1 splitn 0 :, x3_2_P1 = l_P1 splitn 1 : str.to.int , x4_1_P1 = x3_1_P1, x4_2_P1 = x3_2_P1, x5_1_P1 = a_t1_P1 str.++  Fail, x5_2_P1 = 1, x1_P2 = line_P2 splitn 0 ,, x2_P2 = x1_P2, x3_1_P2 = l_P2 splitn 0 :, x3_2_P2 = l_P2 splitn 1 : str.to.int , x4_1_P2 = x3_1_P2, x4_2_P2 = x3_2_P2, x5_1_P2 = a_t1_P2 str.++  Pass, x5_2_P2 = 1, x6 = x8, x7 = [I@15b[1] + [I@15b[0], x9_1 = x5_1, x9_2 = x7} ---------
+run z3 for file /Users/malig/Downloads/cvc4-1.5/builds/x86_64-apple-darwin16.7.0/production/bin/cvc4 --strings-exp --lang smt2 < /tmp/1807015220.bt
+********** Satisfying Assigments **********************************************
+*******************************************************************************
+
+
+------------------------
+------------------------
+Paths :  5
+path constraint: {line_P1 = x0_P1 && l_P1 splitn 1 : isinteger && l_P1 = x2_P1 && a_t2_P1 > 40 && a_t1_P1 = x4_1_P1 && a_t2_P1 = x4_2_P1 && line_P2 = x0_P2 && l_P2 splitn 1 : isinteger && l_P2 = x2_P2 && a_t2_P2 > 40 && a_t1_P2 = x4_1_P2 && a_t2_P2 = x4_2_P2 && a select 1 = [I@15b[1] && 1 >= 0 && 1 < [I@15b_length && a select 0 = [I@15b[0] && 0 >= 0 && 0 < [I@15b_length && [I@15b_length >= 0 && a = x6 && v_t2 > 40 && v_t2 = x9_2 && v_t1 = x9_1}	 effect: {x5_2_P1 = x8 select 0, x5_2_P2 = x8 select 1, x1_P1 = line_P1 splitn 0 ,, x2_P1 = x1_P1, x3_1_P1 = l_P1 splitn 0 :, x3_2_P1 = l_P1 splitn 1 : str.to.int , x4_1_P1 = x3_1_P1, x4_2_P1 = x3_2_P1, x5_1_P1 = a_t1_P1 str.++  Pass, x5_2_P1 = 1, x1_P2 = line_P2 splitn 0 ,, x2_P2 = x1_P2, x3_1_P2 = l_P2 splitn 0 :, x3_2_P2 = l_P2 splitn 1 : str.to.int , x4_1_P2 = x3_1_P2, x4_2_P2 = x3_2_P2, x5_1_P2 = a_t1_P2 str.++  Pass, x5_2_P2 = 1, x6 = x8, x7 = [I@15b[1] + [I@15b[0], x9_1 = x5_1, x9_2 = x7} ---------
+run z3 for file /Users/malig/Downloads/cvc4-1.5/builds/x86_64-apple-darwin16.7.0/production/bin/cvc4 --strings-exp --lang smt2 < /tmp/2107577743.bt
+********** Satisfying Assigments **********************************************
+*******************************************************************************
+
+
+------------------------
+------------------------
+Paths :  6
+path constraint: {line_P1 = x0_P1 && l_P1 splitn 1 : isinteger && l_P1 = x2_P1 && a_t2_P1 <= 40 && a_t1_P1 = x4_1_P1 && a_t2_P1 = x4_2_P1 && line_P2 = x0_P2 && l_P2 splitn 1 : isinteger && l_P2 = x2_P2 && a_t2_P2 > 40 && a_t1_P2 = x4_1_P2 && a_t2_P2 = x4_2_P2 && a select 1 = [I@15b[1] && 1 >= 0 && 1 < [I@15b_length && a select 0 = [I@15b[0] && 0 >= 0 && 0 < [I@15b_length && [I@15b_length >= 0 && a = x6 && v_t2 > 40 && v_t2 = x9_2 && v_t1 = x9_1}	 effect: {x5_2_P1 = x8 select 0, x5_2_P2 = x8 select 1, x1_P1 = line_P1 splitn 1 ,, x2_P1 = x1_P1, x3_1_P1 = l_P1 splitn 0 :, x3_2_P1 = l_P1 splitn 1 : str.to.int , x4_1_P1 = x3_1_P1, x4_2_P1 = x3_2_P1, x5_1_P1 = a_t1_P1 str.++  Fail, x5_2_P1 = 1, x1_P2 = line_P2 splitn 0 ,, x2_P2 = x1_P2, x3_1_P2 = l_P2 splitn 0 :, x3_2_P2 = l_P2 splitn 1 : str.to.int , x4_1_P2 = x3_1_P2, x4_2_P2 = x3_2_P2, x5_1_P2 = a_t1_P2 str.++  Pass, x5_2_P2 = 1, x6 = x8, x7 = [I@15b[1] + [I@15b[0], x9_1 = x5_1, x9_2 = x7} ---------
+run z3 for file /Users/malig/Downloads/cvc4-1.5/builds/x86_64-apple-darwin16.7.0/production/bin/cvc4 --strings-exp --lang smt2 < /tmp/1173346575.bt
+********** Satisfying Assigments **********************************************
+*******************************************************************************
+
+
+------------------------
+------------------------
+Paths :  7
+path constraint: {line_P1 = x0_P1 && l_P1 splitn 1 : isinteger && l_P1 = x2_P1 && a_t2_P1 > 40 && a_t1_P1 = x4_1_P1 && a_t2_P1 = x4_2_P1 && line_P2 = x0_P2 && l_P2 splitn 1 : isinteger && l_P2 = x2_P2 && a_t2_P2 > 40 && a_t1_P2 = x4_1_P2 && a_t2_P2 = x4_2_P2 && a select 1 = [I@15b[1] && 1 >= 0 && 1 < [I@15b_length && a select 0 = [I@15b[0] && 0 >= 0 && 0 < [I@15b_length && [I@15b_length >= 0 && a = x6 && v_t2 > 40 && v_t2 = x9_2 && v_t1 = x9_1}	 effect: {x5_2_P1 = x8 select 0, x5_2_P2 = x8 select 1, x1_P1 = line_P1 splitn 1 ,, x2_P1 = x1_P1, x3_1_P1 = l_P1 splitn 0 :, x3_2_P1 = l_P1 splitn 1 : str.to.int , x4_1_P1 = x3_1_P1, x4_2_P1 = x3_2_P1, x5_1_P1 = a_t1_P1 str.++  Pass, x5_2_P1 = 1, x1_P2 = line_P2 splitn 0 ,, x2_P2 = x1_P2, x3_1_P2 = l_P2 splitn 0 :, x3_2_P2 = l_P2 splitn 1 : str.to.int , x4_1_P2 = x3_1_P2, x4_2_P2 = x3_2_P2, x5_1_P2 = a_t1_P2 str.++  Pass, x5_2_P2 = 1, x6 = x8, x7 = [I@15b[1] + [I@15b[0], x9_1 = x5_1, x9_2 = x7} ---------
+run z3 for file /Users/malig/Downloads/cvc4-1.5/builds/x86_64-apple-darwin16.7.0/production/bin/cvc4 --strings-exp --lang smt2 < /tmp/1267149311.bt
+********** Satisfying Assigments **********************************************
+*******************************************************************************
+
+
+------------------------
+------------------------
+Paths :  8
+path constraint: {line_P1 = x0_P1 && l_P1 splitn 1 : isinteger && l_P1 = x2_P1 && a_t2_P1 <= 40 && a_t1_P1 = x4_1_P1 && a_t2_P1 = x4_2_P1 && line_P2 = x0_P2 && l_P2 splitn 1 : isinteger && l_P2 = x2_P2 && a_t2_P2 <= 40 && a_t1_P2 = x4_1_P2 && a_t2_P2 = x4_2_P2 && a select 1 = [I@15b[1] && 1 >= 0 && 1 < [I@15b_length && a select 0 = [I@15b[0] && 0 >= 0 && 0 < [I@15b_length && [I@15b_length >= 0 && a = x6 && v_t2 > 40 && v_t2 = x9_2 && v_t1 = x9_1}	 effect: {x5_2_P1 = x8 select 0, x5_2_P2 = x8 select 1, x1_P1 = line_P1 splitn 0 ,, x2_P1 = x1_P1, x3_1_P1 = l_P1 splitn 0 :, x3_2_P1 = l_P1 splitn 1 : str.to.int , x4_1_P1 = x3_1_P1, x4_2_P1 = x3_2_P1, x5_1_P1 = a_t1_P1 str.++  Fail, x5_2_P1 = 1, x1_P2 = line_P2 splitn 1 ,, x2_P2 = x1_P2, x3_1_P2 = l_P2 splitn 0 :, x3_2_P2 = l_P2 splitn 1 : str.to.int , x4_1_P2 = x3_1_P2, x4_2_P2 = x3_2_P2, x5_1_P2 = a_t1_P2 str.++  Fail, x5_2_P2 = 1, x6 = x8, x7 = [I@15b[1] + [I@15b[0], x9_1 = x5_1, x9_2 = x7} ---------
+run z3 for file /Users/malig/Downloads/cvc4-1.5/builds/x86_64-apple-darwin16.7.0/production/bin/cvc4 --strings-exp --lang smt2 < /tmp/102174918.bt
+********** Satisfying Assigments **********************************************
+*******************************************************************************
+
+
+------------------------
+------------------------
+Paths :  9
+path constraint: {line_P1 = x0_P1 && l_P1 splitn 1 : isinteger && l_P1 = x2_P1 && a_t2_P1 > 40 && a_t1_P1 = x4_1_P1 && a_t2_P1 = x4_2_P1 && line_P2 = x0_P2 && l_P2 splitn 1 : isinteger && l_P2 = x2_P2 && a_t2_P2 <= 40 && a_t1_P2 = x4_1_P2 && a_t2_P2 = x4_2_P2 && a select 1 = [I@15b[1] && 1 >= 0 && 1 < [I@15b_length && a select 0 = [I@15b[0] && 0 >= 0 && 0 < [I@15b_length && [I@15b_length >= 0 && a = x6 && v_t2 > 40 && v_t2 = x9_2 && v_t1 = x9_1}	 effect: {x5_2_P1 = x8 select 0, x5_2_P2 = x8 select 1, x1_P1 = line_P1 splitn 0 ,, x2_P1 = x1_P1, x3_1_P1 = l_P1 splitn 0 :, x3_2_P1 = l_P1 splitn 1 : str.to.int , x4_1_P1 = x3_1_P1, x4_2_P1 = x3_2_P1, x5_1_P1 = a_t1_P1 str.++  Pass, x5_2_P1 = 1, x1_P2 = line_P2 splitn 1 ,, x2_P2 = x1_P2, x3_1_P2 = l_P2 splitn 0 :, x3_2_P2 = l_P2 splitn 1 : str.to.int , x4_1_P2 = x3_1_P2, x4_2_P2 = x3_2_P2, x5_1_P2 = a_t1_P2 str.++  Fail, x5_2_P2 = 1, x6 = x8, x7 = [I@15b[1] + [I@15b[0], x9_1 = x5_1, x9_2 = x7} ---------
+run z3 for file /Users/malig/Downloads/cvc4-1.5/builds/x86_64-apple-darwin16.7.0/production/bin/cvc4 --strings-exp --lang smt2 < /tmp/52514534.bt
+********** Satisfying Assigments **********************************************
+*******************************************************************************
+
+
+------------------------
+------------------------
+Paths :  10
+path constraint: {line_P1 = x0_P1 && l_P1 splitn 1 : isinteger && l_P1 = x2_P1 && a_t2_P1 <= 40 && a_t1_P1 = x4_1_P1 && a_t2_P1 = x4_2_P1 && line_P2 = x0_P2 && l_P2 splitn 1 : isinteger && l_P2 = x2_P2 && a_t2_P2 <= 40 && a_t1_P2 = x4_1_P2 && a_t2_P2 = x4_2_P2 && a select 1 = [I@15b[1] && 1 >= 0 && 1 < [I@15b_length && a select 0 = [I@15b[0] && 0 >= 0 && 0 < [I@15b_length && [I@15b_length >= 0 && a = x6 && v_t2 > 40 && v_t2 = x9_2 && v_t1 = x9_1}	 effect: {x5_2_P1 = x8 select 0, x5_2_P2 = x8 select 1, x1_P1 = line_P1 splitn 1 ,, x2_P1 = x1_P1, x3_1_P1 = l_P1 splitn 0 :, x3_2_P1 = l_P1 splitn 1 : str.to.int , x4_1_P1 = x3_1_P1, x4_2_P1 = x3_2_P1, x5_1_P1 = a_t1_P1 str.++  Fail, x5_2_P1 = 1, x1_P2 = line_P2 splitn 1 ,, x2_P2 = x1_P2, x3_1_P2 = l_P2 splitn 0 :, x3_2_P2 = l_P2 splitn 1 : str.to.int , x4_1_P2 = x3_1_P2, x4_2_P2 = x3_2_P2, x5_1_P2 = a_t1_P2 str.++  Fail, x5_2_P2 = 1, x6 = x8, x7 = [I@15b[1] + [I@15b[0], x9_1 = x5_1, x9_2 = x7} ---------
+run z3 for file /Users/malig/Downloads/cvc4-1.5/builds/x86_64-apple-darwin16.7.0/production/bin/cvc4 --strings-exp --lang smt2 < /tmp/943573036.bt
+********** Satisfying Assigments **********************************************
+*******************************************************************************
+
+
+------------------------
+------------------------
+Paths :  11
+path constraint: {line_P1 = x0_P1 && l_P1 splitn 1 : isinteger && l_P1 = x2_P1 && a_t2_P1 > 40 && a_t1_P1 = x4_1_P1 && a_t2_P1 = x4_2_P1 && line_P2 = x0_P2 && l_P2 splitn 1 : isinteger && l_P2 = x2_P2 && a_t2_P2 <= 40 && a_t1_P2 = x4_1_P2 && a_t2_P2 = x4_2_P2 && a select 1 = [I@15b[1] && 1 >= 0 && 1 < [I@15b_length && a select 0 = [I@15b[0] && 0 >= 0 && 0 < [I@15b_length && [I@15b_length >= 0 && a = x6 && v_t2 > 40 && v_t2 = x9_2 && v_t1 = x9_1}	 effect: {x5_2_P1 = x8 select 0, x5_2_P2 = x8 select 1, x1_P1 = line_P1 splitn 1 ,, x2_P1 = x1_P1, x3_1_P1 = l_P1 splitn 0 :, x3_2_P1 = l_P1 splitn 1 : str.to.int , x4_1_P1 = x3_1_P1, x4_2_P1 = x3_2_P1, x5_1_P1 = a_t1_P1 str.++  Pass, x5_2_P1 = 1, x1_P2 = line_P2 splitn 1 ,, x2_P2 = x1_P2, x3_1_P2 = l_P2 splitn 0 :, x3_2_P2 = l_P2 splitn 1 : str.to.int , x4_1_P2 = x3_1_P2, x4_2_P2 = x3_2_P2, x5_1_P2 = a_t1_P2 str.++  Fail, x5_2_P2 = 1, x6 = x8, x7 = [I@15b[1] + [I@15b[0], x9_1 = x5_1, x9_2 = x7} ---------
+run z3 for file /Users/malig/Downloads/cvc4-1.5/builds/x86_64-apple-darwin16.7.0/production/bin/cvc4 --strings-exp --lang smt2 < /tmp/1242027525.bt
+********** Satisfying Assigments **********************************************
+*******************************************************************************
+
+
+------------------------
+------------------------
+Paths :  12
+path constraint: {line_P1 = x0_P1 && l_P1 splitn 1 : isinteger && l_P1 = x2_P1 && a_t2_P1 <= 40 && a_t1_P1 = x4_1_P1 && a_t2_P1 = x4_2_P1 && line_P2 = x0_P2 && l_P2 splitn 1 : isinteger && l_P2 = x2_P2 && a_t2_P2 > 40 && a_t1_P2 = x4_1_P2 && a_t2_P2 = x4_2_P2 && a select 1 = [I@15b[1] && 1 >= 0 && 1 < [I@15b_length && a select 0 = [I@15b[0] && 0 >= 0 && 0 < [I@15b_length && [I@15b_length >= 0 && a = x6 && v_t2 > 40 && v_t2 = x9_2 && v_t1 = x9_1}	 effect: {x5_2_P1 = x8 select 0, x5_2_P2 = x8 select 1, x1_P1 = line_P1 splitn 0 ,, x2_P1 = x1_P1, x3_1_P1 = l_P1 splitn 0 :, x3_2_P1 = l_P1 splitn 1 : str.to.int , x4_1_P1 = x3_1_P1, x4_2_P1 = x3_2_P1, x5_1_P1 = a_t1_P1 str.++  Fail, x5_2_P1 = 1, x1_P2 = line_P2 splitn 1 ,, x2_P2 = x1_P2, x3_1_P2 = l_P2 splitn 0 :, x3_2_P2 = l_P2 splitn 1 : str.to.int , x4_1_P2 = x3_1_P2, x4_2_P2 = x3_2_P2, x5_1_P2 = a_t1_P2 str.++  Pass, x5_2_P2 = 1, x6 = x8, x7 = [I@15b[1] + [I@15b[0], x9_1 = x5_1, x9_2 = x7} ---------
+run z3 for file /Users/malig/Downloads/cvc4-1.5/builds/x86_64-apple-darwin16.7.0/production/bin/cvc4 --strings-exp --lang smt2 < /tmp/1948810915.bt
+********** Satisfying Assigments **********************************************
+*******************************************************************************
+
+
+------------------------
+------------------------
+Paths :  13
+path constraint: {line_P1 = x0_P1 && l_P1 splitn 1 : isinteger && l_P1 = x2_P1 && a_t2_P1 > 40 && a_t1_P1 = x4_1_P1 && a_t2_P1 = x4_2_P1 && line_P2 = x0_P2 && l_P2 splitn 1 : isinteger && l_P2 = x2_P2 && a_t2_P2 > 40 && a_t1_P2 = x4_1_P2 && a_t2_P2 = x4_2_P2 && a select 1 = [I@15b[1] && 1 >= 0 && 1 < [I@15b_length && a select 0 = [I@15b[0] && 0 >= 0 && 0 < [I@15b_length && [I@15b_length >= 0 && a = x6 && v_t2 > 40 && v_t2 = x9_2 && v_t1 = x9_1}	 effect: {x5_2_P1 = x8 select 0, x5_2_P2 = x8 select 1, x1_P1 = line_P1 splitn 0 ,, x2_P1 = x1_P1, x3_1_P1 = l_P1 splitn 0 :, x3_2_P1 = l_P1 splitn 1 : str.to.int , x4_1_P1 = x3_1_P1, x4_2_P1 = x3_2_P1, x5_1_P1 = a_t1_P1 str.++  Pass, x5_2_P1 = 1, x1_P2 = line_P2 splitn 1 ,, x2_P2 = x1_P2, x3_1_P2 = l_P2 splitn 0 :, x3_2_P2 = l_P2 splitn 1 : str.to.int , x4_1_P2 = x3_1_P2, x4_2_P2 = x3_2_P2, x5_1_P2 = a_t1_P2 str.++  Pass, x5_2_P2 = 1, x6 = x8, x7 = [I@15b[1] + [I@15b[0], x9_1 = x5_1, x9_2 = x7} ---------
+run z3 for file /Users/malig/Downloads/cvc4-1.5/builds/x86_64-apple-darwin16.7.0/production/bin/cvc4 --strings-exp --lang smt2 < /tmp/2104973502.bt
+********** Satisfying Assigments **********************************************
+*******************************************************************************
+
+
+------------------------
+------------------------
+Paths :  14
+path constraint: {line_P1 = x0_P1 && l_P1 splitn 1 : isinteger && l_P1 = x2_P1 && a_t2_P1 <= 40 && a_t1_P1 = x4_1_P1 && a_t2_P1 = x4_2_P1 && line_P2 = x0_P2 && l_P2 splitn 1 : isinteger && l_P2 = x2_P2 && a_t2_P2 > 40 && a_t1_P2 = x4_1_P2 && a_t2_P2 = x4_2_P2 && a select 1 = [I@15b[1] && 1 >= 0 && 1 < [I@15b_length && a select 0 = [I@15b[0] && 0 >= 0 && 0 < [I@15b_length && [I@15b_length >= 0 && a = x6 && v_t2 > 40 && v_t2 = x9_2 && v_t1 = x9_1}	 effect: {x5_2_P1 = x8 select 0, x5_2_P2 = x8 select 1, x1_P1 = line_P1 splitn 1 ,, x2_P1 = x1_P1, x3_1_P1 = l_P1 splitn 0 :, x3_2_P1 = l_P1 splitn 1 : str.to.int , x4_1_P1 = x3_1_P1, x4_2_P1 = x3_2_P1, x5_1_P1 = a_t1_P1 str.++  Fail, x5_2_P1 = 1, x1_P2 = line_P2 splitn 1 ,, x2_P2 = x1_P2, x3_1_P2 = l_P2 splitn 0 :, x3_2_P2 = l_P2 splitn 1 : str.to.int , x4_1_P2 = x3_1_P2, x4_2_P2 = x3_2_P2, x5_1_P2 = a_t1_P2 str.++  Pass, x5_2_P2 = 1, x6 = x8, x7 = [I@15b[1] + [I@15b[0], x9_1 = x5_1, x9_2 = x7} ---------
+run z3 for file /Users/malig/Downloads/cvc4-1.5/builds/x86_64-apple-darwin16.7.0/production/bin/cvc4 --strings-exp --lang smt2 < /tmp/735937428.bt
+********** Satisfying Assigments **********************************************
+*******************************************************************************
+
+
+------------------------
+------------------------
+Paths :  15
+path constraint: {line_P1 = x0_P1 && l_P1 splitn 1 : isinteger && l_P1 = x2_P1 && a_t2_P1 > 40 && a_t1_P1 = x4_1_P1 && a_t2_P1 = x4_2_P1 && line_P2 = x0_P2 && l_P2 splitn 1 : isinteger && l_P2 = x2_P2 && a_t2_P2 > 40 && a_t1_P2 = x4_1_P2 && a_t2_P2 = x4_2_P2 && a select 1 = [I@15b[1] && 1 >= 0 && 1 < [I@15b_length && a select 0 = [I@15b[0] && 0 >= 0 && 0 < [I@15b_length && [I@15b_length >= 0 && a = x6 && v_t2 > 40 && v_t2 = x9_2 && v_t1 = x9_1}	 effect: {x5_2_P1 = x8 select 0, x5_2_P2 = x8 select 1, x1_P1 = line_P1 splitn 1 ,, x2_P1 = x1_P1, x3_1_P1 = l_P1 splitn 0 :, x3_2_P1 = l_P1 splitn 1 : str.to.int , x4_1_P1 = x3_1_P1, x4_2_P1 = x3_2_P1, x5_1_P1 = a_t1_P1 str.++  Pass, x5_2_P1 = 1, x1_P2 = line_P2 splitn 1 ,, x2_P2 = x1_P2, x3_1_P2 = l_P2 splitn 0 :, x3_2_P2 = l_P2 splitn 1 : str.to.int , x4_1_P2 = x3_1_P2, x4_2_P2 = x3_2_P2, x5_1_P2 = a_t1_P2 str.++  Pass, x5_2_P2 = 1, x6 = x8, x7 = [I@15b[1] + [I@15b[0], x9_1 = x5_1, x9_2 = x7} ---------
+run z3 for file /Users/malig/Downloads/cvc4-1.5/builds/x86_64-apple-darwin16.7.0/production/bin/cvc4 --strings-exp --lang smt2 < /tmp/1604247316.bt
+********** Satisfying Assigments **********************************************
+*******************************************************************************
+
+
+------------------------
+Terminating
+------------------------
+Paths :  16
+path constraint: {l splitn 1 : notinteger && line = x0}	 effect: {x1 = line splitn 0 ,, x2 = x1} ---------
+run z3 for file /Users/malig/Downloads/cvc4-1.5/builds/x86_64-apple-darwin16.7.0/production/bin/cvc4 --strings-exp --lang smt2 < /tmp/1571633427
+********** Satisfying Assigments **********************************************
+(define-fun line () String "")
+(define-fun line0 () String "")
+*******************************************************************************
+
+
+------------------------
+------------------------
+Paths :  17
+path constraint: {0 > 0 && l equals  && line = x0}	 effect: {x1 = line splitn 0 ,, x2 = x1} ---------
+run z3 for file /Users/malig/Downloads/cvc4-1.5/builds/x86_64-apple-darwin16.7.0/production/bin/cvc4 --strings-exp --lang smt2 < /tmp/1657406555
+********** Satisfying Assigments **********************************************
+*******************************************************************************
+
+
+------------------------
+------------------------
+Paths :  18
+path constraint: {l splitn 1 : notinteger && line = x0}	 effect: {x1 = line splitn 1 ,, x2 = x1} ---------
+run z3 for file /Users/malig/Downloads/cvc4-1.5/builds/x86_64-apple-darwin16.7.0/production/bin/cvc4 --strings-exp --lang smt2 < /tmp/529802315
+********** Satisfying Assigments **********************************************
+(define-fun line () String " ,")
+(define-fun line1 () String "")
+*******************************************************************************
+
+
+------------------------
+------------------------
+Paths :  19
+path constraint: {0 > 0 && l equals  && line = x0}	 effect: {x1 = line splitn 1 ,, x2 = x1} ---------
+run z3 for file /Users/malig/Downloads/cvc4-1.5/builds/x86_64-apple-darwin16.7.0/production/bin/cvc4 --strings-exp --lang smt2 < /tmp/-256708075
+********** Satisfying Assigments **********************************************
+*******************************************************************************
+
+
+------------------------
+------------------------
+Paths :  20
+path constraint: {v_t2 <= 40 && v_t2 = x9_2 && v_t1 = x9_1 && line_P1 = x0_P1 && l_P1 splitn 1 : isinteger && l_P1 = x2_P1 && a_t2_P1 <= 40 && a_t1_P1 = x4_1_P1 && a_t2_P1 = x4_2_P1 && line_P2 = x0_P2 && l_P2 splitn 1 : isinteger && l_P2 = x2_P2 && a_t2_P2 <= 40 && a_t1_P2 = x4_1_P2 && a_t2_P2 = x4_2_P2 && a select 1 = [I@15b[1] && 1 >= 0 && 1 < [I@15b_length && a select 0 = [I@15b[0] && 0 >= 0 && 0 < [I@15b_length && [I@15b_length >= 0 && a = x6}	 effect: {x5_2_P1 = x8 select 0, x5_2_P2 = x8 select 1, x1_P1 = line_P1 splitn 0 ,, x2_P1 = x1_P1, x3_1_P1 = l_P1 splitn 0 :, x3_2_P1 = l_P1 splitn 1 : str.to.int , x4_1_P1 = x3_1_P1, x4_2_P1 = x3_2_P1, x5_1_P1 = a_t1_P1 str.++  Fail, x5_2_P1 = 1, x1_P2 = line_P2 splitn 0 ,, x2_P2 = x1_P2, x3_1_P2 = l_P2 splitn 0 :, x3_2_P2 = l_P2 splitn 1 : str.to.int , x4_1_P2 = x3_1_P2, x4_2_P2 = x3_2_P2, x5_1_P2 = a_t1_P2 str.++  Fail, x5_2_P2 = 1, x6 = x8, x7 = [I@15b[1] + [I@15b[0], x9_1 = x5_1, x9_2 = x7} ---------
+run z3 for file /Users/malig/Downloads/cvc4-1.5/builds/x86_64-apple-darwin16.7.0/production/bin/cvc4 --strings-exp --lang smt2 < /tmp/-274427428
+********** Satisfying Assigments **********************************************
+(define-fun line_P2 () String ":0")
+(define-fun line_P20 () String ":0")
+(define-fun line_P1 () String ":0")
+(define-fun line_P10 () String ":0")
+*******************************************************************************
+
+
+------------------------
+------------------------
+Paths :  21
+path constraint: {v_t2 <= 40 && v_t2 = x9_2 && v_t1 = x9_1 && line_P1 = x0_P1 && l_P1 splitn 1 : isinteger && l_P1 = x2_P1 && a_t2_P1 > 40 && a_t1_P1 = x4_1_P1 && a_t2_P1 = x4_2_P1 && line_P2 = x0_P2 && l_P2 splitn 1 : isinteger && l_P2 = x2_P2 && a_t2_P2 <= 40 && a_t1_P2 = x4_1_P2 && a_t2_P2 = x4_2_P2 && a select 1 = [I@15b[1] && 1 >= 0 && 1 < [I@15b_length && a select 0 = [I@15b[0] && 0 >= 0 && 0 < [I@15b_length && [I@15b_length >= 0 && a = x6}	 effect: {x5_2_P1 = x8 select 0, x5_2_P2 = x8 select 1, x1_P1 = line_P1 splitn 0 ,, x2_P1 = x1_P1, x3_1_P1 = l_P1 splitn 0 :, x3_2_P1 = l_P1 splitn 1 : str.to.int , x4_1_P1 = x3_1_P1, x4_2_P1 = x3_2_P1, x5_1_P1 = a_t1_P1 str.++  Pass, x5_2_P1 = 1, x1_P2 = line_P2 splitn 0 ,, x2_P2 = x1_P2, x3_1_P2 = l_P2 splitn 0 :, x3_2_P2 = l_P2 splitn 1 : str.to.int , x4_1_P2 = x3_1_P2, x4_2_P2 = x3_2_P2, x5_1_P2 = a_t1_P2 str.++  Fail, x5_2_P2 = 1, x6 = x8, x7 = [I@15b[1] + [I@15b[0], x9_1 = x5_1, x9_2 = x7} ---------
+run z3 for file /Users/malig/Downloads/cvc4-1.5/builds/x86_64-apple-darwin16.7.0/production/bin/cvc4 --strings-exp --lang smt2 < /tmp/-449544465
+********** Satisfying Assigments **********************************************
+(define-fun line_P2 () String ":0")
+(define-fun line_P20 () String ":0")
+(define-fun line_P1 () String ":41")
+(define-fun line_P10 () String ":41")
+*******************************************************************************
+
+
+------------------------
+------------------------
+Paths :  22
+path constraint: {v_t2 <= 40 && v_t2 = x9_2 && v_t1 = x9_1 && line_P1 = x0_P1 && l_P1 splitn 1 : isinteger && l_P1 = x2_P1 && a_t2_P1 <= 40 && a_t1_P1 = x4_1_P1 && a_t2_P1 = x4_2_P1 && line_P2 = x0_P2 && l_P2 splitn 1 : isinteger && l_P2 = x2_P2 && a_t2_P2 <= 40 && a_t1_P2 = x4_1_P2 && a_t2_P2 = x4_2_P2 && a select 1 = [I@15b[1] && 1 >= 0 && 1 < [I@15b_length && a select 0 = [I@15b[0] && 0 >= 0 && 0 < [I@15b_length && [I@15b_length >= 0 && a = x6}	 effect: {x5_2_P1 = x8 select 0, x5_2_P2 = x8 select 1, x1_P1 = line_P1 splitn 1 ,, x2_P1 = x1_P1, x3_1_P1 = l_P1 splitn 0 :, x3_2_P1 = l_P1 splitn 1 : str.to.int , x4_1_P1 = x3_1_P1, x4_2_P1 = x3_2_P1, x5_1_P1 = a_t1_P1 str.++  Fail, x5_2_P1 = 1, x1_P2 = line_P2 splitn 0 ,, x2_P2 = x1_P2, x3_1_P2 = l_P2 splitn 0 :, x3_2_P2 = l_P2 splitn 1 : str.to.int , x4_1_P2 = x3_1_P2, x4_2_P2 = x3_2_P2, x5_1_P2 = a_t1_P2 str.++  Fail, x5_2_P2 = 1, x6 = x8, x7 = [I@15b[1] + [I@15b[0], x9_1 = x5_1, x9_2 = x7} ---------
+run z3 for file /Users/malig/Downloads/cvc4-1.5/builds/x86_64-apple-darwin16.7.0/production/bin/cvc4 --strings-exp --lang smt2 < /tmp/1733872331
+********** Satisfying Assigments **********************************************
+(define-fun line_P11 () String ":0")
+(define-fun line_P2 () String ":0")
+(define-fun line_P20 () String ":0")
+(define-fun line_P1 () String " ,:0")
+*******************************************************************************
+
+
+------------------------
+------------------------
+Paths :  23
+path constraint: {v_t2 <= 40 && v_t2 = x9_2 && v_t1 = x9_1 && line_P1 = x0_P1 && l_P1 splitn 1 : isinteger && l_P1 = x2_P1 && a_t2_P1 > 40 && a_t1_P1 = x4_1_P1 && a_t2_P1 = x4_2_P1 && line_P2 = x0_P2 && l_P2 splitn 1 : isinteger && l_P2 = x2_P2 && a_t2_P2 <= 40 && a_t1_P2 = x4_1_P2 && a_t2_P2 = x4_2_P2 && a select 1 = [I@15b[1] && 1 >= 0 && 1 < [I@15b_length && a select 0 = [I@15b[0] && 0 >= 0 && 0 < [I@15b_length && [I@15b_length >= 0 && a = x6}	 effect: {x5_2_P1 = x8 select 0, x5_2_P2 = x8 select 1, x1_P1 = line_P1 splitn 1 ,, x2_P1 = x1_P1, x3_1_P1 = l_P1 splitn 0 :, x3_2_P1 = l_P1 splitn 1 : str.to.int , x4_1_P1 = x3_1_P1, x4_2_P1 = x3_2_P1, x5_1_P1 = a_t1_P1 str.++  Pass, x5_2_P1 = 1, x1_P2 = line_P2 splitn 0 ,, x2_P2 = x1_P2, x3_1_P2 = l_P2 splitn 0 :, x3_2_P2 = l_P2 splitn 1 : str.to.int , x4_1_P2 = x3_1_P2, x4_2_P2 = x3_2_P2, x5_1_P2 = a_t1_P2 str.++  Fail, x5_2_P2 = 1, x6 = x8, x7 = [I@15b[1] + [I@15b[0], x9_1 = x5_1, x9_2 = x7} ---------
+run z3 for file /Users/malig/Downloads/cvc4-1.5/builds/x86_64-apple-darwin16.7.0/production/bin/cvc4 --strings-exp --lang smt2 < /tmp/-1333376059
+********** Satisfying Assigments **********************************************
+(define-fun line_P11 () String ":41")
+(define-fun line_P2 () String ":0")
+(define-fun line_P20 () String ":0")
+(define-fun line_P1 () String " ,:41")
+*******************************************************************************
+
+
+------------------------
+------------------------
+Paths :  24
+path constraint: {v_t2 <= 40 && v_t2 = x9_2 && v_t1 = x9_1 && line_P1 = x0_P1 && l_P1 splitn 1 : isinteger && l_P1 = x2_P1 && a_t2_P1 <= 40 && a_t1_P1 = x4_1_P1 && a_t2_P1 = x4_2_P1 && line_P2 = x0_P2 && l_P2 splitn 1 : isinteger && l_P2 = x2_P2 && a_t2_P2 > 40 && a_t1_P2 = x4_1_P2 && a_t2_P2 = x4_2_P2 && a select 1 = [I@15b[1] && 1 >= 0 && 1 < [I@15b_length && a select 0 = [I@15b[0] && 0 >= 0 && 0 < [I@15b_length && [I@15b_length >= 0 && a = x6}	 effect: {x5_2_P1 = x8 select 0, x5_2_P2 = x8 select 1, x1_P1 = line_P1 splitn 0 ,, x2_P1 = x1_P1, x3_1_P1 = l_P1 splitn 0 :, x3_2_P1 = l_P1 splitn 1 : str.to.int , x4_1_P1 = x3_1_P1, x4_2_P1 = x3_2_P1, x5_1_P1 = a_t1_P1 str.++  Fail, x5_2_P1 = 1, x1_P2 = line_P2 splitn 0 ,, x2_P2 = x1_P2, x3_1_P2 = l_P2 splitn 0 :, x3_2_P2 = l_P2 splitn 1 : str.to.int , x4_1_P2 = x3_1_P2, x4_2_P2 = x3_2_P2, x5_1_P2 = a_t1_P2 str.++  Pass, x5_2_P2 = 1, x6 = x8, x7 = [I@15b[1] + [I@15b[0], x9_1 = x5_1, x9_2 = x7} ---------
+run z3 for file /Users/malig/Downloads/cvc4-1.5/builds/x86_64-apple-darwin16.7.0/production/bin/cvc4 --strings-exp --lang smt2 < /tmp/773144360
+********** Satisfying Assigments **********************************************
+(define-fun line_P2 () String ":41")
+(define-fun line_P20 () String ":41")
+(define-fun line_P1 () String ":0")
+(define-fun line_P10 () String ":0")
+*******************************************************************************
+
+
+------------------------
+------------------------
+Paths :  25
+path constraint: {v_t2 <= 40 && v_t2 = x9_2 && v_t1 = x9_1 && line_P1 = x0_P1 && l_P1 splitn 1 : isinteger && l_P1 = x2_P1 && a_t2_P1 > 40 && a_t1_P1 = x4_1_P1 && a_t2_P1 = x4_2_P1 && line_P2 = x0_P2 && l_P2 splitn 1 : isinteger && l_P2 = x2_P2 && a_t2_P2 > 40 && a_t1_P2 = x4_1_P2 && a_t2_P2 = x4_2_P2 && a select 1 = [I@15b[1] && 1 >= 0 && 1 < [I@15b_length && a select 0 = [I@15b[0] && 0 >= 0 && 0 < [I@15b_length && [I@15b_length >= 0 && a = x6}	 effect: {x5_2_P1 = x8 select 0, x5_2_P2 = x8 select 1, x1_P1 = line_P1 splitn 0 ,, x2_P1 = x1_P1, x3_1_P1 = l_P1 splitn 0 :, x3_2_P1 = l_P1 splitn 1 : str.to.int , x4_1_P1 = x3_1_P1, x4_2_P1 = x3_2_P1, x5_1_P1 = a_t1_P1 str.++  Pass, x5_2_P1 = 1, x1_P2 = line_P2 splitn 0 ,, x2_P2 = x1_P2, x3_1_P2 = l_P2 splitn 0 :, x3_2_P2 = l_P2 splitn 1 : str.to.int , x4_1_P2 = x3_1_P2, x4_2_P2 = x3_2_P2, x5_1_P2 = a_t1_P2 str.++  Pass, x5_2_P2 = 1, x6 = x8, x7 = [I@15b[1] + [I@15b[0], x9_1 = x5_1, x9_2 = x7} ---------
+run z3 for file /Users/malig/Downloads/cvc4-1.5/builds/x86_64-apple-darwin16.7.0/production/bin/cvc4 --strings-exp --lang smt2 < /tmp/1700629083
+********** Satisfying Assigments **********************************************
+(define-fun line_P2 () String ":41")
+(define-fun line_P20 () String ":41")
+(define-fun line_P1 () String ":41")
+(define-fun line_P10 () String ":41")
+*******************************************************************************
+
+
+------------------------
+------------------------
+Paths :  26
+path constraint: {v_t2 <= 40 && v_t2 = x9_2 && v_t1 = x9_1 && line_P1 = x0_P1 && l_P1 splitn 1 : isinteger && l_P1 = x2_P1 && a_t2_P1 <= 40 && a_t1_P1 = x4_1_P1 && a_t2_P1 = x4_2_P1 && line_P2 = x0_P2 && l_P2 splitn 1 : isinteger && l_P2 = x2_P2 && a_t2_P2 > 40 && a_t1_P2 = x4_1_P2 && a_t2_P2 = x4_2_P2 && a select 1 = [I@15b[1] && 1 >= 0 && 1 < [I@15b_length && a select 0 = [I@15b[0] && 0 >= 0 && 0 < [I@15b_length && [I@15b_length >= 0 && a = x6}	 effect: {x5_2_P1 = x8 select 0, x5_2_P2 = x8 select 1, x1_P1 = line_P1 splitn 1 ,, x2_P1 = x1_P1, x3_1_P1 = l_P1 splitn 0 :, x3_2_P1 = l_P1 splitn 1 : str.to.int , x4_1_P1 = x3_1_P1, x4_2_P1 = x3_2_P1, x5_1_P1 = a_t1_P1 str.++  Fail, x5_2_P1 = 1, x1_P2 = line_P2 splitn 0 ,, x2_P2 = x1_P2, x3_1_P2 = l_P2 splitn 0 :, x3_2_P2 = l_P2 splitn 1 : str.to.int , x4_1_P2 = x3_1_P2, x4_2_P2 = x3_2_P2, x5_1_P2 = a_t1_P2 str.++  Pass, x5_2_P2 = 1, x6 = x8, x7 = [I@15b[1] + [I@15b[0], x9_1 = x5_1, x9_2 = x7} ---------
+run z3 for file /Users/malig/Downloads/cvc4-1.5/builds/x86_64-apple-darwin16.7.0/production/bin/cvc4 --strings-exp --lang smt2 < /tmp/747920030
+********** Satisfying Assigments **********************************************
+(define-fun line_P11 () String ":0")
+(define-fun line_P2 () String ":41")
+(define-fun line_P20 () String ":41")
+(define-fun line_P1 () String " ,:0")
+*******************************************************************************
+
+
+------------------------
+------------------------
+Paths :  27
+path constraint: {v_t2 <= 40 && v_t2 = x9_2 && v_t1 = x9_1 && line_P1 = x0_P1 && l_P1 splitn 1 : isinteger && l_P1 = x2_P1 && a_t2_P1 > 40 && a_t1_P1 = x4_1_P1 && a_t2_P1 = x4_2_P1 && line_P2 = x0_P2 && l_P2 splitn 1 : isinteger && l_P2 = x2_P2 && a_t2_P2 > 40 && a_t1_P2 = x4_1_P2 && a_t2_P2 = x4_2_P2 && a select 1 = [I@15b[1] && 1 >= 0 && 1 < [I@15b_length && a select 0 = [I@15b[0] && 0 >= 0 && 0 < [I@15b_length && [I@15b_length >= 0 && a = x6}	 effect: {x5_2_P1 = x8 select 0, x5_2_P2 = x8 select 1, x1_P1 = line_P1 splitn 1 ,, x2_P1 = x1_P1, x3_1_P1 = l_P1 splitn 0 :, x3_2_P1 = l_P1 splitn 1 : str.to.int , x4_1_P1 = x3_1_P1, x4_2_P1 = x3_2_P1, x5_1_P1 = a_t1_P1 str.++  Pass, x5_2_P1 = 1, x1_P2 = line_P2 splitn 0 ,, x2_P2 = x1_P2, x3_1_P2 = l_P2 splitn 0 :, x3_2_P2 = l_P2 splitn 1 : str.to.int , x4_1_P2 = x3_1_P2, x4_2_P2 = x3_2_P2, x5_1_P2 = a_t1_P2 str.++  Pass, x5_2_P2 = 1, x6 = x8, x7 = [I@15b[1] + [I@15b[0], x9_1 = x5_1, x9_2 = x7} ---------
+run z3 for file /Users/malig/Downloads/cvc4-1.5/builds/x86_64-apple-darwin16.7.0/production/bin/cvc4 --strings-exp --lang smt2 < /tmp/-364496923
+********** Satisfying Assigments **********************************************
+(define-fun line_P11 () String ":41")
+(define-fun line_P2 () String ":41")
+(define-fun line_P20 () String ":41")
+(define-fun line_P1 () String " ,:41")
+*******************************************************************************
+
+
+------------------------
+------------------------
+Paths :  28
+path constraint: {v_t2 <= 40 && v_t2 = x9_2 && v_t1 = x9_1 && line_P1 = x0_P1 && l_P1 splitn 1 : isinteger && l_P1 = x2_P1 && a_t2_P1 <= 40 && a_t1_P1 = x4_1_P1 && a_t2_P1 = x4_2_P1 && line_P2 = x0_P2 && l_P2 splitn 1 : isinteger && l_P2 = x2_P2 && a_t2_P2 <= 40 && a_t1_P2 = x4_1_P2 && a_t2_P2 = x4_2_P2 && a select 1 = [I@15b[1] && 1 >= 0 && 1 < [I@15b_length && a select 0 = [I@15b[0] && 0 >= 0 && 0 < [I@15b_length && [I@15b_length >= 0 && a = x6}	 effect: {x5_2_P1 = x8 select 0, x5_2_P2 = x8 select 1, x1_P1 = line_P1 splitn 0 ,, x2_P1 = x1_P1, x3_1_P1 = l_P1 splitn 0 :, x3_2_P1 = l_P1 splitn 1 : str.to.int , x4_1_P1 = x3_1_P1, x4_2_P1 = x3_2_P1, x5_1_P1 = a_t1_P1 str.++  Fail, x5_2_P1 = 1, x1_P2 = line_P2 splitn 1 ,, x2_P2 = x1_P2, x3_1_P2 = l_P2 splitn 0 :, x3_2_P2 = l_P2 splitn 1 : str.to.int , x4_1_P2 = x3_1_P2, x4_2_P2 = x3_2_P2, x5_1_P2 = a_t1_P2 str.++  Fail, x5_2_P2 = 1, x6 = x8, x7 = [I@15b[1] + [I@15b[0], x9_1 = x5_1, x9_2 = x7} ---------
+run z3 for file /Users/malig/Downloads/cvc4-1.5/builds/x86_64-apple-darwin16.7.0/production/bin/cvc4 --strings-exp --lang smt2 < /tmp/-304579269
+********** Satisfying Assigments **********************************************
+(define-fun line_P21 () String ":0")
+(define-fun line_P2 () String " ,:0")
+(define-fun line_P1 () String ":0")
+(define-fun line_P10 () String ":0")
+*******************************************************************************
+
+
+------------------------
+------------------------
+Paths :  29
+path constraint: {v_t2 <= 40 && v_t2 = x9_2 && v_t1 = x9_1 && line_P1 = x0_P1 && l_P1 splitn 1 : isinteger && l_P1 = x2_P1 && a_t2_P1 > 40 && a_t1_P1 = x4_1_P1 && a_t2_P1 = x4_2_P1 && line_P2 = x0_P2 && l_P2 splitn 1 : isinteger && l_P2 = x2_P2 && a_t2_P2 <= 40 && a_t1_P2 = x4_1_P2 && a_t2_P2 = x4_2_P2 && a select 1 = [I@15b[1] && 1 >= 0 && 1 < [I@15b_length && a select 0 = [I@15b[0] && 0 >= 0 && 0 < [I@15b_length && [I@15b_length >= 0 && a = x6}	 effect: {x5_2_P1 = x8 select 0, x5_2_P2 = x8 select 1, x1_P1 = line_P1 splitn 0 ,, x2_P1 = x1_P1, x3_1_P1 = l_P1 splitn 0 :, x3_2_P1 = l_P1 splitn 1 : str.to.int , x4_1_P1 = x3_1_P1, x4_2_P1 = x3_2_P1, x5_1_P1 = a_t1_P1 str.++  Pass, x5_2_P1 = 1, x1_P2 = line_P2 splitn 1 ,, x2_P2 = x1_P2, x3_1_P2 = l_P2 splitn 0 :, x3_2_P2 = l_P2 splitn 1 : str.to.int , x4_1_P2 = x3_1_P2, x4_2_P2 = x3_2_P2, x5_1_P2 = a_t1_P2 str.++  Fail, x5_2_P2 = 1, x6 = x8, x7 = [I@15b[1] + [I@15b[0], x9_1 = x5_1, x9_2 = x7} ---------
+run z3 for file /Users/malig/Downloads/cvc4-1.5/builds/x86_64-apple-darwin16.7.0/production/bin/cvc4 --strings-exp --lang smt2 < /tmp/879643711
+********** Satisfying Assigments **********************************************
+(define-fun line_P21 () String ":0")
+(define-fun line_P2 () String " ,:0")
+(define-fun line_P1 () String ":41")
+(define-fun line_P10 () String ":41")
+*******************************************************************************
+
+
+------------------------
+------------------------
+Paths :  30
+path constraint: {v_t2 <= 40 && v_t2 = x9_2 && v_t1 = x9_1 && line_P1 = x0_P1 && l_P1 splitn 1 : isinteger && l_P1 = x2_P1 && a_t2_P1 <= 40 && a_t1_P1 = x4_1_P1 && a_t2_P1 = x4_2_P1 && line_P2 = x0_P2 && l_P2 splitn 1 : isinteger && l_P2 = x2_P2 && a_t2_P2 <= 40 && a_t1_P2 = x4_1_P2 && a_t2_P2 = x4_2_P2 && a select 1 = [I@15b[1] && 1 >= 0 && 1 < [I@15b_length && a select 0 = [I@15b[0] && 0 >= 0 && 0 < [I@15b_length && [I@15b_length >= 0 && a = x6}	 effect: {x5_2_P1 = x8 select 0, x5_2_P2 = x8 select 1, x1_P1 = line_P1 splitn 1 ,, x2_P1 = x1_P1, x3_1_P1 = l_P1 splitn 0 :, x3_2_P1 = l_P1 splitn 1 : str.to.int , x4_1_P1 = x3_1_P1, x4_2_P1 = x3_2_P1, x5_1_P1 = a_t1_P1 str.++  Fail, x5_2_P1 = 1, x1_P2 = line_P2 splitn 1 ,, x2_P2 = x1_P2, x3_1_P2 = l_P2 splitn 0 :, x3_2_P2 = l_P2 splitn 1 : str.to.int , x4_1_P2 = x3_1_P2, x4_2_P2 = x3_2_P2, x5_1_P2 = a_t1_P2 str.++  Fail, x5_2_P2 = 1, x6 = x8, x7 = [I@15b[1] + [I@15b[0], x9_1 = x5_1, x9_2 = x7} ---------
+run z3 for file /Users/malig/Downloads/cvc4-1.5/builds/x86_64-apple-darwin16.7.0/production/bin/cvc4 --strings-exp --lang smt2 < /tmp/392067230
+********** Satisfying Assigments **********************************************
+(define-fun line_P21 () String ":0")
+(define-fun line_P11 () String ":0")
+(define-fun line_P2 () String " ,:0")
+(define-fun line_P1 () String " ,:0")
+*******************************************************************************
+
+
+------------------------
+------------------------
+Paths :  31
+path constraint: {v_t2 <= 40 && v_t2 = x9_2 && v_t1 = x9_1 && line_P1 = x0_P1 && l_P1 splitn 1 : isinteger && l_P1 = x2_P1 && a_t2_P1 > 40 && a_t1_P1 = x4_1_P1 && a_t2_P1 = x4_2_P1 && line_P2 = x0_P2 && l_P2 splitn 1 : isinteger && l_P2 = x2_P2 && a_t2_P2 <= 40 && a_t1_P2 = x4_1_P2 && a_t2_P2 = x4_2_P2 && a select 1 = [I@15b[1] && 1 >= 0 && 1 < [I@15b_length && a select 0 = [I@15b[0] && 0 >= 0 && 0 < [I@15b_length && [I@15b_length >= 0 && a = x6}	 effect: {x5_2_P1 = x8 select 0, x5_2_P2 = x8 select 1, x1_P1 = line_P1 splitn 1 ,, x2_P1 = x1_P1, x3_1_P1 = l_P1 splitn 0 :, x3_2_P1 = l_P1 splitn 1 : str.to.int , x4_1_P1 = x3_1_P1, x4_2_P1 = x3_2_P1, x5_1_P1 = a_t1_P1 str.++  Pass, x5_2_P1 = 1, x1_P2 = line_P2 splitn 1 ,, x2_P2 = x1_P2, x3_1_P2 = l_P2 splitn 0 :, x3_2_P2 = l_P2 splitn 1 : str.to.int , x4_1_P2 = x3_1_P2, x4_2_P2 = x3_2_P2, x5_1_P2 = a_t1_P2 str.++  Fail, x5_2_P2 = 1, x6 = x8, x7 = [I@15b[1] + [I@15b[0], x9_1 = x5_1, x9_2 = x7} ---------
+run z3 for file /Users/malig/Downloads/cvc4-1.5/builds/x86_64-apple-darwin16.7.0/production/bin/cvc4 --strings-exp --lang smt2 < /tmp/425632025
+********** Satisfying Assigments **********************************************
+(define-fun line_P21 () String ":0")
+(define-fun line_P11 () String ":41")
+(define-fun line_P2 () String " ,:0")
+(define-fun line_P1 () String " ,:41")
+*******************************************************************************
+
+
+------------------------
+------------------------
+Paths :  32
+path constraint: {v_t2 <= 40 && v_t2 = x9_2 && v_t1 = x9_1 && line_P1 = x0_P1 && l_P1 splitn 1 : isinteger && l_P1 = x2_P1 && a_t2_P1 <= 40 && a_t1_P1 = x4_1_P1 && a_t2_P1 = x4_2_P1 && line_P2 = x0_P2 && l_P2 splitn 1 : isinteger && l_P2 = x2_P2 && a_t2_P2 > 40 && a_t1_P2 = x4_1_P2 && a_t2_P2 = x4_2_P2 && a select 1 = [I@15b[1] && 1 >= 0 && 1 < [I@15b_length && a select 0 = [I@15b[0] && 0 >= 0 && 0 < [I@15b_length && [I@15b_length >= 0 && a = x6}	 effect: {x5_2_P1 = x8 select 0, x5_2_P2 = x8 select 1, x1_P1 = line_P1 splitn 0 ,, x2_P1 = x1_P1, x3_1_P1 = l_P1 splitn 0 :, x3_2_P1 = l_P1 splitn 1 : str.to.int , x4_1_P1 = x3_1_P1, x4_2_P1 = x3_2_P1, x5_1_P1 = a_t1_P1 str.++  Fail, x5_2_P1 = 1, x1_P2 = line_P2 splitn 1 ,, x2_P2 = x1_P2, x3_1_P2 = l_P2 splitn 0 :, x3_2_P2 = l_P2 splitn 1 : str.to.int , x4_1_P2 = x3_1_P2, x4_2_P2 = x3_2_P2, x5_1_P2 = a_t1_P2 str.++  Pass, x5_2_P2 = 1, x6 = x8, x7 = [I@15b[1] + [I@15b[0], x9_1 = x5_1, x9_2 = x7} ---------
+run z3 for file /Users/malig/Downloads/cvc4-1.5/builds/x86_64-apple-darwin16.7.0/production/bin/cvc4 --strings-exp --lang smt2 < /tmp/-1066203242
+********** Satisfying Assigments **********************************************
+(define-fun line_P21 () String ":41")
+(define-fun line_P2 () String " ,:41")
+(define-fun line_P1 () String ":0")
+(define-fun line_P10 () String ":0")
+*******************************************************************************
+
+
+------------------------
+------------------------
+Paths :  33
+path constraint: {v_t2 <= 40 && v_t2 = x9_2 && v_t1 = x9_1 && line_P1 = x0_P1 && l_P1 splitn 1 : isinteger && l_P1 = x2_P1 && a_t2_P1 > 40 && a_t1_P1 = x4_1_P1 && a_t2_P1 = x4_2_P1 && line_P2 = x0_P2 && l_P2 splitn 1 : isinteger && l_P2 = x2_P2 && a_t2_P2 > 40 && a_t1_P2 = x4_1_P2 && a_t2_P2 = x4_2_P2 && a select 1 = [I@15b[1] && 1 >= 0 && 1 < [I@15b_length && a select 0 = [I@15b[0] && 0 >= 0 && 0 < [I@15b_length && [I@15b_length >= 0 && a = x6}	 effect: {x5_2_P1 = x8 select 0, x5_2_P2 = x8 select 1, x1_P1 = line_P1 splitn 0 ,, x2_P1 = x1_P1, x3_1_P1 = l_P1 splitn 0 :, x3_2_P1 = l_P1 splitn 1 : str.to.int , x4_1_P1 = x3_1_P1, x4_2_P1 = x3_2_P1, x5_1_P1 = a_t1_P1 str.++  Pass, x5_2_P1 = 1, x1_P2 = line_P2 splitn 1 ,, x2_P2 = x1_P2, x3_1_P2 = l_P2 splitn 0 :, x3_2_P2 = l_P2 splitn 1 : str.to.int , x4_1_P2 = x3_1_P2, x4_2_P2 = x3_2_P2, x5_1_P2 = a_t1_P2 str.++  Pass, x5_2_P2 = 1, x6 = x8, x7 = [I@15b[1] + [I@15b[0], x9_1 = x5_1, x9_2 = x7} ---------
+run z3 for file /Users/malig/Downloads/cvc4-1.5/builds/x86_64-apple-darwin16.7.0/production/bin/cvc4 --strings-exp --lang smt2 < /tmp/-1882594333
+********** Satisfying Assigments **********************************************
+(define-fun line_P21 () String ":41")
+(define-fun line_P2 () String " ,:41")
+(define-fun line_P1 () String ":41")
+(define-fun line_P10 () String ":41")
+*******************************************************************************
+
+
+------------------------
+------------------------
+Paths :  34
+path constraint: {v_t2 <= 40 && v_t2 = x9_2 && v_t1 = x9_1 && line_P1 = x0_P1 && l_P1 splitn 1 : isinteger && l_P1 = x2_P1 && a_t2_P1 <= 40 && a_t1_P1 = x4_1_P1 && a_t2_P1 = x4_2_P1 && line_P2 = x0_P2 && l_P2 splitn 1 : isinteger && l_P2 = x2_P2 && a_t2_P2 > 40 && a_t1_P2 = x4_1_P2 && a_t2_P2 = x4_2_P2 && a select 1 = [I@15b[1] && 1 >= 0 && 1 < [I@15b_length && a select 0 = [I@15b[0] && 0 >= 0 && 0 < [I@15b_length && [I@15b_length >= 0 && a = x6}	 effect: {x5_2_P1 = x8 select 0, x5_2_P2 = x8 select 1, x1_P1 = line_P1 splitn 1 ,, x2_P1 = x1_P1, x3_1_P1 = l_P1 splitn 0 :, x3_2_P1 = l_P1 splitn 1 : str.to.int , x4_1_P1 = x3_1_P1, x4_2_P1 = x3_2_P1, x5_1_P1 = a_t1_P1 str.++  Fail, x5_2_P1 = 1, x1_P2 = line_P2 splitn 1 ,, x2_P2 = x1_P2, x3_1_P2 = l_P2 splitn 0 :, x3_2_P2 = l_P2 splitn 1 : str.to.int , x4_1_P2 = x3_1_P2, x4_2_P2 = x3_2_P2, x5_1_P2 = a_t1_P2 str.++  Pass, x5_2_P2 = 1, x6 = x8, x7 = [I@15b[1] + [I@15b[0], x9_1 = x5_1, x9_2 = x7} ---------
+run z3 for file /Users/malig/Downloads/cvc4-1.5/builds/x86_64-apple-darwin16.7.0/production/bin/cvc4 --strings-exp --lang smt2 < /tmp/-350088213
+********** Satisfying Assigments **********************************************
+(define-fun line_P21 () String ":41")
+(define-fun line_P11 () String ":0")
+(define-fun line_P2 () String " ,:41")
+(define-fun line_P1 () String " ,:0")
+*******************************************************************************
+
+
+------------------------
+------------------------
+Paths :  35
+path constraint: {v_t2 <= 40 && v_t2 = x9_2 && v_t1 = x9_1 && line_P1 = x0_P1 && l_P1 splitn 1 : isinteger && l_P1 = x2_P1 && a_t2_P1 > 40 && a_t1_P1 = x4_1_P1 && a_t2_P1 = x4_2_P1 && line_P2 = x0_P2 && l_P2 splitn 1 : isinteger && l_P2 = x2_P2 && a_t2_P2 > 40 && a_t1_P2 = x4_1_P2 && a_t2_P2 = x4_2_P2 && a select 1 = [I@15b[1] && 1 >= 0 && 1 < [I@15b_length && a select 0 = [I@15b[0] && 0 >= 0 && 0 < [I@15b_length && [I@15b_length >= 0 && a = x6}	 effect: {x5_2_P1 = x8 select 0, x5_2_P2 = x8 select 1, x1_P1 = line_P1 splitn 1 ,, x2_P1 = x1_P1, x3_1_P1 = l_P1 splitn 0 :, x3_2_P1 = l_P1 splitn 1 : str.to.int , x4_1_P1 = x3_1_P1, x4_2_P1 = x3_2_P1, x5_1_P1 = a_t1_P1 str.++  Pass, x5_2_P1 = 1, x1_P2 = line_P2 splitn 1 ,, x2_P2 = x1_P2, x3_1_P2 = l_P2 splitn 0 :, x3_2_P2 = l_P2 splitn 1 : str.to.int , x4_1_P2 = x3_1_P2, x4_2_P2 = x3_2_P2, x5_1_P2 = a_t1_P2 str.++  Pass, x5_2_P2 = 1, x6 = x8, x7 = [I@15b[1] + [I@15b[0], x9_1 = x5_1, x9_2 = x7} ---------
+run z3 for file /Users/malig/Downloads/cvc4-1.5/builds/x86_64-apple-darwin16.7.0/production/bin/cvc4 --strings-exp --lang smt2 < /tmp/-1473209548
+********** Satisfying Assigments **********************************************
+(define-fun line_P21 () String ":41")
+(define-fun line_P11 () String ":41")
+(define-fun line_P2 () String " ,:41")
+(define-fun line_P1 () String " ,:41")
+*******************************************************************************
+
+
+------------------------
+Total Test Generation Time : 13332 ms
+Total Solver Time : 8240 ms
+Total Constraint generation Time: 5092 ms
