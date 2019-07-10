@@ -13,7 +13,8 @@
 
 ### Running benchmarks on pre-generated Test using BigTest:
  - Run TestSuiteRunner.scala under BenchmarkFault with dependency on Spark 2.1.0
- - To run applciations on original dataset, orignal datasets can be acquired from [PUMA](https://engineering.purdue.edu/~puma/datasets.htm) and data generation [scripts](https://github.com/maligulzar/BigTest/tree/JPF-integrated/BenchmarksFault/src/datagen) 
+ - To run applciations on original dataset, orignal datasets can be acquired from [PUMA](https://engineering.purdue.edu/~puma/datasets.htm) and data generation [scripts](https://github.com/maligulzar/BigTest/tree/JPF-integrated/BenchmarksFault/src/datagen)
+ - A sample bigtest running log is available [here](https://github.com/maligulzar/BigTest/blob/JPF-integrated/BenchmarksFault/src/gradeanalysis/bigtest_gradanalysis.log) and a sample pathcondition SMT query is available [here](https://github.com/maligulzar/BigTest/blob/JPF-integrated/BenchmarksFault/src/gradeanalysis/pathcondition3.smt) 
  
  # Run End-to-End BigTest 
  
