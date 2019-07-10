@@ -63,6 +63,12 @@
             do this for both jpf-core and jpf-symbc
         Update JPF.java (jpf-core)
         ignore warnings when launching
+        To run your own DISC application two things are required:
+            - Applications in scala 
+            - JPF configuration file 
+        Each benchmark contains a comment at the end of the file that has a JPF configuration. 
+        To run BigTest, follow the procedue to run JPFCore and append the following cmd arguemnts *-enableBT <filename>*
+        JPF will automatically look for filename.class and filename.JPF
 ### Path fixes required: find and replace "up_jpf" -> "Test-..." (Soon to be fixed)
      Peform a text search on the whole repository to update paths:
     - check for malig on path. Especially, Configuration and SystemCommandHandler
