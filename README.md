@@ -12,8 +12,8 @@
 * **fse_bigtest_2019.pdf** --> *The final version BigTest paper*
 
 ## Download latest version of Scala-IDE (this was tested on eclipse 4.7.1)
-Import 4 projects (jpf-core, jpf-symbc, udfextractor, symexScala) into eclipse using Java/Scala project (use source as working directory). Eclipse might not load the libraries under /lib folder. If that happens, manually load the jars using Eclipse project preferences menue. 
-At the end of this step, you should have 4 projects loaded into Eclipse. These steps are explained individual below. 
+    Import 4 projects (jpf-core, jpf-symbc, udfextractor, symexScala) into eclipse using Java/Scala project (use source as working directory). Eclipse might not load the libraries under /lib folder. If that happens, manually load the jars using Eclipse project preferences menue. 
+    At the end of this step, you should have 4 projects loaded into Eclipse. These steps are explained individual below. 
         
   ### Download z3 repo in base project dir
         https://github.com/Z3Prover/z3
@@ -64,8 +64,8 @@ At the end of this step, you should have 4 projects loaded into Eclipse. These s
         Update JPF.java (jpf-core)
         ignore warnings when launching
 ### Path fixes required: find and replace "up_jpf" -> "Test-..." (Soon to be fixed)
-  Peform a text search on the whole repository to update paths:
-   * check for malig on path. Especially, Configuration and SystemCommandHandler
-   * also check for amytis
-   * SymbolicResult: line 74ish, replace with your cvc4 binary
-   * SymbolicResult: change Z3DIR to z3 directory
+     Peform a text search on the whole repository to update paths:
+    - check for malig on path. Especially, Configuration and SystemCommandHandler
+    - also check for amytis
+    - SymbolicResult: line 74ish, replace with your cvc4 binary
+    - SymbolicResult: change Z3DIR to z3 directory
