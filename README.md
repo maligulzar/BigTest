@@ -56,7 +56,7 @@
     3. Compiled Jpf-core and Jpf-symbc using SymexScala's and udfextractors's jar.
 
   
-  # Run: 
+ ### Run: 
         Configurations -> Java Applications -> run-JPF-symbc (change VM argument for java lib path)
         Uncomment Test2.scala (from SymExec)
         You may need to re-export symex + udfextractor (uncomment the examples dir if so)
@@ -75,3 +75,6 @@
     - also check for amytis
     - SymbolicResult: line 74ish, replace with your cvc4 binary
     - SymbolicResult: change Z3DIR to z3 directory
+
+### Running benchmarks on pre-generated Test using BigTest:
+ - Run TestSuiteRunner.scala with dependency on Spark 2.1.0
