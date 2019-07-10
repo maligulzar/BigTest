@@ -12,20 +12,16 @@
 * **fse_bigtest_2019.pdf** --> *The final version BigTest paper*
 
 ## Download latest version of Scala-IDE (this was tested on eclipse 4.7.1)
-    Copy only my code changes into a functional end-to-end application
-    Will need to set up eclipse configs from Gulzar
-        Import each project into eclipse using Java/Scala project (use source as working directory)
-        copy archive contents (that gulzar sent) into jpf-integrated folder
+Import 4 projects (jpf-core, jpf-symbc, udfextractor, symexScala) into eclipse using Java/Scala project (use source as working directory). Eclipse might not load the libraries under /lib folder. If that happens, manually load the jars using Eclipse project preferences menue. 
+At the end of this step, you should have 4 projects loaded into Eclipse. These steps are explained individual below. 
         
   ### Download z3 repo in base project dir
         https://github.com/Z3Prover/z3
         https://github.com/Z3Prover/z3#building-z3-using-make-and-gccclang
         Also set up python bindings
             https://github.com/Z3Prover/z3#python
-  ### Install cvc4 (I lucked out andhad it already)
-        SymbolicResult: line 74ish, replace with your cvc4 binary
-    SymbolicResult: change Z3DIR to z3 directory
-  
+  ### Install cvc4:
+         Download Cvc4 [here](http://cvc4.cs.stanford.edu/downloads/)
         
   ### UDFExtractor:
         mkdir UDFExtractor/lib and unzip the 2nd archive folder there (jars)
@@ -40,7 +36,7 @@
             --> 4 jars total
         Edit SymbolicResult -> remove "import sun.misc.ObjectInputFilter.Config" (not needed)
         "Examples" folder -> Mark as not source (no need to compile)
-            alt: comment out the two scala files
+         alternate : comment out the two scala files
   ### jpf-symbc:
         Project properties (SymExec -> Java Build Path -> Libraries, add lib folder)
             remove the existing jar files (almost all current libraries)
@@ -53,14 +49,23 @@
             Jar file name: jpf-core/lib/sym.jar
   
   
+### Note: 
+    BigTest has cyclic dependency i.e. SymexScala depends on original (not our custome) jpf-symbc's jar and jpf-core's jar. If you face dependency issues, compiled both udfextractor and symexScala using  original jpf from [JavaPathFinder](https://github.com/javapathfinder/jpf-core). To summarize, 
+    1. Get jars files of original JPF-core and JPF-symbc
+    2. Compile UDFExtractor and then SymexScala (symexscala depends on jar of udfextactor)
+    3. Compiled Jpf-core and Jpf-symbc using SymexScala's and udfextractors's jar.
+
+  
   # Run: 
         Configurations -> Java Applications -> run-JPF-symbc (change VM argument for java lib path)
         Uncomment Test2.scala (from SymExec)
-        may need to re-export symex + udfextractor (uncomment the examples dir if so)
+        You may need to re-export symex + udfextractor (uncomment the examples dir if so)
             do this for both jpf-core and jpf-symbc
         Update JPF.java (jpf-core)
         ignore warnings when launching
-### TODO along the way: find and replace "up_jpf" -> "Test-..."
-    also check for malig on path
-        Gulzar: Configuration and SystemCommandHandler
-    also check for amytis (Shagha)
+### Path fixes required: find and replace "up_jpf" -> "Test-..." (Soon to be fixed)
+  Peform a text search on the whole repository to update paths:
+   * check for malig on path. Especially, Configuration and SystemCommandHandler
+   * also check for amytis
+   * SymbolicResult: line 74ish, replace with your cvc4 binary
+   * SymbolicResult: change Z3DIR to z3 directory
