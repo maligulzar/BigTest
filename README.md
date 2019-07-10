@@ -1,16 +1,16 @@
 # Test-Minimization-in-Big-Data
 
-###Directory Structure:
-    - root
-            - BenchmarkFault *Contains the source code of both origianl and faulty benchmark programs*
-            - SymexScala  * The core of BigTest that contains the implementation of following components*
+### Directory Structure:
+    1. root
+            * BenchmarkFault > Contains the source code of both origianl and faulty benchmark programs
+            * SymexScala  > The core of BigTest that contains the implementation of following components
                 - Symbolic execution of UDF
                 - Programmatic representation of logical specifications
                 - UDF and Dataflow integration
                 - Optimzation of SMT query and Invocatoin of theorem solvers
-            - UdfExtractor *Contains the implementation of transforming Scala code into Java and then extracting each UDF into a seperate class*
-            - jpf-core and jpf-symbc *Contains custom version of JPF and SPF*
-            - fse_bigtest_2019.pdf *The final version BigTest paper*
+            * UdfExtractor > Contains the implementation of transforming Scala code into Java and then extracting each UDF into a seperate class
+            * jpf-core and jpf-symbc >Contains custom version of JPF and SPF
+            * fse_bigtest_2019.pdf >The final version BigTest paper
 
 ## Download latest version of Scala-IDE (this was tested on eclipse 4.7.1)
     Copy only my code changes into a functional end-to-end application
