@@ -77,4 +77,5 @@
     - SymbolicResult: change Z3DIR to z3 directory
 
 ### Running benchmarks on pre-generated Test using BigTest:
- - Run TestSuiteRunner.scala with dependency on Spark 2.1.0
+ - Run TestSuiteRunner.scala under BenchmarkFault with dependency on Spark 2.1.0
+ - To run applciations on original dataset, orignal datasets can be acquired from [PUMA](https://engineering.purdue.edu/~puma/datasets.htm) and data generation scripts 
