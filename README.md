@@ -1,4 +1,4 @@
-# Test-Minimization-in-Big-Data
+# BigTest: White-Box Testing of Big Data Analytics with Complex User-Defined Functions
 
 ### Directory Structure:
 * **BenchmarkFault** --> Contains the source code of both origianl and faulty benchmark programs
@@ -11,24 +11,31 @@
 * **jpf-core and jpf-symbc** --> *Contains custom version of JPF and SPF*
 * **fse_bigtest_2019.pdf** --> *The final version BigTest paper*
 
-## Download latest version of Scala-IDE (this was tested on eclipse 4.7.1)
+### Running benchmarks on pre-generated Test using BigTest:
+ - Run TestSuiteRunner.scala under BenchmarkFault with dependency on Spark 2.1.0
+ - To run applciations on original dataset, orignal datasets can be acquired from [PUMA](https://engineering.purdue.edu/~puma/datasets.htm) and data generation [scripts](https://github.com/maligulzar/BigTest/tree/JPF-integrated/BenchmarksFault/src/datagen)
+ - A sample bigtest running log is available [here](https://github.com/maligulzar/BigTest/blob/JPF-integrated/BenchmarksFault/src/gradeanalysis/bigtest_gradanalysis.log) and a sample pathcondition SMT query is available [here](https://github.com/maligulzar/BigTest/blob/JPF-integrated/BenchmarksFault/src/gradeanalysis/pathcondition3.smt) 
+ 
+ # Run End-to-End BigTest 
+ 
+### Download latest version of Scala-IDE (this was tested on eclipse 4.7.1)
     Import 4 projects (jpf-core, jpf-symbc, udfextractor, symexScala) into eclipse using Java/Scala project (use source as working directory). Eclipse might not load the libraries under /lib folder. If that happens, manually load the jars using Eclipse project preferences menue. 
     At the end of this step, you should have 4 projects loaded into Eclipse. These steps are explained individual below. 
         
-  ### Download z3 repo in base project dir
+### Download z3 repo in base project dir
         https://github.com/Z3Prover/z3
         https://github.com/Z3Prover/z3#building-z3-using-make-and-gccclang
         Also set up python bindings
             https://github.com/Z3Prover/z3#python
-  ### Install cvc4:
+### Install cvc4:
          Download Cvc4 [here](http://cvc4.cs.stanford.edu/downloads/)
         
-  ### UDFExtractor:
+### UDFExtractor:
         mkdir UDFExtractor/lib and unzip the 2nd archive folder there (jars)
         Project properties (UDFExtractor -> Java Build Path -> Libraries, add lib folder)
             remove the existing jar files (almost all current libraries)
             add new lib folder jars as external jars (it's mostly to fix up the jar paths)
-  ### SymExec:
+### SymExec:
         Project properties (SymExec -> Java Build Path -> Libraries, add lib folder)
             remove the existing jar files (almost all current libraries)
             Add external library: jpf-symbc/build/*.jar (three jars: jpf-symbc{,-annotations,-classes})
@@ -37,11 +44,11 @@
         Edit SymbolicResult -> remove "import sun.misc.ObjectInputFilter.Config" (not needed)
         "Examples" folder -> Mark as not source (no need to compile)
          alternate : comment out the two scala files
-  ### jpf-symbc:
+### jpf-symbc:
         Project properties (SymExec -> Java Build Path -> Libraries, add lib folder)
             remove the existing jar files (almost all current libraries)
             Add all jars in jpf-symbc/lib
-  ### jpf-core:
+### jpf-core:
         create site.properties in .jpf/"" according to https://github.com/javapathfinder/jpf-core/wiki/Creating-site-properties-file
         UDFExtractor -> right click -> Export -> Jar 
             uncheck all files (click the folder name) and expand dropdown -> only select "src" (no lib)
@@ -75,6 +82,3 @@
     - also check for amytis
     - SymbolicResult: line 74ish, replace with your cvc4 binary
     - SymbolicResult: change Z3DIR to z3 directory
-
-### Running benchmarks on pre-generated Test using BigTest:
- - Run TestSuiteRunner.scala with dependency on Spark 2.1.0
