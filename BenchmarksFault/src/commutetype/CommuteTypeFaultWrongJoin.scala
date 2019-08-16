@@ -55,7 +55,7 @@ object CommuteTypeFaultWrongJoin extends SparkRDDGenerator{
             (cols(0), cols(1))
           }
           .filter(s => s._2.equals("Palms"))
-        val joined = trips.fullOuterJoin(locations)  // Injecting fault by using the wrong type of join ==> Should lead to wrong output or crash
+        val joined = trips.rightOuterJoin(locations)  // Injecting fault by using the wrong type of join ==> Should lead to wrong output or crash
         joined
           .map { s =>
             // Checking if speed is < 25mi/hr
@@ -92,13 +92,13 @@ object CommuteTypeFaultWrongJoin extends SparkRDDGenerator{
         (cols(0), cols(1))
       }
       .filter(s => s._2.equals("Palms"))
-    val joined = trips.fullOuterJoin(locations)  // Injecting fault by using the wrong type of join ==> Should lead to wrong output or crash
+    val joined = trips.rightOuterJoin(locations)  // Injecting fault by using the wrong type of join ==> Should lead to wrong output or crash
     joined
       .map { s =>
         // Checking if speed is < 25mi/hr
-        if (s._2._1.get > 40) {
+        if (s._2._1 > 40) {
           ("car", 1)
-        } else if (s._2._1.get > 15) {
+        } else if (s._2._1 > 15) {
           ("public", 1)
         } else {
           ("onfoot", 1)

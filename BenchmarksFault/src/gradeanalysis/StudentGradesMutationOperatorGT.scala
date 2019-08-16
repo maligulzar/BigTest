@@ -7,13 +7,12 @@ import utils.SparkRDDGenerator
 /**
   * Created by malig on 1/11/19.
   */
-object StudentGradesFaultWrongPredicate extends SparkRDDGenerator{
+object StudentGradesMutationOperatorGT extends SparkRDDGenerator{
 
   def main(args: Array[String]): Unit = {
     val conf = new SparkConf()
     conf.setMaster("local[*]")
     conf.setAppName("Weather")
-
     val data1 = Array(":0\n:0",	":0\n:41",	":0\n ,:0",	":0\n ,:41",	":41\n:0"	,":41\n:41"	,":41\n ,:0",	":41\n ,:41",	" ,:0\n:0"	,
       " ,:0\n:41"	," ,:0\n ,:0",	" ,:0\n ,:41"	," ,:41\n ,:0",	" ,:41\n:41",	" ,:41\n ,:0",	" ,:41\n ,:41",	"",	" ,")
 
@@ -31,13 +30,13 @@ object StudentGradesFaultWrongPredicate extends SparkRDDGenerator{
             (a(0) , a(1).toInt)
           }
           .map { a =>
-            if (a._2 > 1)  // Injecting fault by using wrong predicate ==> should lead to wrong output
+            if (a._2 > 40)
               (a._1 + " Pass", 1)
             else
               (a._1 + " Fail", 1)
           }
           .reduceByKey(_ + _)
-          .filter(v => v._2 > 1)
+          .filter(v => v._2 <= 1) //Injecting fault by mutating > operator with <= ==> should produce wrong output
           .collect
           .foreach(println)
       }
@@ -59,12 +58,13 @@ object StudentGradesFaultWrongPredicate extends SparkRDDGenerator{
         (a(0) , a(1).toInt)
       }
       .map { a =>
-        if (a._2 >= 0)  // Injecting fault by using wrong predicate ==> should lead to wrong output
+        if (a._2 > 40)
           (a._1 + " Pass", 1)
         else
           (a._1 + " Fail", 1)
       }
       .reduceByKey(_ + _)
-      .filter(v => v._2 > 1).map(m => m._1 +","+ m._2)
+      .filter(v => v._2 <= 1) //Injecting fault by mutating > operator with <= ==> should produce wrong output
+      .map(m => m._1 +","+ m._2)
   }
 }

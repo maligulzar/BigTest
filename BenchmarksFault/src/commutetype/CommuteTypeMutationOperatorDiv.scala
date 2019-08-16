@@ -44,9 +44,8 @@ object CommuteTypeMutationOperatorDiv extends SparkRDDGenerator {
         val trips = sc.parallelize(Array(data1(i)))
           .map { s =>
             val cols = s.split(",")
-            (cols(1), Integer.parseInt(cols(3)) * Integer.parseInt(cols(4)))
-            // injecting fault by mutation the div operator with mulitply ==> should lead to wrong output
-           }
+            (cols(1), Integer.parseInt(cols(3)) / Integer.parseInt(cols(4)))
+          }
         val locations = sc.parallelize(Array(data2(i)))
           .map { s =>
             val cols = s.split(",")
@@ -82,8 +81,7 @@ object CommuteTypeMutationOperatorDiv extends SparkRDDGenerator {
     val trips = input1
       .map { s =>
         val cols = s.split(",")
-        (cols(1), Integer.parseInt(cols(3)) % Integer.parseInt(cols(4)))
-        // injecting fault by mutation the div operator with mulitply ==> should lead to wrong output
+        (cols(1), Integer.parseInt(cols(3)) / Integer.parseInt(cols(4)))
       }
     val locations = input2
       .map { s =>
@@ -97,7 +95,7 @@ object CommuteTypeMutationOperatorDiv extends SparkRDDGenerator {
         // Checking if speed is < 25mi/hr
         if (s._2._1 > 40) {
           ("car", 1)
-        } else if (s._2._1 > 15) {
+        } else if (s._2._1 < 15) {
           ("public", 1)
         } else {
           ("onfoot", 1)

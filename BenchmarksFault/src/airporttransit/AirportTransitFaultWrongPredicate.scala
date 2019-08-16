@@ -7,8 +7,8 @@ import utils.SparkRDDGenerator
 /**
   * Created by malig on 1/11/19.
   */
-object AirportTransitMutationOperatorGT extends SparkRDDGenerator{
 
+object AirportTransitFaultWrongPredicate extends SparkRDDGenerator{
   def main(args: Array[String]): Unit = {
 
     val conf = new SparkConf()
@@ -45,8 +45,8 @@ object AirportTransitMutationOperatorGT extends SparkRDDGenerator{
             val dep_min = d_hr * 60 + d_min
 
 
-            if (dep_min - arr_min < 0) {
-              return 24 * 60 + dep_min + arr_min  //Injecting mutation by changing < with >= ==> should produce wrong output
+            if (dep_min - arr_min < 10) {           // Injecting fault by modifying the branch condition ==> Should give wrong output
+              return 24 * 60 + dep_min - arr_min
             }
             return dep_min - arr_min
           }
@@ -85,8 +85,8 @@ object AirportTransitMutationOperatorGT extends SparkRDDGenerator{
         val dep_min = d_hr * 60 + d_min
 
 
-        if (dep_min - arr_min < 0) {
-          return 24 * 60 + dep_min + arr_min  //Injecting mutation by changing < with >= ==> should produce wrong output
+        if (dep_min - arr_min < 10) {           // Injecting fault by modifying the branch condition ==> Should give wrong output
+          return 24 * 60 + dep_min - arr_min
         }
         return dep_min - arr_min
       }
