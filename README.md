@@ -1,5 +1,44 @@
 # BigTest: White-Box Testing of Big Data Analytics with Complex User-Defined Functions
 
+## Summary of BigTest 
+Data-intensive scalable computing (DISC) systems such as Google’s MapReduce, Apache Hadoop, and Apache Spark are being leveraged to process massive quantities of data in the cloud. Modern DISC applications pose new challenges in exhaustive, automatic testing because they consist of dataflow operators, and complex user-defined functions (UDF) are prevalent unlike SQL queries. We design a new white-box testing approach, called BigTest to reason about the internal semantics of UDFs in tandem with the equivalence classes created by each dataflow and relational operator. Our evaluation shows that, despite ultra-large scale input data size, real world DISC applications are often significantly skewed and inadequate in terms of test coverage, leaving 34% of Joint Dataflow and UDF (JDU) paths untested. BigTest shows the potential to minimize data size for local testing by 10^5 to 10^8 orders of magnitude while revealing 2X more manually-injected faults than the previous approach. Our experiment shows that only few of the data records (order of tens) are actually required to achieve the same JDU coverage as the entire production data. The reduction in test data also provides CPU time saving of 194X on average, demonstrating that interactive and fast local testing is feasible for big data analytics, obviating the need to test applications on huge production data.
+
+## Team 
+If you encounter any problems, please open an issue or feel free to contact us:
+
+[Muhammad Ali Gulzar](https://people.cs.vt.edu/~gulzar/):  Assistant Professor at Virginia Tech, gulzar@cs.vt.edu;
+
+[Shaghayegh Mardani](https://github.com/ShaghayeghMrdn): PhD student;
+
+[Madan Musuvathi](https://www.microsoft.com/en-us/research/people/madanm/): Partner Research Manager at Microsoft Research  
+
+[Miryung Kim](http://web.cs.ucla.edu/~miryung/): Professor at UCLA, miryung@cs.ucla.edu;
+
+## How to cite 
+Please refer to our FSE'19 paper, [White-box testing of big data analytics with complex user-defined functions](https://people.cs.vt.edu/~gulzar/assets/pdf/fse2019-bigtest.pdf) for more details. 
+
+### Bibtex  
+@inproceedings{10.1145/3338906.3338953,
+author = {Gulzar, Muhammad Ali and Mardani, Shaghayegh and Musuvathi, Madanlal and Kim, Miryung},
+title = {White-Box Testing of Big Data Analytics with Complex User-Defined Functions},
+year = {2019},
+isbn = {9781450355728},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+url = {https://doi.org/10.1145/3338906.3338953},
+doi = {10.1145/3338906.3338953},
+booktitle = {Proceedings of the 2019 27th ACM Joint Meeting on European Software Engineering Conference and Symposium on the Foundations of Software Engineering},
+pages = {290–301},
+numpages = {12},
+keywords = {test generation, map reduce, data intensive scalable computing, symbolic execution, dataflow programs},
+location = {Tallinn, Estonia},
+series = {ESEC/FSE 2019}
+}
+
+[DOI Link](https://doi.org/10.1145/3338906.3338953)
+
+### Video 
+You can find our demonstration video [here](https://doi.org/10.1145/3338906.3338953)
 ### Directory Structure:
 * **BenchmarkFault** --> Contains the source code of both origianl and faulty benchmark programs
 * **SymexScala** --> *The core of BigTest that contains the implementation of following components:*
